@@ -6,11 +6,12 @@
 from __future__ import annotations
 
 import pytest
+from datetime import datetime
 
 from src.errors import ComplianceSkip
 from src.main import cmd_post
 from src.pipeline import Pipeline
-from src.storage.history import History, PostRecord
+from src.storage.history import JST, History, PostRecord
 from src.storage.state import State
 from tests.conftest import make_item
 
@@ -102,7 +103,7 @@ def test_recently_posted_item_is_skipped(config, tmp_path):
     top = scored[0].item
     pipeline.history.append(
         PostRecord(
-            posted_at="2026-08-19T12:00:00+09:00",
+            posted_at=datetime.now(JST).isoformat(timespec="seconds"),
             slot="noon", post_type="product", template_id="objective",
             status="success", text="過去の投稿", has_affiliate_link=True,
             item_code=top.item_code, item_url_hash=top.item_url_hash,
@@ -124,7 +125,7 @@ def test_ramp_up_limits_affiliate_posts_on_early_days(config, tmp_path):
 
     pipeline.history.append(
         PostRecord(
-            posted_at="2026-08-19T12:15:00+09:00",
+            posted_at=datetime.now(JST).isoformat(timespec="seconds"),
             slot="noon", post_type="product", template_id="objective",
             status="success", text="【PR】投稿済み", has_affiliate_link=True,
         )
@@ -156,7 +157,7 @@ def test_similar_text_is_rejected_and_regenerated(config, tmp_path):
     pipeline.builder.commit(first.draft)
     pipeline.history.append(
         PostRecord(
-            posted_at="2026-08-19T12:15:00+09:00",
+            posted_at=datetime.now(JST).isoformat(timespec="seconds"),
             slot="noon", post_type="product", template_id=first.draft.template_id,
             status="success", text=first.draft.text, has_affiliate_link=True,
             item_code=first.draft.primary_item.item_code,

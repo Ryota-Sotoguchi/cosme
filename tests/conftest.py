@@ -55,6 +55,35 @@ def make_item(
     return item
 
 
+# 認証情報の環境変数。開発者の .env がテストへ漏れ込むと、
+# ローカルとCIで結果が変わってしまうので、毎テスト前に必ず消す。
+_CREDENTIAL_ENV_VARS = (
+    "RAKUTEN_APPLICATION_ID",
+    "RAKUTEN_ACCESS_KEY",
+    "RAKUTEN_AFFILIATE_ID",
+    "RAKUTEN_ORIGIN",
+    "THREADS_ACCESS_TOKEN",
+    "THREADS_USER_ID",
+    "THREADS_APP_SECRET",
+    "GH_PAT",
+    "DRY_RUN",
+)
+
+
+@pytest.fixture(autouse=True)
+def isolate_credentials(monkeypatch):
+    """テストを .env から独立させる。
+
+    load_config() は .env を読んで os.environ を埋めるため、
+    このフィクスチャが無いと「認証情報が無いときの挙動」を検証できない。
+    """
+    for name in _CREDENTIAL_ENV_VARS:
+        monkeypatch.delenv(name, raising=False)
+    # 環境変数を消すだけでは足りない。load_config() が呼ばれるたびに
+    # .env から読み直されるので、読み込み自体を止める。
+    monkeypatch.setenv("COSME_SKIP_DOTENV", "1")
+
+
 @pytest.fixture
 def item():
     return make_item()

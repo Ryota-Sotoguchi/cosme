@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import os
+import re
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -26,7 +27,13 @@ def _load_dotenv(path: Path) -> None:
 
     python-dotenv を入れないための最小実装。既存の環境変数は上書きしない
     （GitHub Actions の Secrets が .env に負けないようにするため）。
+
+    COSME_SKIP_DOTENV=1 のときは読み込まない。テストを開発者の .env から
+    独立させるための逃げ道（環境変数を消すだけでは、load_config() のたびに
+    .env から読み直されてしまうため）。
     """
+    if os.environ.get("COSME_SKIP_DOTENV") == "1":
+        return
     if not path.is_file():
         return
     for raw in path.read_text(encoding="utf-8").splitlines():
@@ -38,6 +45,30 @@ def _load_dotenv(path: Path) -> None:
         value = value.strip().strip('"').strip("'")
         if key and key not in os.environ:
             os.environ[key] = value
+
+
+def update_dotenv(key: str, value: str, path: Path | None = None) -> Path:
+    """.env の1行を書き換える（無ければ追記する）。
+
+    値を標準出力に出さずにトークンを差し替えるための入口。
+    コメントや他の行はそのまま残す。
+    """
+    target = path or (PROJECT_ROOT / ".env")
+    lines = target.read_text(encoding="utf-8").splitlines() if target.is_file() else []
+
+    pattern = re.compile(rf"^\s*{re.escape(key)}\s*=")
+    replaced = False
+    for index, line in enumerate(lines):
+        if pattern.match(line):
+            lines[index] = f"{key}={value}"
+            replaced = True
+    if not replaced:
+        lines.append(f"{key}={value}")
+
+    target.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    target.chmod(0o600)  # 認証情報を含むので他ユーザーから読めないようにする
+    os.environ[key] = value
+    return target
 
 
 def _env_bool(name: str, default: bool) -> bool:
