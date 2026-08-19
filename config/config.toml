@@ -1,0 +1,241 @@
+# ============================================================
+# cosme 運用設定
+# コードを触らずにここだけで運用方針を変更できるようにしている。
+# ============================================================
+
+[account]
+display_name = "コスメ買い物メモ｜コスパ美容"
+concept = "楽天の公開情報ベースでコスパ美容を整理する買い物メモ"
+
+# ------------------------------------------------------------
+# 楽天API
+# ------------------------------------------------------------
+[rakuten]
+# 2026年のインフラ刷新後のドメイン。旧 app.rakuten.co.jp は 2026-05-13 に停止済み。
+endpoint = "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20260701"
+# 上のバージョンが弾かれた場合に順に試す候補（クライアントが自動フォールバックする）
+fallback_endpoints = [
+    "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20220601",
+    "https://openapi.rakuten.co.jp/ichibams/api/IchibaItem/Search/20170706",
+]
+# 新APIは Origin/Referer が無いと 403 を返す。
+# 楽天デベロッパーコンソールの「許可Webサイト」に登録したURLと一致させること。
+# 環境変数 RAKUTEN_ORIGIN があればそちらが優先される。
+origin = "https://github.com/Ryota-Sotoguchi/cosme"
+user_agent = "cosme-bot/1.0 (+https://github.com/Ryota-Sotoguchi/cosme)"
+
+# 1 applicationId につき 1秒1リクエスト以下。安全側に倒して 1.2 秒あける。
+min_interval_seconds = 1.2
+hits_per_page = 30
+max_pages = 3
+connect_timeout = 10.0
+read_timeout = 20.0
+max_retries = 4
+backoff_base_seconds = 1.5
+backoff_max_seconds = 30.0
+
+# ------------------------------------------------------------
+# Threads API
+# ------------------------------------------------------------
+[threads]
+api_base = "https://graph.threads.net/v1.0"
+oauth_base = "https://graph.threads.net"
+max_text_length = 500
+# コンテナ作成から公開までの待機秒数（公式推奨は平均30秒）
+publish_wait_seconds = 30
+connect_timeout = 10.0
+read_timeout = 30.0
+max_retries = 3
+# トークン残日数がこれを下回ったら警告を出す
+token_warn_days = 14
+
+# ------------------------------------------------------------
+# 商品選定
+# ------------------------------------------------------------
+[selection]
+min_price = 500
+max_price = 5000
+# レビューが少なすぎる商品は客観情報として弱いので除外
+min_review_count = 5
+min_review_average = 3.5
+require_image = true
+require_available = true
+# 1回の投稿で検討する候補数の上限
+candidate_pool = 90
+
+# 対象ジャンル（楽天市場 美容・コスメ・香水 100939 配下）
+# genre_id は API から実データで検証済みのものだけを置く
+[[selection.genres]]
+id = 216131
+name = "スキンケア"
+label = "スキンケア"
+
+[[selection.genres]]
+id = 216129
+name = "ベースメイク・メイクアップ"
+label = "メイク"
+
+[[selection.genres]]
+id = 100944
+name = "ヘアケア・スタイリング"
+label = "ヘアケア"
+
+[[selection.genres]]
+id = 216130
+name = "ボディケア"
+label = "ボディケア"
+
+[[selection.genres]]
+id = 216185
+name = "メイク道具・ケアグッズ"
+label = "美容小物"
+
+# ------------------------------------------------------------
+# 除外（広告表現リスクの高いカテゴリーを機械的に落とす）
+# ------------------------------------------------------------
+[exclusion]
+# 商品名・キャッチコピーにこれらが含まれたら無条件で除外
+keywords = [
+    "医薬品", "第1類", "第一類", "第2類", "第二類", "第3類", "第三類",
+    "指定第2類", "指定第二類",
+    "医薬部外品", "薬用", "薬用化粧品",
+    "サプリ", "サプリメント", "栄養補助", "健康食品", "機能性表示食品", "特定保健用食品", "トクホ",
+    "ダイエット", "痩身", "脂肪燃焼", "カロリーカット",
+    "育毛", "発毛", "養毛", "発毛促進", "薄毛", "AGA", "ミノキシジル",
+    "美容医療", "美容外科", "クリニック", "施術", "注入", "注射",
+    "治療", "治療薬", "処方", "処方箋", "medical",
+    "ピアッサー", "コンタクト", "カラコン", "度あり", "度なし",
+    "妊娠", "避妊", "生理用品",
+    "白髪染め",
+    "まつげ美容液", "まつ毛美容液",
+    "デリケートゾーン",
+    "訳あり", "アウトレット", "福袋", "詰め合わせ", "セット売り",
+    "業務用", "サンプル", "お試しサンプル", "非売品",
+]
+# これらのジャンルIDおよびその配下は除外
+genre_ids = [
+    551167,   # 医薬品・コンタクト・介護
+    100938,   # ダイエット・健康
+    100227,   # 食品
+    551169,   # スイーツ・お菓子
+]
+# ショップ名にこれらが含まれる場合は除外
+shop_keywords = ["薬局", "薬店", "ドラッグ", "調剤"]
+
+# ------------------------------------------------------------
+# スコアリング重み（合計で正規化されるので相対値でよい）
+# ------------------------------------------------------------
+[scoring.weights]
+review_count = 3.0        # レビュー件数（対数正規化）: 客観性が最も高いので最重視
+review_average = 2.5      # レビュー平均
+price_affordability = 2.0 # 価格の手頃さ（コスパ重視コンセプト）
+postage_free = 1.5        # 送料無料
+point_rate = 0.8          # ポイント倍率
+affiliate_rate = 0.4      # アフィリエイト料率: 意図的に低く抑える
+has_image = 0.5           # 商品画像あり
+
+[scoring]
+# アフィリエイト料率が総合スコアに占める寄与率の上限。
+# 「料率が高いだけの商品」が選ばれ続けるのを構造的に防ぐ。
+affiliate_rate_contribution_cap = 0.10
+# 偏り抑制（直近履歴に同じ属性が出ているほど減点）
+shop_penalty = 0.35
+brand_penalty = 0.30
+genre_penalty = 0.20
+# 偏り判定に使う直近投稿件数
+recency_window = 20
+
+# ------------------------------------------------------------
+# 重複防止
+# ------------------------------------------------------------
+[dedup]
+# 同一商品の再投稿を禁止する日数
+item_cooldown_days = 30
+# 同一ショップの再登場を避ける日数
+shop_cooldown_days = 3
+# 直近何件の本文と類似度比較するか
+similarity_window = 60
+# 類似度がこれを超えたら不合格（0.0-1.0）
+max_similarity = 0.72
+# 同一テンプレートの連続使用禁止回数
+template_cooldown = 4
+
+# ------------------------------------------------------------
+# 投稿スケジュール（JST）
+# GitHub Actions 側の cron と一致させること
+# ------------------------------------------------------------
+[[schedule]]
+slot = "morning"
+time_jst = "07:30"
+cron_utc = "30 22 * * *"
+post_type = "no_link"
+allow_affiliate = false
+
+[[schedule]]
+slot = "noon"
+time_jst = "12:15"
+cron_utc = "15 3 * * *"
+post_type = "product"
+allow_affiliate = true
+
+[[schedule]]
+slot = "evening"
+time_jst = "18:00"
+cron_utc = "0 9 * * *"
+post_type = "no_link"
+allow_affiliate = false
+
+[[schedule]]
+slot = "night"
+time_jst = "20:30"
+cron_utc = "30 11 * * *"
+post_type = "product"
+allow_affiliate = true
+
+[[schedule]]
+slot = "late"
+time_jst = "22:30"
+cron_utc = "30 13 * * *"
+post_type = "rotation"
+allow_affiliate = true
+
+# 夜スロットのローテーション順（state.json でカーソルを保持）
+[rotation]
+late = [
+    "product",        # 商品紹介
+    "price_band",     # 価格帯別候補
+    "no_link",        # リンクなし
+    "review_heavy",   # レビュー件数が多い商品の整理
+    "postage_free",   # 送料無料の商品
+    "no_link",        # リンクなし
+    "comparison",     # 比較
+]
+
+# ------------------------------------------------------------
+# ランプアップ（新規アカウントの初期はリンク投稿を抑える）
+# ------------------------------------------------------------
+[ramp_up]
+enabled = true
+# 運用開始からの日数 -> その日に許可するアフィリエイトリンク投稿の最大本数
+# キーは「この日数まで」
+stages = [
+    { until_day = 7, max_link_posts = 1 },
+    { until_day = 14, max_link_posts = 2 },
+]
+# 上記を過ぎた後の通常運転
+default_max_link_posts = 3
+
+# ------------------------------------------------------------
+# コンプライアンス
+# ------------------------------------------------------------
+[compliance]
+pr_marker = "【PR】"
+# PR表記はこの文字数以内（冒頭付近）に無ければ不合格
+pr_marker_max_offset = 20
+allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp"]
+# 1投稿あたりのURL上限
+max_urls = 1
+# 生成をやり直す最大回数
+max_regenerations = 4
+# 候補商品をスキップして次を試す最大回数
+max_item_skips = 12
