@@ -92,7 +92,7 @@ def test_detects_prohibited_categories(text):
 
 def test_clean_objective_text_passes(checker, item):
     text = (
-        "【PR】2,000円前後でスキンケアを探してる人向けのメモ。\n\n"
+        "#PR\n\n2,000円前後でスキンケアを探してる人向けのメモ。\n\n"
         "モイストクレンジングバーム 90g\n\n"
         "・1,980円\n・レビュー1,284件／平均4.4\n・送料無料\n・ポイント2倍\n\n"
         "この価格帯で探してるなら、比較候補には入れやすい。\n\n"
@@ -113,7 +113,7 @@ def test_rejects_affiliate_link_without_pr_marker(checker, item):
 
 def test_rejects_pr_marker_placed_too_late(checker, item):
     filler = "あ" * 60
-    text = f"{filler}\n【PR】\n楽天市場 → {item.affiliate_url}"
+    text = f"{filler}\n#PR\n\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
     assert any(v.category == "pr" for v in result.violations)
 
@@ -126,19 +126,19 @@ def test_no_link_post_does_not_need_pr_marker(checker):
 # URL
 # ======================================================================
 def test_rejects_url_outside_allowlist(checker, item):
-    text = "【PR】メモ。\n\nhttps://evil.example.com/x"
+    text = "#PR\n\nメモ。\n\nhttps://evil.example.com/x"
     result = checker.check(draft_of(text, [item]))
     assert any(v.category == "url" for v in result.violations)
 
 
 def test_rejects_url_not_matching_item_data(checker, item):
     other = "https://hb.afl.rakuten.co.jp/hgc/zzz/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fzzz%2F"
-    result = checker.check(draft_of(f"【PR】メモ。\n\n{other}", [item]))
+    result = checker.check(draft_of(f"#PR\n\nメモ。\n\n{other}", [item]))
     assert any(v.category == "url" for v in result.violations)
 
 
 def test_rejects_too_many_urls(checker, item):
-    text = f"【PR】メモ。\n{item.affiliate_url}\n{item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n{item.affiliate_url}\n{item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
     assert any("URLが多すぎ" in v.detail for v in result.violations)
 
@@ -148,26 +148,26 @@ def test_rejects_too_many_urls(checker, item):
 # ======================================================================
 def test_rejects_price_that_does_not_match_item_data(checker, item):
     """テンプレートが価格を書き換えていたら止める。"""
-    text = f"【PR】メモ。\n\n・1,780円\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n\n・1,780円\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
     assert any(v.category == "data" for v in result.violations)
 
 
 def test_rejects_review_count_that_does_not_match(checker, item):
-    text = f"【PR】メモ。\n\n・1,980円\n・レビュー9,999件\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n\n・1,980円\n・レビュー9,999件\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
     assert any(v.category == "data" for v in result.violations)
 
 
 def test_rejects_review_average_that_does_not_match(checker, item):
-    text = f"【PR】メモ。\n\n・1,980円\n・平均4.9\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n\n・1,980円\n・平均4.9\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
     assert any(v.category == "data" for v in result.violations)
 
 
 def test_accepts_numbers_present_in_item_name(checker, item):
     """商品名に含まれる容量などは事実なので許可する。"""
-    text = f"【PR】メモ。\n\nモイストクレンジングバーム 90g\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n\nモイストクレンジングバーム 90g\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
     assert checker.check(draft_of(text, [item])).passed
 
 
@@ -175,19 +175,19 @@ def test_accepts_numbers_present_in_item_name(checker, item):
 # 重複
 # ======================================================================
 def test_rejects_item_in_cooldown(checker, item):
-    text = f"【PR】メモ。\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]), blocked_item_codes={item.item_code})
     assert any(v.category == "dedup" for v in result.violations)
 
 
 def test_rejects_duplicate_affiliate_url(checker, item):
-    text = f"【PR】メモ。\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]), blocked_url_hashes={item.affiliate_url_hash})
     assert any(v.category == "dedup" for v in result.violations)
 
 
 def test_rejects_same_item_twice_in_one_post(checker, item):
-    text = f"【PR】メモ。\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    text = f"#PR\n\nメモ。\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item, item]))
     assert any("同一投稿内" in v.detail for v in result.violations)
 
@@ -204,14 +204,14 @@ def test_rejects_near_duplicate_text(checker):
 
 def test_allows_different_products_with_same_template(checker):
     """同じ構造でも商品が違えば通す（数値とURLは類似度計算から除外される）。"""
-    a = "【PR】まったく異なる話題その1。スキンケアの選び方の観点を整理する。"
-    b = "【PR】別の観点で、ヘアケアを買うときに見る項目を並べておく話。"
+    a = "#PR\n\nまったく異なる話題その1。スキンケアの選び方の観点を整理する。"
+    b = "#PR\n\n別の観点で、ヘアケアを買うときに見る項目を並べておく話。"
     assert similarity(a, b) < 0.72
 
 
 def test_similarity_ignores_numbers_and_urls():
-    a = "【PR】2,000円前後のメモ。 https://hb.afl.rakuten.co.jp/a"
-    b = "【PR】2,000円前後のメモ。 https://hb.afl.rakuten.co.jp/b"
+    a = "#PR\n\n2,000円前後のメモ。 https://hb.afl.rakuten.co.jp/a"
+    b = "#PR\n\n2,000円前後のメモ。 https://hb.afl.rakuten.co.jp/b"
     assert similarity(a, b) > 0.9
 
 
@@ -276,3 +276,37 @@ def test_every_phrase_part_is_free_of_ng_expressions():
         for part in pool:
             hits = scan(part.text)
             assert not hits, f"{part.id} に NG表現: {[h.label for h in hits]}"
+
+
+# ======================================================================
+# 正規表現の誤検知（実際に起きたもの）
+# ======================================================================
+@pytest.mark.parametrize(
+    "text",
+    [
+        "アイテムを増やせばいいわけでもない",   # 「増やせば」が「やせ」に誤マッチしていた
+        "手を冷やせば落ち着く",
+    ],
+)
+def test_does_not_flag_yase_in_unrelated_verbs(text):
+    """「やせ」の部分一致で無関係な動詞を弾かないこと。"""
+    assert "medical" not in {r.category for r in scan(text)}
+
+
+@pytest.mark.parametrize("text", ["痩せる効果", "やせる体質に", "脂肪燃焼をサポート", "デトックス作用"])
+def test_still_flags_real_slimming_claims(text):
+    assert "medical" in {r.category for r in scan(text)}
+
+
+def test_asking_readers_is_not_a_usage_claim():
+    """読者への問いかけは自分の使用体験ではない。"""
+    assert not scan("スキンケアって何個くらい使ってますか？")
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["これ使ってみたら良かった", "毎日使ってる", "ずっと愛用してる", "リピしてる"],
+)
+def test_first_person_usage_is_still_blocked(text):
+    """トーンを柔らかくしても、使用体験の捏造は止め続ける。"""
+    assert "experience" in {r.category for r in scan(text)}

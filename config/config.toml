@@ -260,7 +260,7 @@ default_max_link_posts = 3
 # コンプライアンス
 # ------------------------------------------------------------
 [compliance]
-pr_marker = "【PR】"
+pr_marker = "#PR"
 # PR表記はこの文字数以内（冒頭付近）に無ければ不合格
 pr_marker_max_offset = 20
 allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp"]

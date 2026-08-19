@@ -19,7 +19,7 @@ def record(**overrides) -> PostRecord:
         post_type="product",
         template_id="objective",
         status="success",
-        text="【PR】テスト本文",
+        text="#PRテスト本文",
         has_affiliate_link=True,
         item_code="shop:1",
         shop_code="shop",
@@ -154,7 +154,7 @@ def test_affiliate_url_is_redacted_from_stored_text(tmp_path):
     """投稿本文に含まれるアフィリエイトURLが履歴に残らないこと。"""
     history = History(tmp_path / "history.jsonl")
     url = "https://hb.afl.rakuten.co.jp/hgc/abc123.def456/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fs%2F1%2F"
-    history.append(record(text=f"【PR】メモ。\n\n楽天市場 → {url}\n\n※投稿時点"))
+    history.append(record(text=f"#PRメモ。\n\n楽天市場 → {url}\n\n※投稿時点"))
 
     raw = (tmp_path / "history.jsonl").read_text(encoding="utf-8")
     assert "hb.afl.rakuten.co.jp" not in raw

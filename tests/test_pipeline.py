@@ -71,7 +71,7 @@ def test_no_link_slots_never_contain_urls(config, tmp_path):
 def test_product_slot_includes_pr_marker_and_link(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path)
     draft = pipeline.run("noon").draft
-    assert draft.text.startswith("【PR】")
+    assert draft.text.startswith("#PR")
     assert "hb.afl.rakuten.co.jp" in draft.text
 
 
@@ -127,7 +127,7 @@ def test_ramp_up_limits_affiliate_posts_on_early_days(config, tmp_path):
         PostRecord(
             posted_at=datetime.now(JST).isoformat(timespec="seconds"),
             slot="noon", post_type="product", template_id="objective",
-            status="success", text="【PR】投稿済み", has_affiliate_link=True,
+            status="success", text="#PR投稿済み", has_affiliate_link=True,
         )
     )
     pipeline.history._records = None
@@ -222,7 +222,7 @@ def test_dry_run_does_not_post_and_records_dry_run(config, tmp_path, monkeypatch
     records = History(config.history_path).load()
     assert len(records) == 1
     assert records[0].status == "dry_run"
-    assert records[0].text.startswith("【PR】")
+    assert records[0].text.startswith("#PR")
 
 
 def test_live_run_posts_and_records_post_id(config, tmp_path, monkeypatch):

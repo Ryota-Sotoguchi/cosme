@@ -82,7 +82,11 @@ class FactSet:
 
 
 def build_facts(item: RakutenItem, *, bullet: str = "・") -> FactSet:
-    """商品から箇条書き用の事実行を作る。取得できた項目だけを並べる。"""
+    """商品から事実行を作る。取得できた項目だけを並べる。
+
+    箇条書き記号は控えめにする。記号を並べると「Botの表」に見えて、
+    人が書いたメモらしさが消えるため。
+    """
     facts = FactSet(item=item)
 
     price_text = format_price(item.item_price)
@@ -92,7 +96,7 @@ def build_facts(item: RakutenItem, *, bullet: str = "・") -> FactSet:
     if item.review_count is not None and item.review_average is not None and item.review_count > 0:
         avg = format_review_average(item.review_average)
         cnt = format_review_count(item.review_count)
-        facts.add(f"{bullet}レビュー{cnt}／平均{avg}")
+        facts.add(f"{bullet}レビュー{cnt}、平均{avg}")
         facts.allow(item.review_count, avg)
     elif item.review_count is not None and item.review_count > 0:
         cnt = format_review_count(item.review_count)
@@ -108,6 +112,43 @@ def build_facts(item: RakutenItem, *, bullet: str = "・") -> FactSet:
         facts.allow(item.point_rate)
 
     return facts
+
+
+def sentence_facts(item: RakutenItem) -> tuple[str, set[str]]:
+    """事実を1〜2文の話し言葉にする。
+
+    「・1,540円」と並べるより「1,540円で送料無料。」のほうが
+    人が書いたメモに近い。
+    """
+    allowed: set[str] = {
+        normalize_number(str(item.item_price)),
+        normalize_number(str(price_band_value(item.item_price))),
+    }
+
+    head = format_price(item.item_price)
+    if item.is_postage_free:
+        head += "で送料無料"
+    head += "。"
+
+    tail_parts: list[str] = []
+    if item.review_count and item.review_count > 0:
+        allowed.add(normalize_number(str(item.review_count)))
+        if item.review_average is not None:
+            avg = format_review_average(item.review_average)
+            allowed.add(normalize_number(avg))
+            tail_parts.append(
+                f"レビューは{format_review_count(item.review_count)}で平均{avg}"
+            )
+        else:
+            tail_parts.append(f"レビューは{format_review_count(item.review_count)}")
+
+    if item.point_rate is not None and item.point_rate > 1:
+        rate = format_point_rate(item.point_rate)
+        allowed.add(normalize_number(str(item.point_rate)))
+        tail_parts.append(f"ポイントは{rate}")
+
+    text = head + ("、".join(tail_parts) + "。" if tail_parts else "")
+    return text, allowed
 
 
 def inline_facts(item: RakutenItem) -> tuple[str, set[str]]:
