@@ -3,7 +3,8 @@
   "part_history": {
     "closing": [
       "cl_compare",
-      "cl_candidate"
+      "cl_candidate",
+      "cl_push"
     ],
     "cta": [
       "cta_rakuten"
@@ -12,7 +13,11 @@
       "dc_point"
     ],
     "fact_intro": [
-      "fi_plain"
+      "fi_plain",
+      "fi_soft"
+    ],
+    "opening": [
+      "op_curious"
     ],
     "topic": [
       "nl_budget_first",
@@ -29,7 +34,8 @@
     "topic",
     "topic",
     "topic",
-    "checklist"
+    "checklist",
+    "objective"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
