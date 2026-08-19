@@ -307,3 +307,41 @@ def test_transient_failure_returns_transient_exit_code(config, tmp_path, monkeyp
 
     assert cmd_post(config, _Args("noon")) == 2
     assert History(config.history_path).load()[0].status == "failed"
+
+
+def test_roundup_posts_use_one_category(config, tmp_path):
+    """複数商品を並べる投稿は、見出しのカテゴリーと中身を一致させる。
+
+    混ざっていると「ヘアケア、並べてみた」と言いながらメイクブラシが
+    出てくることになり、読み手を誤解させる。
+    """
+    from tests.conftest import make_item
+
+    mixed = []
+    for i in range(4):
+        mixed.append(make_item(item_code=f"h{i}:{i}", shop_code=f"h{i}",
+                               genre_label="ヘアケア", review_count=500 + i))
+    for i in range(4):
+        mixed.append(make_item(item_code=f"m{i}:{i}", shop_code=f"m{i}",
+                               genre_label="メイク", review_count=900 + i))
+
+    pipeline = make_pipeline(config, tmp_path, items=mixed)
+    for post_type in ("price_band", "review_heavy", "comparison"):
+        scored = pipeline.gather_candidates(post_type)
+        needed = 3 if post_type != "comparison" else 2
+        ordered = pipeline._same_category_first(scored, needed)
+        labels = {
+            (s.item.raw or {}).get("_genre_label") for s in ordered[:needed]
+        }
+        assert len(labels) == 1, f"{post_type}: カテゴリーが混在 {labels}"
+
+
+def test_same_category_first_falls_back_when_no_group_is_large_enough(config, tmp_path):
+    """どのカテゴリーも件数が足りないときは、元の順序を壊さない。"""
+    from tests.conftest import make_item
+
+    items = [make_item(item_code=f"x{i}:{i}", shop_code=f"x{i}",
+                       genre_label=f"cat{i}") for i in range(3)]
+    pipeline = make_pipeline(config, tmp_path, items=items)
+    scored = pipeline.gather_candidates("product")
+    assert pipeline._same_category_first(scored, 3) == scored

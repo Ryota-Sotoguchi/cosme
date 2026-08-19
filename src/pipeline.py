@@ -179,6 +179,28 @@ class Pipeline:
         )
         return scored
 
+
+    @staticmethod
+    def _same_category_first(scored: list[ScoredItem], needed: int) -> list[ScoredItem]:
+        """複数商品を並べる投稿では、同じカテゴリーの商品が先に来るようにする。
+
+        見出しのカテゴリー名は1件目から取るので、混ざっていると
+        「ヘアケア、迷ってるので並べてみた」と言いながらメイクブラシが
+        並ぶことになる。読み手を誤解させるので揃える。
+        """
+        groups: dict[str, list[ScoredItem]] = {}
+        for entry in scored:
+            label = (entry.item.raw or {}).get("_genre_label", "")
+            groups.setdefault(label, []).append(entry)
+
+        # needed 件そろうグループをスコア順に並べ、足りないものは後ろへ回す
+        usable = [g for g in groups.values() if len(g) >= needed]
+        if not usable:
+            return scored
+        usable.sort(key=lambda g: -g[0].score)
+        rest = [e for g in groups.values() if len(g) < needed for e in g]
+        return [e for g in usable for e in g] + rest
+
     # ------------------------------------------------------------------
     def run(self, slot_name: str) -> PipelineResult:
         """スロットに対する投稿草案を1つ作り、コンプライアンス合格まで持っていく。"""
@@ -204,6 +226,8 @@ class Pipeline:
             return self._run_no_link(recent_texts)
 
         scored = self.gather_candidates(post_type)
+        if needed > 1:
+            scored = self._same_category_first(scored, needed)
         max_skips = int(self.config.compliance.get("max_item_skips", 12))
         max_regen = int(self.config.compliance.get("max_regenerations", 4))
 
