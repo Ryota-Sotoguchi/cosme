@@ -1,0 +1,76 @@
+{
+  "count": 3,
+  "page": 1,
+  "first": 1,
+  "last": 3,
+  "hits": 3,
+  "carrier": 0,
+  "pageCount": 1,
+  "Items": [
+    {
+      "itemCode": "cosmeshop:10000123",
+      "itemName": "【送料無料】モイストクレンジングバーム 90g",
+      "catchcopy": "毎日のクレンジングに",
+      "itemPrice": 1980,
+      "itemUrl": "https://item.rakuten.co.jp/cosmeshop/10000123/",
+      "affiliateUrl": "https://hb.afl.rakuten.co.jp/hgc/abcd1234.efgh5678/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fcosmeshop%2F10000123%2F",
+      "affiliateRate": 3.0,
+      "reviewCount": 1284,
+      "reviewAverage": 4.42,
+      "postageFlag": 0,
+      "availability": 1,
+      "pointRate": 2,
+      "mediumImageUrls": [
+        "https://thumbnail.image.rakuten.co.jp/@0_mall/cosmeshop/cabinet/a.jpg?_ex=128x128"
+      ],
+      "shopCode": "cosmeshop",
+      "shopName": "コスメショップ楽天市場店",
+      "genreId": "216131",
+      "taxFlag": 0,
+      "creditCardFlag": 1
+    },
+    {
+      "itemCode": "drugstore:20000456",
+      "itemName": "【第2類医薬品】かゆみ止めクリーム 20g",
+      "catchcopy": "",
+      "itemPrice": 880,
+      "itemUrl": "https://item.rakuten.co.jp/drugstore/20000456/",
+      "affiliateUrl": "https://hb.afl.rakuten.co.jp/hgc/abcd1234.efgh5678/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fdrugstore%2F20000456%2F",
+      "affiliateRate": 5.0,
+      "reviewCount": 92,
+      "reviewAverage": 4.6,
+      "postageFlag": 1,
+      "availability": 1,
+      "pointRate": 1,
+      "mediumImageUrls": [
+        "https://thumbnail.image.rakuten.co.jp/@0_mall/drugstore/cabinet/b.jpg?_ex=128x128"
+      ],
+      "shopCode": "drugstore",
+      "shopName": "楽天ドラッグストア",
+      "genreId": "551167",
+      "taxFlag": 0,
+      "creditCardFlag": 1
+    },
+    {
+      "itemCode": "hairshop:30000789",
+      "itemName": "アミノ酸シャンプー 詰め替え 400ml",
+      "itemPrice": 1280,
+      "itemUrl": "https://item.rakuten.co.jp/hairshop/30000789/",
+      "affiliateUrl": "https://hb.afl.rakuten.co.jp/hgc/abcd1234.efgh5678/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fhairshop%2F30000789%2F",
+      "affiliateRate": 2.0,
+      "reviewCount": 3902,
+      "reviewAverage": 4.55,
+      "postageFlag": 1,
+      "availability": 1,
+      "pointRate": 3,
+      "mediumImageUrls": [
+        "https://thumbnail.image.rakuten.co.jp/@0_mall/hairshop/cabinet/c.jpg?_ex=128x128"
+      ],
+      "shopCode": "hairshop",
+      "shopName": "ヘアケア専門店",
+      "genreId": "100944",
+      "taxFlag": 0,
+      "creditCardFlag": 1
+    }
+  ]
+}
