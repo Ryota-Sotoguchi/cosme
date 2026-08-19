@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>データ削除リクエスト — cosme</title>
+<link rel="stylesheet" href="/cosme/_style.css">
+</head>
+<body>
+<main>
+
+<p class="nav"><a href="/cosme/">← cosme</a></p>
+
+<h1>データ削除リクエスト</h1>
+<p class="lead">cosme が保持するデータの削除を依頼する方法。</p>
+
+<div class="card">
+<strong>このアプリは第三者の個人データを取得・保存していません。</strong><br>
+アクセスするのは運営者本人の Threads アカウントのみです。他のユーザーのプロフィール、投稿、フォロー関係などを取得することはありません。
+</div>
+
+<h2>保存しているデータ</h2>
+<table>
+  <tr><th>保存先</th><th>内容</th></tr>
+  <tr><td><code>data/history.jsonl</code></td><td>運営者自身の投稿記録（投稿日時、投稿ID、紹介した商品の公開情報、投稿本文）</td></tr>
+  <tr><td><code>data/state.json</code></td><td>投稿ローテーションの位置、アクセストークンの有効期限</td></tr>
+</table>
+<p>
+アクセストークンなどの認証情報はリポジトリに保存されず、GitHub Secrets で管理されています。
+アフィリエイトURLも保存時にハッシュ化され、原文は残りません。
+</p>
+
+<h2>削除を依頼する</h2>
+<p>次のいずれかの方法でご連絡ください。</p>
+<ul>
+  <li>
+    <a href="https://github.com/Ryota-Sotoguchi/cosme/issues/new">GitHub Issue を作成する</a>
+    — 削除を希望する内容（投稿URLなど）を記載してください
+  </li>
+  <li>
+    Threads で <a href="https://www.threads.com/@cosme_memo_jp">@cosme_memo_jp</a> に連絡する
+  </li>
+</ul>
+<p>
+ご依頼から <strong>30日以内</strong> に該当データを削除し、削除完了をご連絡します。
+</p>
+
+<h2>投稿そのものの削除</h2>
+<p>
+Threads 上の投稿の削除を希望される場合も、上記の窓口までご連絡ください。
+投稿本体と、リポジトリ内の該当記録の両方を削除します。
+</p>
+
+<h2>技術的な注意</h2>
+<p>
+このページは静的ホスティング（GitHub Pages）で配信されているため、
+Meta のデータ削除コールバック（<code>signed_request</code> を含む POST リクエスト）は
+処理しません。このアプリは Meta の認可フローを使用せず、運営者本人のアカウントにのみ
+投稿する構成のため、Meta からこのコールバックが送信されることはありません。
+削除のご依頼は上記の窓口で受け付けています。
+</p>
+
+<footer>
+cosme — <a href="/cosme/privacy/">プライバシーポリシー</a> ・
+<a href="https://github.com/Ryota-Sotoguchi/cosme">ソースコード</a>
+</footer>
+
+</main>
+</body>
+</html>

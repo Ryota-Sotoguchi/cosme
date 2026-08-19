@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cosme — コスメ買い物メモ</title>
+<link rel="stylesheet" href="/cosme/_style.css">
+</head>
+<body>
+<main>
+
+<h1>cosme</h1>
+<p class="lead">楽天市場の商品を、価格・レビュー・送料などの公開情報だけで紹介する Threads アカウントの自動運用システムです。</p>
+
+<div class="card">
+  <strong>アカウント</strong>：コスメ買い物メモ｜コスパ美容<br>
+  <strong>ソースコード</strong>：<a href="https://github.com/Ryota-Sotoguchi/cosme">github.com/Ryota-Sotoguchi/cosme</a>（オープンソース）
+</div>
+
+<h2>このアプリが行うこと</h2>
+<ul>
+  <li>楽天ウェブサービスの商品検索APIから、化粧品カテゴリーの商品情報を取得する</li>
+  <li>価格・レビュー件数・レビュー平均・送料の有無などから、紹介する商品を選ぶ</li>
+  <li>取得した客観情報だけを使って投稿文を組み立てる</li>
+  <li>運営者本人の Threads アカウントに、1日5回、自動で投稿する</li>
+</ul>
+
+<h2>このアプリが行わないこと</h2>
+<ul>
+  <li>運営者以外のユーザーのアカウントにアクセスすること</li>
+  <li>他のユーザーの個人データを取得・保存すること</li>
+  <li>商品を実際に使用した体験談や、取得していない口コミを書くこと</li>
+  <li>効能・効果に関する表現を用いること</li>
+</ul>
+
+<h2>取り扱うデータ</h2>
+<p>このアプリが保存するのは、運営者自身の投稿に関する記録だけです。</p>
+<table>
+  <tr><th>保存先</th><th>内容</th></tr>
+  <tr><td><code>data/history.jsonl</code></td><td>投稿日時・投稿ID・紹介した商品の公開情報・投稿本文</td></tr>
+  <tr><td><code>data/state.json</code></td><td>投稿ローテーションの位置、アクセストークンの有効期限</td></tr>
+</table>
+<p><strong>第三者の個人データは一切取得・保存していません。</strong> アクセストークン等の認証情報はリポジトリに保存されず、GitHub Secrets で管理されます。</p>
+
+<h2>Meta プラットフォーム向けエンドポイント</h2>
+<ul>
+  <li><a href="/cosme/oauth/callback/">OAuth リダイレクト</a></li>
+  <li><a href="/cosme/deauthorize/">認証解除</a></li>
+  <li><a href="/cosme/data-deletion/">データ削除リクエスト</a></li>
+  <li><a href="/cosme/privacy/">プライバシーポリシー</a></li>
+</ul>
+
+<footer>
+cosme — 個人運用の非商用プロジェクト<br>
+お問い合わせ：<a href="https://github.com/Ryota-Sotoguchi/cosme/issues">GitHub Issues</a>
+</footer>
+
+</main>
+</body>
+</html>

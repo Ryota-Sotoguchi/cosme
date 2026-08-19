@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アプリ連携の解除 — cosme</title>
+<link rel="stylesheet" href="/cosme/_style.css">
+</head>
+<body>
+<main>
+
+<p class="nav"><a href="/cosme/">← cosme</a></p>
+
+<h1>アプリ連携の解除</h1>
+<p class="lead">cosme との連携を解除したときの取り扱いについて。</p>
+
+<div class="card">
+<strong>保持している第三者のデータはありません。</strong><br>
+このアプリは運営者本人のアカウントにのみアクセスします。他のユーザーのデータを取得・保存することはないため、連携解除時に削除すべきデータは存在しません。
+</div>
+
+<h2>連携を解除する方法</h2>
+<ul>
+  <li>Threads アプリ → 設定 → アカウント → ウェブサイトのアクセス許可</li>
+  <li>一覧から <code>cosme</code> を選び、アクセスを削除する</li>
+</ul>
+<p>解除すると、このアプリが保持していたアクセストークンは無効になり、投稿は停止します。</p>
+
+<h2>解除後に残るもの</h2>
+<p>
+このアプリが保存しているのは、運営者自身が過去に投稿した内容の記録
+（投稿日時、投稿ID、紹介した商品の公開情報、投稿本文）だけです。
+これらは <a href="https://github.com/Ryota-Sotoguchi/cosme">公開リポジトリ</a> 内の
+<code>data/</code> に保存されています。
+</p>
+<p>
+連携解除後にこの記録の削除を希望する場合は、
+<a href="/cosme/data-deletion/">データ削除リクエスト</a> の手順に従ってください。
+</p>
+
+<h2>技術的な注意</h2>
+<p>
+このページは静的ホスティング（GitHub Pages）で配信されており、
+POST リクエストを処理しません。このアプリは Meta の認可フローを使用せず、
+アプリダッシュボードで発行したトークンで運営者本人のアカウントにのみ投稿するため、
+Meta から連携解除の通知が送信されることはありません。
+</p>
+
+<footer>
+cosme — お問い合わせ：<a href="https://github.com/Ryota-Sotoguchi/cosme/issues">GitHub Issues</a>
+</footer>
+
+</main>
+</body>
+</html>

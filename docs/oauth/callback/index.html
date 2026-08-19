@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAuth リダイレクト — cosme</title>
+<link rel="stylesheet" href="/cosme/_style.css">
+</head>
+<body>
+<main>
+
+<p class="nav"><a href="/cosme/">← cosme</a></p>
+
+<h1>OAuth リダイレクト</h1>
+<p class="lead">Threads の認可フローのリダイレクト先です。</p>
+
+<div id="result" class="card">認可レスポンスを確認しています…</div>
+
+<h2>このページについて</h2>
+<p>
+このアプリは、運営者本人のアカウントに投稿するためだけに Threads API を使用しています。
+通常の運用ではアクセストークンを Meta アプリダッシュボードで直接発行しているため、
+この認可フローは使用されません。
+</p>
+<p>
+このページは、認可フローを使う場合に認可コードを受け取るためのリダイレクト先として用意されています。
+受け取った値はこのブラウザの画面に表示されるだけで、<strong>どこにも送信・保存されません</strong>。
+</p>
+
+<footer>
+cosme — <a href="https://github.com/Ryota-Sotoguchi/cosme">ソースコード</a>
+</footer>
+
+</main>
+
+<script>
+// クエリ文字列を画面に出すだけ。外部への送信は一切行わない。
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var box = document.getElementById('result');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  if (params.has('error')) {
+    box.innerHTML =
+      '<strong>認可されませんでした</strong><br>' +
+      '<code>' + esc(params.get('error')) + '</code>' +
+      (params.get('error_description')
+        ? '<br>' + esc(params.get('error_description')) : '');
+    return;
+  }
+
+  if (params.has('code')) {
+    box.innerHTML =
+      '<strong>認可コードを受け取りました</strong>' +
+      '<pre><code>' + esc(params.get('code')) + '</code></pre>' +
+      '<small>この値は認証情報です。第三者に共有しないでください。</small>';
+    return;
+  }
+
+  box.innerHTML =
+    'このページは Threads の認可フローのリダイレクト先です。' +
+    '認可コードを含まないアクセスのため、表示するものはありません。';
+})();
+</script>
+</body>
+</html>
