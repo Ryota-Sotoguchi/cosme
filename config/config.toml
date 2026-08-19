@@ -21,7 +21,7 @@ fallback_endpoints = [
 # 新APIは Origin/Referer が無いと 403 を返す。
 # 楽天デベロッパーコンソールの「許可Webサイト」に登録したURLと一致させること。
 # 環境変数 RAKUTEN_ORIGIN があればそちらが優先される。
-origin = "https://github.com/Ryota-Sotoguchi/cosme"
+origin = "https://ryota-sotoguchi.github.io"
 user_agent = "cosme-bot/1.0 (+https://github.com/Ryota-Sotoguchi/cosme)"
 
 # 1 applicationId につき 1秒1リクエスト以下。安全側に倒して 1.2 秒あける。
@@ -63,31 +63,61 @@ require_available = true
 # 1回の投稿で検討する候補数の上限
 candidate_pool = 90
 
-# 対象ジャンル（楽天市場 美容・コスメ・香水 100939 配下）
-# genre_id は API から実データで検証済みのものだけを置く
+# 対象ジャンル
+# 2026-08-20 に実APIで検証済み。キーワード検索で返る genreId を集計し、
+# 各IDから実際に取得できる商品名を目視確認して採用した。
+# ※推測でIDを書かないこと。以前 216131 を「スキンケア」としていたが、
+#   実際にはネックレス等が返っていた。
 [[selection.genres]]
-id = 216131
-name = "スキンケア"
+id = 216307
 label = "スキンケア"
 
 [[selection.genres]]
-id = 216129
-name = "ベースメイク・メイクアップ"
+id = 216348
+label = "スキンケア"
+
+[[selection.genres]]
+id = 216387
+label = "スキンケア"
+
+[[selection.genres]]
+id = 216539
 label = "メイク"
 
 [[selection.genres]]
-id = 100944
-name = "ヘアケア・スタイリング"
+id = 216579
+label = "メイク"
+
+[[selection.genres]]
+id = 216600
+label = "メイク"
+
+[[selection.genres]]
+id = 210695
 label = "ヘアケア"
 
 [[selection.genres]]
-id = 216130
-name = "ボディケア"
+id = 210677
+label = "ヘアケア"
+
+[[selection.genres]]
+id = 507825
+label = "ヘアケア"
+
+[[selection.genres]]
+id = 216670
 label = "ボディケア"
 
 [[selection.genres]]
-id = 216185
-name = "メイク道具・ケアグッズ"
+id = 216671
+label = "ボディケア"
+
+[[selection.genres]]
+id = 507866
+label = "美容小物"
+
+[[selection.genres]]
+id = 111791
 label = "美容小物"
 
 # ------------------------------------------------------------
@@ -108,7 +138,8 @@ keywords = [
     "妊娠", "避妊", "生理用品",
     "白髪染め",
     "まつげ美容液", "まつ毛美容液",
-    "デリケートゾーン",
+    "デリケートゾーン", "VIO", "黒ずみ",
+    "CBD", "エステサロン", "サロン専売",
     "訳あり", "アウトレット", "福袋", "詰め合わせ", "セット売り",
     "業務用", "サンプル", "お試しサンプル", "非売品",
 ]

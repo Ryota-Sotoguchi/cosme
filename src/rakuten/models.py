@@ -166,14 +166,29 @@ class RakutenItem:
         return hashlib.sha256(self.item_url.encode("utf-8")).hexdigest()
 
     def display_name(self, max_length: int = 42) -> str:
-        """投稿本文に載せる商品名。長すぎる場合は自然な位置で切る。"""
+        """投稿本文に載せる商品名。長すぎる場合は自然な位置で切る。
+
+        括弧の途中で切れると「[FANCL 化粧水」のように閉じ括弧が無い
+        中途半端な表示になるので、括弧の開始位置まで戻して切る。
+        """
         name = self.clean_name
         if len(name) <= max_length:
-            return name
+            return self._balance(name)
+
         cut = name[:max_length]
         # 区切り文字の直前で切ると読みやすい
         for sep in ("　", " ", "／", "/", "・"):
             idx = cut.rfind(sep)
             if idx >= max_length // 2:
-                return cut[:idx].strip()
-        return cut.rstrip() + "…"
+                return self._balance(cut[:idx].strip())
+        return self._balance(cut.rstrip()) + "…"
+
+    @staticmethod
+    def _balance(text: str) -> str:
+        """閉じられていない括弧が残っていたら、その開き括弧以降を落とす。"""
+        pairs = {"【": "】", "[": "]", "［": "］", "(": ")", "（": "）", "「": "」", "『": "』"}
+        for opener, closer in pairs.items():
+            last_open = text.rfind(opener)
+            if last_open > 0 and text.find(closer, last_open) < 0:
+                text = text[:last_open]
+        return text.strip(" 　-–—/／・|｜") or text.strip()

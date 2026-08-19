@@ -235,3 +235,31 @@ def test_client_requires_credentials(config):
     client = RakutenClient(config, http=_client([]))
     with pytest.raises(MissingSecretError):
         client.search(genre_id=216131)
+
+
+# ======================================================================
+# 商品名の表示
+# ======================================================================
+def _named(name: str):
+    return RakutenItem.from_api(
+        {"itemCode": "s:1", "itemName": name, "itemPrice": 1000,
+         "itemUrl": "https://item.rakuten.co.jp/s/1/"}
+    )
+
+
+def test_display_name_does_not_cut_inside_brackets():
+    """括弧の途中で切れると閉じ括弧の無い中途半端な表示になる。"""
+    item = _named("モイストリファイン 化粧液【ファンケル 公式】 [FANCL 化粧水 保湿 うるおい]")
+    shown = item.display_name()
+    assert "[FANCL" not in shown
+    assert shown.count("[") == shown.count("]")
+    assert shown.count("【") == shown.count("】")
+
+
+def test_display_name_keeps_short_names_intact():
+    assert _named("クレンジングバーム 90g").display_name() == "クレンジングバーム 90g"
+
+
+def test_display_name_does_not_end_with_separator():
+    shown = _named("アミノ酸シャンプー 詰め替え用 大容量 / 送料無料 / 楽天限定").display_name()
+    assert not shown.endswith(("/", "／", "・", "-", "|"))
