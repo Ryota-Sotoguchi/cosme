@@ -1,0 +1,103 @@
+name: post
+
+# 日本はサマータイムが無く UTC+9 固定なので、cron は UTC で書いている。
+# timezone フィールドに依存せず、意味が一意に決まる方を選んだ。
+#   07:30 JST = 22:30 UTC (前日)  … morning  リンクなし
+#   12:15 JST = 03:15 UTC         … noon     商品紹介【PR】
+#   18:00 JST = 09:00 UTC         … evening  リンクなし
+#   20:30 JST = 11:30 UTC         … night    商品紹介【PR】
+#   22:30 JST = 13:30 UTC         … late     ローテーション
+# cron 文字列から config/config.toml の [[schedule]] を引いてスロットを決めるので、
+# 時刻を変えるときは「この cron」と「config.toml の cron_utc」の両方を揃えること。
+on:
+  schedule:
+    - cron: '30 22 * * *'
+    - cron: '15 3 * * *'
+    - cron: '0 9 * * *'
+    - cron: '30 11 * * *'
+    - cron: '30 13 * * *'
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: '投稿スロット'
+        required: true
+        type: choice
+        options: [morning, noon, evening, night, late]
+        default: morning
+      dry_run:
+        description: 'DRY_RUN（Threadsへは投稿しない）'
+        required: true
+        type: boolean
+        default: true
+
+# 同時実行を防ぐ。data/ をコミットバックするので競合させたくない。
+concurrency:
+  group: post
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # data/ のコミットバックに必要
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Post
+        id: post
+        env:
+          RAKUTEN_APPLICATION_ID: ${{ secrets.RAKUTEN_APPLICATION_ID }}
+          RAKUTEN_ACCESS_KEY: ${{ secrets.RAKUTEN_ACCESS_KEY }}
+          RAKUTEN_AFFILIATE_ID: ${{ secrets.RAKUTEN_AFFILIATE_ID }}
+          RAKUTEN_ORIGIN: ${{ secrets.RAKUTEN_ORIGIN }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_APP_SECRET: ${{ secrets.THREADS_APP_SECRET }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: |
+          set +e
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            python -m src.main post --cron "${{ github.event.schedule }}"
+          else
+            python -m src.main post --slot "${{ inputs.slot }}"
+          fi
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          # 2 = 一時障害。次回の定期実行で自然に回復しうるのでジョブは落とさない。
+          if [ $code -eq 2 ]; then
+            echo "::warning::一時障害のためスキップしました (exit 2)"
+            exit 0
+          fi
+          exit $code
+
+      - name: Commit history
+        # 投稿が失敗しても履歴は残す。
+        # このコミットが「リポジトリ活動」になり、public リポジトリの
+        # スケジュールが60日無活動で自動無効化されるのも同時に防いでいる。
+        if: always()
+        run: |
+          if [ -z "$(git status --porcelain data/)" ]; then
+            echo "履歴に変更なし"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git commit -m "chore(data): 投稿履歴を更新 [skip ci]"
+          # 別ジョブと衝突した場合に備えてリベースしてから push
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+          echo "::warning::履歴のpushに失敗しました"

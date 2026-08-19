@@ -1,0 +1,47 @@
+name: token-refresh
+
+# Threads の長期アクセストークンは60日で失効し、60日間更新されないと再認可が必要になる。
+# 突然の運用停止を避けるため週次で更新し、新しい値を Secret へ書き戻す。
+# GH_PAT が未設定なら書き戻しはスキップされ、ログに警告が出るだけでジョブは落ちない。
+on:
+  schedule:
+    - cron: '0 18 * * 0'   # 毎週月曜 03:00 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: token-refresh
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Refresh token
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python -m src.main token --refresh --store-secret
+
+      - name: Commit token expiry state
+        if: always()
+        run: |
+          if [ -z "$(git status --porcelain data/)" ]; then exit 0; fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git commit -m "chore(data): トークン期限を更新 [skip ci]"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
