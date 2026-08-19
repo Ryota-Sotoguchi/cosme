@@ -1,6 +1,18 @@
 {
   "operation_started_on": "2026-08-20",
   "part_history": {
+    "closing": [
+      "cl_compare"
+    ],
+    "cta": [
+      "cta_rakuten"
+    ],
+    "disclaimer": [
+      "dc_point"
+    ],
+    "fact_intro": [
+      "fi_plain"
+    ],
     "topic": [
       "nl_budget_first",
       "nl_postage_trap"
@@ -8,7 +20,8 @@
   },
   "template_history": [
     "topic",
-    "topic"
+    "topic",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T19:14:05.700979+00:00",
