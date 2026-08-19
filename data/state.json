@@ -4,7 +4,8 @@
     "closing": [
       "cl_compare",
       "cl_candidate",
-      "cl_push"
+      "cl_push",
+      "cl_postage"
     ],
     "cta": [
       "cta_rakuten"
@@ -14,7 +15,8 @@
     ],
     "fact_intro": [
       "fi_plain",
-      "fi_soft"
+      "fi_soft",
+      "fi_spec"
     ],
     "opening": [
       "op_curious",
@@ -40,7 +42,8 @@
     "topic",
     "checklist",
     "objective",
-    "short"
+    "short",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
