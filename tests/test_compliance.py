@@ -310,3 +310,31 @@ def test_asking_readers_is_not_a_usage_claim():
 def test_first_person_usage_is_still_blocked(text):
     """トーンを柔らかくしても、使用体験の捏造は止め続ける。"""
     assert "experience" in {r.category for r in scan(text)}
+
+
+def test_all_parts_contain_only_expected_characters():
+    """想定外の文字（他言語・制御文字）が混入していないこと。
+
+    実際にキリル文字を打ち間違いで混入させたことがあるので、
+    人の目ではなくテストで止める。
+    """
+    import re
+    from src.content import parts as P
+
+    # ひらがな・カタカナ・漢字・英数・句読点・記号・絵文字のみ許可
+    allowed = re.compile(
+        r"^[　-〿぀-ゟ゠-ヿ一-鿿"
+        r"＀-￯ -~\n"
+        r"・→↓※〜…—–△◽□★☆♪🧴✨🤍]*$"
+    )
+    pools = [
+        P.PRODUCT_OPENINGS, P.FACT_INTROS, P.PRODUCT_CLOSINGS, P.CTA_PARTS,
+        P.DISCLAIMERS, P.ROUNDUP_CLOSINGS, P.NO_LINK_TOPICS,
+        *P.ROUNDUP_OPENINGS.values(),
+    ]
+    for pool in pools:
+        for part in pool:
+            assert allowed.match(part.text), (
+                f"{part.id} に想定外の文字: "
+                f"{[c for c in part.text if not allowed.match(c)]}"
+            )
