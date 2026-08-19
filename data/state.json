@@ -2,10 +2,12 @@
   "operation_started_on": "2026-08-20",
   "part_history": {
     "topic": [
-      "nl_budget_first"
+      "nl_budget_first",
+      "nl_postage_trap"
     ]
   },
   "template_history": [
+    "topic",
     "topic"
   ],
   "threads_token": {
