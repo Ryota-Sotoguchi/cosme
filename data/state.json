@@ -17,7 +17,8 @@
       "fi_soft"
     ],
     "opening": [
-      "op_curious"
+      "op_curious",
+      "op_saved"
     ],
     "topic": [
       "nl_budget_first",
@@ -27,6 +28,9 @@
       "nl_makeup_tools"
     ]
   },
+  "rotation_cursor": {
+    "late": 1
+  },
   "template_history": [
     "topic",
     "topic",
@@ -35,7 +39,8 @@
     "topic",
     "topic",
     "checklist",
-    "objective"
+    "objective",
+    "short"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
