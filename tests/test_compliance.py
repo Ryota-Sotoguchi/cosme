@@ -338,3 +338,33 @@ def test_all_parts_contain_only_expected_characters():
                 f"{part.id} に想定外の文字: "
                 f"{[c for c in part.text if not allowed.match(c)]}"
             )
+
+
+def test_part_ids_are_ascii_and_unique():
+    """パーツIDは state.json のキーになるので、ASCIIで一意にする。"""
+    from src.content import parts as P
+
+    pools = [
+        P.PRODUCT_OPENINGS, P.FACT_INTROS, P.PRODUCT_CLOSINGS, P.CTA_PARTS,
+        P.DISCLAIMERS, P.ROUNDUP_CLOSINGS, P.NO_LINK_TOPICS,
+        *P.ROUNDUP_OPENINGS.values(),
+    ]
+    seen = set()
+    for pool in pools:
+        for part in pool:
+            assert part.id.isascii(), f"IDに非ASCII文字: {part.id}"
+            assert part.id not in seen, f"IDが重複: {part.id}"
+            seen.add(part.id)
+
+
+def test_no_link_topic_pool_is_deep_enough():
+    """投稿頻度を上げても、リンクなし投稿が短期で一巡しないこと。
+
+    1日3本のリンクなし投稿でも、3週間以上は重複しない量を確保する。
+    """
+    from src.content.parts import NO_LINK_TOPICS
+
+    assert len(NO_LINK_TOPICS) >= 63, (
+        f"トピックが{len(NO_LINK_TOPICS)}件しかない。"
+        "3本/日で21日分（63件）を下回ると、同じ話題が月内に繰り返される"
+    )

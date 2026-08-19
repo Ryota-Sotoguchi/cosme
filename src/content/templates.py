@@ -65,6 +65,8 @@ class RenderContext:
     many_reviews: bool
     cheap: bool
     affiliate_url: str | None
+    # 事実の言い回しを回すためのカウンタ。同じ形が続かないようにする。
+    fact_style: int = 0
 
     @property
     def item(self) -> RakutenItem:
@@ -126,7 +128,7 @@ def render_objective(ctx: RenderContext) -> Rendered:
     closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
     r.part_ids.update({"opening": opening.id, "fact_intro": intro.id, "closing": closing.id})
 
-    sentence, allowed = F.sentence_facts(item)
+    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
     r.blocks.append(Block(_pr(ctx, _opening_text(opening, ctx)), 0))
@@ -147,7 +149,7 @@ def render_short(ctx: RenderContext) -> Rendered:
     opening = ctx.pick("opening", PRODUCT_OPENINGS, **ctx.flags())
     r.part_ids["opening"] = opening.id
 
-    sentence, allowed = F.sentence_facts(item)
+    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
     r.blocks.append(Block(_pr(ctx, _opening_text(opening, ctx)), 0))
@@ -164,7 +166,7 @@ def render_checklist(ctx: RenderContext) -> Rendered:
     closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
     r.part_ids["closing"] = closing.id
 
-    sentence, allowed = F.sentence_facts(item)
+    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
     r.blocks.append(Block(_pr(ctx, f"{ctx.category}選ぶとき、だいたいこのへん見てる。"), 0))
@@ -183,7 +185,7 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
     closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
     r.part_ids.update({"fact_intro": intro.id, "closing": closing.id})
 
-    sentence, allowed = F.sentence_facts(item)
+    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
     band = F.format_price_band(item.item_price)
 
@@ -221,7 +223,7 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
 
     lines: list[str] = []
     for item in ctx.items:
-        inline, allowed = F.inline_facts(item)
+        inline, allowed = F.sentence_facts(item, ctx.fact_style + len(lines))
         r.allowed_numbers |= allowed
         lines.append(f"{item.display_name(26)}\n{inline}")
     r.blocks.append(Block("\n\n".join(lines), 0))

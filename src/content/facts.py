@@ -114,40 +114,54 @@ def build_facts(item: RakutenItem, *, bullet: str = "・") -> FactSet:
     return facts
 
 
-def sentence_facts(item: RakutenItem) -> tuple[str, set[str]]:
+def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
     """事実を1〜2文の話し言葉にする。
 
-    「・1,540円」と並べるより「1,540円で送料無料。」のほうが
-    人が書いたメモに近い。
+    **数値は詰め込まない。** 価格・レビュー件数・平均・ポイントを全部並べると
+    人が書いた文章に見えなくなるので、1文あたり1〜2個までに抑え、
+    style で切り口を回して同じ形が続かないようにする。
+
+    送料無料は数値ではないので、密度に影響せず入れられる。
     """
     allowed: set[str] = {
         normalize_number(str(item.item_price)),
         normalize_number(str(price_band_value(item.item_price))),
     }
 
-    head = format_price(item.item_price)
-    if item.is_postage_free:
-        head += "で送料無料"
-    head += "。"
+    price = format_price(item.item_price)
+    free = bool(item.is_postage_free)
 
-    tail_parts: list[str] = []
-    if item.review_count and item.review_count > 0:
-        allowed.add(normalize_number(str(item.review_count)))
-        if item.review_average is not None:
-            avg = format_review_average(item.review_average)
-            allowed.add(normalize_number(avg))
-            tail_parts.append(
-                f"レビューは{format_review_count(item.review_count)}で平均{avg}"
-            )
-        else:
-            tail_parts.append(f"レビューは{format_review_count(item.review_count)}")
+    count = item.review_count if (item.review_count or 0) > 0 else None
+    average = item.review_average if count is not None else None
 
-    if item.point_rate is not None and item.point_rate > 1:
-        rate = format_point_rate(item.point_rate)
-        allowed.add(normalize_number(str(item.point_rate)))
-        tail_parts.append(f"ポイントは{rate}")
+    if count is not None:
+        allowed.add(normalize_number(str(count)))
+    if average is not None:
+        allowed.add(normalize_number(format_review_average(average)))
 
-    text = head + ("、".join(tail_parts) + "。" if tail_parts else "")
+    variants: list[str] = []
+
+    # 価格だけ（いちばん軽い）
+    variants.append(f"{price}。送料もかからない。" if free else f"{price}。")
+
+    if count is not None:
+        cnt = format_review_count(count)
+        variants.append(
+            f"{price}で送料無料。レビューは{cnt}。" if free else f"{price}で、レビューは{cnt}。"
+        )
+        variants.append(
+            f"レビュー{cnt}ついてて{price}。送料無料。" if free else f"レビュー{cnt}ついてて{price}。"
+        )
+
+    if average is not None:
+        avg = format_review_average(average)
+        variants.append(
+            f"{price}で送料無料。レビューの平均は{avg}。"
+            if free
+            else f"{price}。レビューの平均は{avg}。"
+        )
+
+    text = variants[style % len(variants)]
     return text, allowed
 
 

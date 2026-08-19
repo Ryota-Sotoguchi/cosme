@@ -178,6 +178,8 @@ class ContentBuilder:
             many_reviews=bool(primary and (primary.review_count or 0) >= MANY_REVIEWS_THRESHOLD),
             cheap=bool(primary and primary.item_price <= CHEAP_THRESHOLD),
             affiliate_url=affiliate_url,
+            # 直近の使用履歴の長さでずらす。乱数を使わず決定的に回す。
+            fact_style=len(self.state.recent_part_ids("closing", limit=10_000)),
         )
 
         rendered = template.render(ctx)
