@@ -120,8 +120,22 @@ class ThreadsClient:
         return payload
 
     # ------------------------------------------------------------------
-    def create_container(self, text: str) -> str:
-        """テキスト投稿のメディアコンテナを作成し creation_id を返す。"""
+    def create_container(
+        self,
+        text: str,
+        *,
+        link_attachment: str | None = None,
+        reply_to_id: str | None = None,
+    ) -> str:
+        """テキスト投稿のメディアコンテナを作成し creation_id を返す。
+
+        link_attachment を使うと、URLがリンクカードとして添付され
+        **本文の500文字を消費しない**。楽天のアフィリエイトURLは
+        280文字近くあるので、本文に直接書くと内容がほとんど入らない。
+
+        reply_to_id を渡すと、その投稿への返信になる。
+        自分の投稿に返信を重ねるとスレッドになる。
+        """
         if not text.strip():
             raise PostRejectedError("本文が空です")
         if len(text) > self.max_text_length:
@@ -130,10 +144,17 @@ class ThreadsClient:
             )
 
         user_id = self.get_user_id()
-        response = self.http.post(
-            f"{self.api_base}/{user_id}/threads",
-            data={"media_type": "TEXT", "text": text, "access_token": self._token},
-        )
+        data: dict[str, Any] = {
+            "media_type": "TEXT",
+            "text": text,
+            "access_token": self._token,
+        }
+        if link_attachment:
+            data["link_attachment"] = link_attachment
+        if reply_to_id:
+            data["reply_to_id"] = reply_to_id
+
+        response = self.http.post(f"{self.api_base}/{user_id}/threads", data=data)
         payload = response.json()
         self._raise_for_payload(payload, "コンテナ作成に失敗")
 
@@ -141,7 +162,13 @@ class ThreadsClient:
         if not creation_id:
             raise PostRejectedError(f"creation_id が返りませんでした: {payload}")
 
-        logger.info("コンテナ作成: creation_id=%s (本文 %d文字)", creation_id, len(text))
+        logger.info(
+            "コンテナ作成: creation_id=%s (本文 %d文字%s%s)",
+            creation_id,
+            len(text),
+            ", リンク添付あり" if link_attachment else "",
+            f", {reply_to_id} への返信" if reply_to_id else "",
+        )
         return str(creation_id)
 
     def publish_container(self, creation_id: str) -> str:
@@ -175,12 +202,21 @@ class ThreadsClient:
         return payload
 
     # ------------------------------------------------------------------
-    def post_text(self, text: str, *, wait_seconds: int | None = None) -> PublishedPost:
+    def post_text(
+        self,
+        text: str,
+        *,
+        wait_seconds: int | None = None,
+        link_attachment: str | None = None,
+        reply_to_id: str | None = None,
+    ) -> PublishedPost:
         """テキスト投稿の全工程を実行する。
 
         成功レスポンスだけを根拠にせず、最後に GET で実在検証する。
         """
-        creation_id = self.create_container(text)
+        creation_id = self.create_container(
+            text, link_attachment=link_attachment, reply_to_id=reply_to_id
+        )
 
         wait = self.publish_wait if wait_seconds is None else wait_seconds
         if wait > 0:
@@ -207,6 +243,52 @@ class ThreadsClient:
             )
 
         logger.info("投稿完了: %s", published)
+        return published
+
+    def post_thread(
+        self,
+        segments: list[str],
+        *,
+        link_attachment: str | None = None,
+        wait_seconds: int | None = None,
+    ) -> list[PublishedPost]:
+        """複数の投稿をつなげてスレッドにする。
+
+        1本目がタイムラインに出る投稿で、2本目以降は返信として連なる。
+        リンクは最後の投稿にだけ添付する（先頭に広告リンクを置かない構成）。
+
+        途中で失敗した場合、それまでに公開した分は残る。すでに投稿された
+        ものを取り消すと履歴と実態がずれるので、消さずに呼び出し側へ返す。
+        """
+        if not segments:
+            raise PostRejectedError("投稿する本文がありません")
+
+        published: list[PublishedPost] = []
+        parent_id: str | None = None
+
+        for index, segment in enumerate(segments):
+            is_last = index == len(segments) - 1
+            try:
+                result = self.post_text(
+                    segment,
+                    wait_seconds=wait_seconds,
+                    link_attachment=link_attachment if is_last else None,
+                    reply_to_id=parent_id,
+                )
+            except (PostRejectedError, TransientError) as exc:
+                if not published:
+                    raise
+                logger.error(
+                    "スレッド %d/%d 本目の投稿に失敗しました。ここまでは公開済みです: %s",
+                    index + 1,
+                    len(segments),
+                    exc,
+                )
+                break
+            published.append(result)
+            parent_id = result.post_id
+
+        logger.info("スレッド投稿完了: %d/%d 本", len(published), len(segments))
         return published
 
     # ------------------------------------------------------------------

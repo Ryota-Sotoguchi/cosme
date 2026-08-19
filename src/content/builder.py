@@ -35,9 +35,20 @@ class Draft:
     items: list[RakutenItem]
     part_ids: dict[str, str] = field(default_factory=dict)
     allowed_numbers: set[str] = field(default_factory=set)
+    # スレッド投稿の各本文。1要素なら通常の単発投稿。
+    segments: list[str] = field(default_factory=list)
+    # リンクカードとして添付するURL。本文の文字数を消費しない。
+    link_attachment: str | None = None
+
+    def __post_init__(self) -> None:
+        if not self.segments:
+            self.segments = [self.text]
 
     @property
     def has_affiliate_link(self) -> bool:
+        """本文中のURL、またはリンクカード添付のどちらでも「リンクあり」とする。"""
+        if self.link_attachment:
+            return True
         return any(
             item.affiliate_url and item.affiliate_url in self.text for item in self.items
         )
@@ -183,7 +194,16 @@ class ContentBuilder:
         )
 
         rendered = template.render(ctx)
-        text = self._assemble(rendered.blocks, affiliate_url)
+        if rendered.segments:
+            # スレッドは1本ずつ文字数を守る。連結してから切ると
+            # 分割位置がずれるので、ブロック結合は使わない。
+            segments = [
+                seg.strip()[: self.max_length] for seg in rendered.segments if seg.strip()
+            ]
+            text = "\n\n".join(segments)
+        else:
+            text = self._assemble(rendered.blocks, affiliate_url)
+            segments = [text]
 
         draft = Draft(
             text=text,
@@ -192,6 +212,8 @@ class ContentBuilder:
             items=selected,
             part_ids=dict(rendered.part_ids),
             allowed_numbers=set(rendered.allowed_numbers),
+            link_attachment=affiliate_url,
+            segments=segments,
         )
         logger.info(
             "生成: template=%s type=%s len=%d link=%s parts=%s",

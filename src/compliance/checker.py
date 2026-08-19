@@ -140,7 +140,11 @@ class ComplianceChecker:
         return []
 
     def _check_urls(self, text: str, draft: Draft) -> list[Violation]:
+        # 本文中のURLと、リンクカードとして添付するURLの両方を検証する。
+        # 添付は本文に現れないが、読者がたどる先は同じなので同じ基準で見る。
         urls = URL_PATTERN.findall(text)
+        if draft.link_attachment:
+            urls = [*urls, draft.link_attachment]
         violations: list[Violation] = []
 
         if len(urls) > self.max_urls:
@@ -162,7 +166,8 @@ class ComplianceChecker:
         return violations
 
     def _check_pr_marker(self, text: str, draft: Draft) -> list[Violation]:
-        has_url = bool(URL_PATTERN.search(text))
+        # リンクカード添付でも広告であることに変わりはない。
+        has_url = bool(URL_PATTERN.search(text)) or bool(draft.link_attachment)
         if not has_url:
             # リンクなし投稿にPR表記は不要（付いていても害はないので許容）
             return []
@@ -194,7 +199,10 @@ class ComplianceChecker:
             if token in allowed:
                 continue
             # URL に含まれる数値は本文の主張ではないので除外する
-            if any(token in normalize_number(url) for url in URL_PATTERN.findall(text)):
+            urls = [*URL_PATTERN.findall(text)]
+            if draft.link_attachment:
+                urls.append(draft.link_attachment)
+            if any(token in normalize_number(url) for url in urls):
                 continue
             violations.append(
                 Violation("data", f"商品データに存在しない数値が本文にあります: {token}")

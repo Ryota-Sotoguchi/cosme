@@ -148,22 +148,52 @@ class Pipeline:
             }[band]
             logger.info("価格帯まとめ: %s帯 %s円〜%s円", band, *price_window)
 
-        pool = self.rakuten.collect_candidates(
-            genres,
-            sorts=sorts,
-            postage_flag=postage_flag,
-            min_price=price_window[0],
-            max_price=price_window[1],
-        )
-
         blocked_codes, blocked_hashes = self._blocked()
-        kept = filter_items(
-            pool,
-            self.config.exclusion,
-            selection,
-            excluded_item_codes=blocked_codes,
-            excluded_url_hashes=blocked_hashes,
-        )
+
+        # 使える候補が薄いときは、取得を深掘りして自動で積み増す。
+        #
+        # 30日クールダウンで既出商品が増えると、同じ層を引き続けている限り
+        # 使える候補が減っていく。放っておくと商品投稿が出せなくなるので、
+        # 別ページ（rotation_seed をずらす）を追加で取りに行って補充する。
+        min_pool = int(selection.get("min_usable_candidates", 20))
+        max_attempts = int(selection.get("pool_refill_attempts", 3))
+
+        seen: set[str] = set()
+        pool: list[RakutenItem] = []
+        kept: list[RakutenItem] = []
+
+        for attempt in range(max_attempts):
+            batch = self.rakuten.collect_candidates(
+                genres,
+                sorts=sorts,
+                postage_flag=postage_flag,
+                min_price=price_window[0],
+                max_price=price_window[1],
+                # 1回目は日替わりの既定値、2回目以降は別の層を見る
+                rotation_seed=None if attempt == 0 else self._refill_seed(attempt),
+            )
+            for item in batch:
+                if item.item_code not in seen:
+                    seen.add(item.item_code)
+                    pool.append(item)
+
+            kept = filter_items(
+                pool,
+                self.config.exclusion,
+                selection,
+                excluded_item_codes=blocked_codes,
+                excluded_url_hashes=blocked_hashes,
+            )
+            if len(kept) >= min_pool:
+                break
+            logger.warning(
+                "使える候補が %d件しかありません（目標 %d件）。深掘りして補充します（%d/%d回目）",
+                len(kept),
+                min_pool,
+                attempt + 1,
+                max_attempts,
+            )
+
         if not kept:
             raise NoDataError("除外フィルタ後に候補商品が残りませんでした")
 
@@ -200,6 +230,15 @@ class Pipeline:
         usable.sort(key=lambda g: -g[0].score)
         rest = [e for g in groups.values() if len(g) < needed for e in g]
         return [e for g in usable for e in g] + rest
+
+    def _refill_seed(self, attempt: int) -> int:
+        """補充時に使う rotation_seed。
+
+        日ごとの既定値から大きくずらして、まだ見ていない層を狙う。
+        素数をかけてページ・ジャンル順の周期と重ならないようにする。
+        """
+        base = datetime.now(JST).timetuple().tm_yday
+        return base + attempt * 37
 
     # ------------------------------------------------------------------
     def run(self, slot_name: str) -> PipelineResult:

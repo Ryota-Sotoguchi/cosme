@@ -23,6 +23,8 @@ from .parts import (
     PRODUCT_OPENINGS,
     ROUNDUP_CLOSINGS,
     ROUNDUP_OPENINGS,
+    THREAD_BRIDGES,
+    THREAD_HOOKS,
     Part,
 )
 
@@ -38,6 +40,8 @@ class Block:
 @dataclass
 class Rendered:
     blocks: list[Block]
+    # スレッドに分ける場合の各本文。空なら単発投稿。
+    segments: list[str] = field(default_factory=list)
     part_ids: dict[str, str] = field(default_factory=dict)
     allowed_numbers: set[str] = field(default_factory=set)
 
@@ -101,8 +105,10 @@ def _link_blocks(ctx: RenderContext, rendered: Rendered) -> list[Block]:
     disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
     rendered.part_ids["cta"] = cta.id
     rendered.part_ids["disclaimer"] = disclaimer.id
+    # URLは本文に書かない。link_attachment としてカード添付するので
+    # 500文字を消費しない（楽天のURLは280文字近くある）。
     return [
-        Block(f"{cta.text} {ctx.affiliate_url}", 0),
+        Block(cta.text.rstrip(" →"), 1),
         Block(disclaimer.text, 3),
     ]
 
@@ -258,6 +264,50 @@ def render_comparison(ctx: RenderContext) -> Rendered:
 # ======================================================================
 # リンクなし
 # ======================================================================
+def render_thread(ctx: RenderContext) -> Rendered:
+    """スレッド型: フック → 商品 → 締め+リンク。
+
+    参考にした運用アカウントは、1本目でいきなり商品を出さず、
+    共感できる話から入って最後にリンクを置いていた。
+    タイムラインに出るのは1本目なので、そこが広告然としていないほうが読まれる。
+
+    ただし1本目にも #PR は付ける。スレッド全体が広告なので、
+    最初に見える投稿で広告と分かる必要がある（景表法）。
+    """
+    r = Rendered(blocks=[])
+    item = ctx.item
+
+    hooks = THREAD_HOOKS.get(ctx.category) or THREAD_HOOKS["コスメ"]
+    hook = ctx.pick("thread_hook", hooks, **ctx.flags())
+    bridge = ctx.pick("thread_bridge", THREAD_BRIDGES, **ctx.flags())
+    closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
+    r.part_ids.update(
+        {"thread_hook": hook.id, "thread_bridge": bridge.id, "closing": closing.id}
+    )
+
+    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
+    r.allowed_numbers |= allowed
+
+    first = _pr(ctx, hook.text)
+    bridge_text = bridge.text.format(
+        category=ctx.category,
+        band=F.format_price_band(item.item_price),
+        band_range="",
+    )
+    second = f"{bridge_text}\n\n{item.display_name(38)}\n{sentence}"
+    third = closing.text
+    if ctx.affiliate_url:
+        cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
+        disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+        r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
+        third = f"{closing.text}\n\n{cta.text}\n{disclaimer.text}"
+
+    r.segments = [first, second, third]
+    # text は履歴・類似度判定用にまとめたもの
+    r.blocks = [Block(seg, 0) for seg in r.segments]
+    return r
+
+
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     topic = ctx.pick("topic", NO_LINK_TOPICS)
@@ -279,6 +329,7 @@ class Template:
 
 
 TEMPLATES: tuple[Template, ...] = (
+    Template("thread", render_thread, ("product",)),
     Template("objective", render_objective, ("product",)),
     Template("short", render_short, ("product",)),
     Template("checklist", render_checklist, ("product",)),

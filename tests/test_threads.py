@@ -229,3 +229,76 @@ def test_numeric_user_id_is_used_directly(config):
     _with_token(config, user_id="28013906364885767")
     client = ThreadsClient(config, http=_http([]))
     assert client.get_user_id() == "28013906364885767"
+
+
+# ======================================================================
+# リンク添付とスレッド投稿
+# ======================================================================
+def test_link_attachment_is_sent_and_not_in_text(config):
+    """URLは本文ではなくリンクカードとして送る。
+
+    楽天のアフィリエイトURLは280文字近くあり、本文に書くと
+    500文字のうち半分以上を消費してしまう。
+    """
+    _with_token(config)
+    http = _http([_Resp({"id": "C1"})])
+    client = ThreadsClient(config, http=http)
+
+    client.create_container("本文だけ", link_attachment="https://hb.afl.rakuten.co.jp/x")
+
+    data = http.session.calls[0]["data"]
+    assert data["link_attachment"] == "https://hb.afl.rakuten.co.jp/x"
+    assert "http" not in data["text"]
+
+
+def test_thread_chains_replies_and_attaches_link_to_last(config):
+    """1本目がタイムラインに出る投稿、2本目以降は返信。リンクは最後だけ。"""
+    _with_token(config)
+    responses = []
+    for i in (1, 2, 3):
+        responses += [
+            _Resp({"id": f"C{i}"}),
+            _Resp({"id": f"P{i}"}),
+            _Resp({"id": f"P{i}", "permalink": f"https://www.threads.net/p/{i}"}),
+        ]
+    http = _http(responses)
+    client = ThreadsClient(config, http=http)
+
+    published = client.post_thread(
+        ["1本目", "2本目", "3本目"],
+        link_attachment="https://hb.afl.rakuten.co.jp/x",
+        wait_seconds=0,
+    )
+
+    assert [p.post_id for p in published] == ["P1", "P2", "P3"]
+
+    containers = [c for c in http.session.calls if c["url"].endswith("/threads")]
+    assert "reply_to_id" not in containers[0]["data"]      # 1本目は返信ではない
+    assert containers[1]["data"]["reply_to_id"] == "P1"    # 前の投稿にぶら下がる
+    assert containers[2]["data"]["reply_to_id"] == "P2"
+    # リンクは最後の1本だけ
+    assert "link_attachment" not in containers[0]["data"]
+    assert "link_attachment" not in containers[1]["data"]
+    assert containers[2]["data"]["link_attachment"].startswith("https://hb.afl")
+
+
+def test_thread_keeps_published_parts_when_a_later_post_fails(config):
+    """途中で落ちても、公開済みの分は返す（勝手に消さない）。"""
+    _with_token(config)
+    http = _http([
+        _Resp({"id": "C1"}), _Resp({"id": "P1"}), _Resp({"id": "P1", "permalink": "x"}),
+        _Resp({"error": {"code": 4, "message": "rate limited"}}),
+    ])
+    client = ThreadsClient(config, http=http)
+
+    published = client.post_thread(["1本目", "2本目"], wait_seconds=0)
+    assert [p.post_id for p in published] == ["P1"]
+
+
+def test_thread_raises_when_the_first_post_fails(config):
+    _with_token(config)
+    http = _http([_Resp({"error": {"code": 4, "message": "rejected"}})])
+    client = ThreadsClient(config, http=http)
+
+    with pytest.raises(PostRejectedError):
+        client.post_thread(["1本目", "2本目"], wait_seconds=0)

@@ -173,7 +173,17 @@ def cmd_post(config: Config, args: argparse.Namespace) -> int:
     token_manager.warn_if_expiring()
 
     try:
-        published = client.post_text(draft.text)
+        if len(draft.segments) > 1:
+            results = client.post_thread(
+                draft.segments, link_attachment=draft.link_attachment
+            )
+            published = results[0] if results else None
+            if published is None:
+                raise PostRejectedError("スレッドを1本も投稿できませんでした")
+        else:
+            published = client.post_text(
+                draft.text, link_attachment=draft.link_attachment
+            )
     except MissingSecretError as exc:
         logger.error("%s", exc)
         return EXIT_CONFIG

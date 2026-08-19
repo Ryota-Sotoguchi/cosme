@@ -72,7 +72,10 @@ def test_product_slot_includes_pr_marker_and_link(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path)
     draft = pipeline.run("noon").draft
     assert draft.text.startswith("#PR")
-    assert "hb.afl.rakuten.co.jp" in draft.text
+    # URLは本文ではなくリンクカードとして添付する（500文字を消費しないため）
+    assert draft.link_attachment
+    assert "hb.afl.rakuten.co.jp" in draft.link_attachment
+    assert "http" not in draft.text
 
 
 def test_late_slot_rotates_post_types(config, tmp_path):
@@ -403,3 +406,75 @@ def test_falls_back_when_all_products_are_in_cooldown(config, tmp_path):
 
     result = pipeline.run("noon")
     assert result.draft.post_type == "no_link"
+
+
+# ======================================================================
+# 候補が薄くなったときの自動補充
+# ======================================================================
+class CountingRakuten:
+    """呼ばれるたびに別の商品を返すスタブ。補充が効いているかを見る。"""
+
+    def __init__(self, per_call=8):
+        self.per_call = per_call
+        self.seeds = []
+
+    def collect_candidates(self, genres, **kwargs):
+        seed = kwargs.get("rotation_seed")
+        self.seeds.append(seed)
+        offset = len(self.seeds) * 100
+        return [
+            make_item(item_code=f"shop{offset + i}:{i}", shop_code=f"shop{offset + i}")
+            for i in range(self.per_call)
+        ]
+
+
+def test_pool_is_refilled_when_candidates_are_thin(config, tmp_path):
+    """使える候補が少ないと、別の層を取りに行って積み増す。"""
+    rakuten = CountingRakuten(per_call=8)   # 1回では min_usable_candidates に届かない
+    pipeline = Pipeline(
+        config,
+        history=History(tmp_path / "history.jsonl"),
+        state=State(tmp_path / "state.json"),
+        rakuten=rakuten,
+    )
+
+    scored = pipeline.gather_candidates("product")
+
+    assert len(rakuten.seeds) > 1, "補充が行われていない"
+    assert rakuten.seeds[0] is None            # 1回目は日替わりの既定値
+    assert all(s is not None for s in rakuten.seeds[1:])
+    assert len(set(rakuten.seeds[1:])) == len(rakuten.seeds[1:]), "同じ層を引き直している"
+    assert len(scored) > 8, "積み増した分が反映されていない"
+
+
+def test_pool_is_not_refilled_when_enough(config, tmp_path):
+    """十分あるときは余計なリクエストを投げない（1秒1リクエスト制限のため）。"""
+    rakuten = CountingRakuten(per_call=40)
+    pipeline = Pipeline(
+        config,
+        history=History(tmp_path / "history.jsonl"),
+        state=State(tmp_path / "state.json"),
+        rakuten=rakuten,
+    )
+
+    pipeline.gather_candidates("product")
+    assert len(rakuten.seeds) == 1
+
+
+def test_thread_template_puts_pr_on_the_first_post(config, tmp_path):
+    """タイムラインに出るのは1本目なので、そこに #PR が要る。"""
+    pipeline = make_pipeline(config, tmp_path)
+    draft = pipeline.builder.build("product", pool(3)[:1], template_id="thread")
+
+    assert len(draft.segments) == 3
+    assert draft.segments[0].startswith("#PR")
+    assert draft.link_attachment
+    # 商品名と数字は2本目、リンク導線は3本目
+    assert "http" not in draft.text
+
+
+def test_every_thread_segment_fits_the_platform_limit(config, tmp_path):
+    pipeline = make_pipeline(config, tmp_path)
+    draft = pipeline.builder.build("product", pool(3)[:1], template_id="thread")
+    for segment in draft.segments:
+        assert 0 < len(segment) <= 500
