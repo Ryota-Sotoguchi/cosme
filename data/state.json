@@ -1,0 +1,15 @@
+{
+  "operation_started_on": "2026-08-20",
+  "part_history": {
+    "topic": [
+      "nl_budget_first"
+    ]
+  },
+  "template_history": [
+    "topic"
+  ],
+  "threads_token": {
+    "expires_at": "2026-10-18T19:14:05.700979+00:00",
+    "refreshed_at": "2026-08-19T19:14:05.700979+00:00"
+  }
+}
