@@ -5,7 +5,8 @@
       "cl_compare",
       "cl_candidate",
       "cl_push",
-      "cl_postage"
+      "cl_postage",
+      "cl_someday"
     ],
     "cta": [
       "cta_rakuten"
@@ -21,6 +22,12 @@
     "opening": [
       "op_curious",
       "op_saved"
+    ],
+    "thread_bridge": [
+      "br_found"
+    ],
+    "thread_hook": [
+      "hk_hair_1"
     ],
     "topic": [
       "nl_budget_first",
@@ -43,7 +50,8 @@
     "checklist",
     "objective",
     "short",
-    "band_focus"
+    "band_focus",
+    "thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
