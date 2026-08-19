@@ -263,3 +263,28 @@ def test_display_name_keeps_short_names_intact():
 def test_display_name_does_not_end_with_separator():
     shown = _named("アミノ酸シャンプー 詰め替え用 大容量 / 送料無料 / 楽天限定").display_name()
     assert not shown.endswith(("/", "／", "・", "-", "|"))
+
+
+def test_affiliate_wrapped_item_url_is_unwrapped():
+    """affiliateId 指定時、楽天APIは itemUrl もアフィリエイトURLで返す。
+
+    そのまま保存すると公開リポジトリにアフィリエイトIDが残るため、
+    pc= に入っている素の商品URLへ戻す。
+    """
+    item = RakutenItem.from_api({
+        "itemCode": "fancl-shop:10009885",
+        "itemName": "化粧液",
+        "itemPrice": 1540,
+        "itemUrl": "https://hb.afl.rakuten.co.jp/hgc/g00sms5o.1s4mob08/"
+                   "?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Ffancl-shop%2F3742-31%2F&m=x",
+    })
+    assert item.item_url == "https://item.rakuten.co.jp/fancl-shop/3742-31/"
+    assert "hb.afl" not in item.item_url
+
+
+def test_plain_item_url_is_untouched():
+    item = RakutenItem.from_api({
+        "itemCode": "s:1", "itemName": "テスト", "itemPrice": 1000,
+        "itemUrl": "https://item.rakuten.co.jp/s/1/",
+    })
+    assert item.item_url == "https://item.rakuten.co.jp/s/1/"

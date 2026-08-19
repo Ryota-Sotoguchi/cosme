@@ -128,7 +128,12 @@ class History:
 
     def append(self, record: PostRecord) -> None:
         # 保存の境界で必ず伏せる。呼び出し側が忘れても漏れないようにするため。
+        #
+        # text だけでは足りない。affiliateId を指定すると楽天APIは itemUrl も
+        # アフィリエイトURLで返すので、URLを持つフィールドはすべて通す。
         record.text = redact_affiliate_urls(record.text)
+        if record.item_url:
+            record.item_url = redact_affiliate_urls(record.item_url)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         with self.path.open("a", encoding="utf-8") as fh:
             fh.write(record.to_json() + "\n")

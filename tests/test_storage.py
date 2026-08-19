@@ -169,3 +169,24 @@ def test_redaction_keeps_non_affiliate_text_intact():
 
     assert redact_affiliate_urls("リンクなしの投稿です。") == "リンクなしの投稿です。"
     assert redact_affiliate_urls("a.r10.to は伏せる https://a.r10.to/xyz").endswith("[affiliate-url]")
+
+
+def test_item_url_is_also_redacted(tmp_path):
+    """affiliateId 指定時は itemUrl もアフィリエイトURLで返るため伏せる。
+
+    text だけ伏せていたせいで、実運用の1件目で item_url からIDが漏れた。
+    """
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(
+        item_url="https://hb.afl.rakuten.co.jp/hgc/abc.def/?pc=https%3A%2F%2Fitem.rakuten.co.jp%2Fs%2F1%2F"
+    ))
+    raw = (tmp_path / "history.jsonl").read_text(encoding="utf-8")
+    assert "hb.afl.rakuten.co.jp" not in raw
+    assert "abc.def" not in raw
+
+
+def test_plain_item_url_is_kept(tmp_path):
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(item_url="https://item.rakuten.co.jp/shop/1/"))
+    raw = (tmp_path / "history.jsonl").read_text(encoding="utf-8")
+    assert "https://item.rakuten.co.jp/shop/1/" in raw

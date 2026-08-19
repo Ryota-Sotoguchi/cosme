@@ -11,6 +11,7 @@ import hashlib
 import re
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 # 商品名からブランドらしき語を推定するための区切り
 _BRAND_SPLIT = re.compile(r"[\s【】\[\]（）()「」/｜|・,、]+")
@@ -37,6 +38,23 @@ def _to_float(value: Any) -> float | None:
     except (TypeError, ValueError):
         return None
     return result
+
+
+def _canonical_item_url(url: str) -> str:
+    """アフィリエイトURLなら、包まれている本来の商品URLを取り出す。
+
+    affiliateId を指定すると楽天APIは itemUrl もアフィリエイトURLで返す。
+    そのまま公開リポジトリへ保存するとアフィリエイトIDが残るので、
+    pc= パラメータに入っている素の商品URLへ戻す。
+    """
+    if "hb.afl.rakuten.co.jp" not in url and "a.r10.to" not in url:
+        return url
+    query = parse_qs(urlparse(url).query)
+    for key in ("pc", "m"):
+        for candidate in query.get(key, []):
+            if candidate.startswith("http"):
+                return candidate
+    return ""
 
 
 def _first_image(value: Any) -> str | None:
@@ -104,7 +122,7 @@ class RakutenItem:
             item_code=item_code,
             item_name=item_name,
             item_price=price,
-            item_url=item_url,
+            item_url=_canonical_item_url(item_url),
             affiliate_url=(str(item["affiliateUrl"]).strip() or None)
             if item.get("affiliateUrl")
             else None,
