@@ -288,3 +288,124 @@ def test_plain_item_url_is_untouched():
         "itemUrl": "https://item.rakuten.co.jp/s/1/",
     })
     assert item.item_url == "https://item.rakuten.co.jp/s/1/"
+
+
+# ======================================================================
+# 候補収集（全ジャンルから均等に集める）
+# ======================================================================
+def _genre_response(genre_id, page, count=30):
+    """ジャンルとページごとに別の商品を返す応答を作る。"""
+    return _FakeResponse(200, {
+        "Items": [
+            {
+                "itemCode": f"shop{genre_id}:{page}-{i}",
+                "itemName": f"商品{genre_id}-{page}-{i}",
+                "itemPrice": 1000 + i,
+                "itemUrl": f"https://item.rakuten.co.jp/s/{genre_id}-{page}-{i}/",
+                "genreId": str(genre_id),
+                "reviewCount": 100,
+                "reviewAverage": 4.5,
+                "postageFlag": 0,
+                "availability": 1,
+                "mediumImageUrls": ["https://img/a.jpg"],
+                "shopCode": f"shop{genre_id}",
+            }
+            for i in range(count)
+        ]
+    })
+
+
+class _GenreAwareSession(_FakeSession):
+    """genreId と page に応じた応答を返すセッション。"""
+
+    def __init__(self):
+        super().__init__([])
+
+    def request(self, method, url, params=None, data=None, headers=None, timeout=None):
+        self.calls.append({"method": method, "url": url, "params": params or {},
+                           "data": data or {}, "headers": headers or {}})
+        p = params or {}
+        return _genre_response(p.get("genreId"), p.get("page", 1))
+
+
+def _collector(config):
+    _configure(config)
+    http = HttpClient(session=_GenreAwareSession(), max_retries=0)
+    return RakutenClient(config, http=http), http
+
+
+def test_every_configured_genre_is_queried(config):
+    """全ジャンルに問い合わせが飛ぶこと。
+
+    以前は「ページ→ジャンル→ソート」の順で回してプール上限で打ち切っていたため、
+    13ジャンル設定しても最初の1ジャンルしか取得できていなかった。
+    """
+    client, http = _collector(config)
+    genres = [{"id": 100 + i, "label": f"L{i}"} for i in range(6)]
+
+    client.collect_candidates(genres, limit=120, rotation_seed=0)
+
+    queried = {c["params"]["genreId"] for c in http.session.calls}
+    assert queried == {g["id"] for g in genres}
+
+
+def test_pool_is_spread_across_genres(config):
+    """1ジャンルがプールを占有しないこと。"""
+    client, _ = _collector(config)
+    genres = [{"id": 100 + i, "label": f"L{i}"} for i in range(5)]
+
+    pool = client.collect_candidates(genres, limit=100, rotation_seed=0)
+
+    labels = {}
+    for item in pool:
+        label = item.raw["_genre_label"]
+        labels[label] = labels.get(label, 0) + 1
+
+    assert len(labels) == 5
+    # 1ジャンルの取り分は上限/ジャンル数 + 余裕を超えない
+    assert max(labels.values()) <= 100 // 5 + 1
+
+
+def test_rotation_seed_changes_which_items_are_collected(config):
+    """日替わりで別の商品が見えること。
+
+    毎回同じ条件で引くと同じ商品しか出ず、30日クールダウンで
+    候補が枯れて投稿がスキップされ続ける。
+    """
+    genres = [{"id": 100 + i, "label": f"L{i}"} for i in range(4)]
+
+    client_a, _ = _collector(config)
+    client_b, _ = _collector(config)
+    day1 = {i.item_code for i in client_a.collect_candidates(genres, limit=80, rotation_seed=1)}
+    day2 = {i.item_code for i in client_b.collect_candidates(genres, limit=80, rotation_seed=2)}
+
+    assert day1 != day2, "日が変わっても同じ商品しか取れていない"
+
+
+def test_one_failing_genre_does_not_stop_collection(config):
+    """1ジャンルが落ちても他のジャンルは集める。"""
+    _configure(config)
+
+    class _PartlyBroken(_GenreAwareSession):
+        def request(self, method, url, params=None, data=None, headers=None, timeout=None):
+            if (params or {}).get("genreId") == 101:
+                self.calls.append({"params": params or {}, "headers": {}})
+                return _FakeResponse(503, text="boom")
+            return super().request(method, url, params, data, headers, timeout)
+
+    http = HttpClient(session=_PartlyBroken(), max_retries=0, backoff_max=0.01)
+    client = RakutenClient(config, http=http)
+    genres = [{"id": 100 + i, "label": f"L{i}"} for i in range(4)]
+
+    pool = client.collect_candidates(genres, limit=80, rotation_seed=0)
+    labels = {i.raw["_genre_label"] for i in pool}
+    assert "L1" not in labels          # 落ちたジャンル
+    assert len(labels) == 3            # 残りは集まっている
+
+
+def test_collect_raises_when_no_genres(config):
+    from src.errors import NoDataError
+
+    client, _ = _collector(config)
+    with pytest.raises(NoDataError):
+        client.collect_candidates([])

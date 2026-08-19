@@ -13,6 +13,8 @@ accessKey の送り方は実運用で揺れが報告されているため、
 from __future__ import annotations
 
 import logging
+import math
+from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
 
 from ..config import Config
@@ -28,6 +30,27 @@ ITEM_FIELDS = (
     "reviewCount,reviewAverage,postageFlag,availability,pointRate,"
     "mediumImageUrls,shopCode,shopName,genreId,taxFlag,creditCardFlag"
 )
+
+
+# 候補集めに使うソート順。
+#
+# 2026-08-20 に実データで歩留まりを測った結果（スキンケア216307・30件取得）:
+#
+#   -reviewCount     通過22件  レビュー0件  0件   ← 唯一使える
+#   standard         通過 0件  レビュー0件 29件
+#   -reviewAverage   通過 0件
+#   +itemPrice       通過 3件  レビュー0件 17件
+#   -itemPrice       通過 0件  レビュー0件 27件
+#   +affiliateRate   通過 0件  レビュー0件 27件
+#
+# standard と価格ソートは「レビューが1件も無い商品」ばかり返す。
+# このアカウントはレビューを主要な客観情報として扱うので、それらは
+# 除外フィルタで全部落ちる＝取得枠を無駄にしていた。
+#
+# 多様性はソートを変えることではなく、日替わりのページ送りで確保する。
+# -reviewCount はページ6まで歩留まりが落ちないことを実測済み
+# （13ジャンル×6ページで約1,900件が射程に入る）。
+DEFAULT_SORTS: tuple[str, ...] = ("-reviewCount",)
 
 
 class RakutenClient:
@@ -196,57 +219,105 @@ class RakutenClient:
         self,
         genres: Iterable[dict[str, Any]],
         *,
-        sorts: tuple[str, ...] = ("standard", "-reviewCount", "+itemPrice"),
+        sorts: tuple[str, ...] = DEFAULT_SORTS,
         postage_flag: int | None = None,
         min_price: int | None = None,
         max_price: int | None = None,
         limit: int | None = None,
+        rotation_seed: int | None = None,
     ) -> list[RakutenItem]:
-        """複数ジャンル・複数ソート順から候補プールを作る。
+        """全ジャンルから均等に候補プールを作る。
 
-        1つのソート順だけだと同じ商品ばかり集まるので、観点を変えて集める。
+        設計上の要点:
+
+        * **ジャンルごとに取得枠を割り当てる。**
+          以前は「ページ→ジャンル→ソート」の順に回して、プール上限に達したら
+          打ち切っていた。その結果、最初のジャンルの3ソートだけで上限に達し、
+          残りのジャンルには一度も到達していなかった（13ジャンル設定して
+          実際に取れていたのは1ジャンルだけ、という状態だった）。
+
+        * **日替わりでページとソートをずらす。**
+          毎回まったく同じ条件で引くと同じ商品しか出てこない。
+          30日の再投稿クールダウンがあるので、同じ商品ばかりだと
+          候補が尽きて投稿がスキップされ続ける。
+          rotation_seed（既定は年内通日）で開始位置をずらして、
+          日ごとに別の層が見えるようにする。
+
         itemCode で重複排除する。
         """
         selection = self.config.selection
         lo = min_price if min_price is not None else selection["min_price"]
         hi = max_price if max_price is not None else selection["max_price"]
-        cap = limit or selection.get("candidate_pool", 90)
-        max_pages = self.config.rakuten.get("max_pages", 3)
+        cap = limit or selection.get("candidate_pool", 300)
+        max_pages = max(1, self.config.rakuten.get("max_pages", 3))
+
+        genre_list = list(genres)
+        if not genre_list:
+            raise NoDataError("対象ジャンルが設定されていません")
+
+        seed = (
+            rotation_seed
+            if rotation_seed is not None
+            else datetime.now(timezone(timedelta(hours=9))).timetuple().tm_yday
+        )
+
+        # 1ジャンルあたりの取り分。端数は切り上げて、少ないジャンルがあっても
+        # 全体で cap に近づけるようにする。
+        per_genre = max(1, math.ceil(cap / len(genre_list)))
 
         seen: set[str] = set()
         pool: list[RakutenItem] = []
-        genre_list = list(genres)
 
-        for page in range(1, max_pages + 1):
-            for genre in genre_list:
-                for sort in sorts:
-                    if len(pool) >= cap:
-                        logger.info("候補プールが上限 %d 件に達しました", cap)
-                        return pool
-                    try:
-                        items = self.search(
-                            genre_id=genre["id"],
-                            min_price=lo,
-                            max_price=hi,
-                            sort=sort,
-                            page=page,
-                            postage_flag=postage_flag,
-                        )
-                    except TransientError as exc:
-                        # 1ジャンルの失敗で全体を止めない
-                        logger.warning("ジャンル %s の取得に失敗、スキップ: %s", genre["id"], exc)
-                        continue
+        # ジャンルの順番も日替わりでずらす。cap に届かず打ち切られたときに
+        # いつも同じジャンルが切り捨てられるのを防ぐ。
+        order = seed % len(genre_list)
+        rotated = genre_list[order:] + genre_list[:order]
 
-                    for item in items:
-                        if item.item_code in seen:
-                            continue
-                        seen.add(item.item_code)
-                        # ラベルはスコアリング・本文生成で使うので持ち回す
-                        object.__setattr__(item, "raw", {**item.raw, "_genre_label": genre.get("label", "")})
-                        pool.append(item)
+        for index, genre in enumerate(rotated):
+            if len(pool) >= cap:
+                break
+
+            sort = sorts[(seed + index) % len(sorts)]
+            page = ((seed + index) % max_pages) + 1
+            taken = 0
+
+            try:
+                items = self.search(
+                    genre_id=genre["id"],
+                    min_price=lo,
+                    max_price=hi,
+                    sort=sort,
+                    page=page,
+                    postage_flag=postage_flag,
+                )
+            except (TransientError, AuthError) as exc:
+                # 1ジャンルの失敗で全体を止めない
+                logger.warning("ジャンル %s の取得に失敗、スキップ: %s", genre["id"], exc)
+                continue
+
+            for item in items:
+                if taken >= per_genre or len(pool) >= cap:
+                    break
+                if item.item_code in seen:
+                    continue
+                seen.add(item.item_code)
+                # ラベルはスコアリング・本文生成で使うので持ち回す
+                object.__setattr__(
+                    item, "raw", {**item.raw, "_genre_label": genre.get("label", "")}
+                )
+                pool.append(item)
+                taken += 1
 
         if not pool:
             raise NoDataError("楽天APIから候補商品を1件も取得できませんでした")
 
-        logger.info("候補プール: %d件", len(pool))
+        labels = sorted({(i.raw or {}).get("_genre_label", "?") for i in pool})
+        logger.info(
+            "候補プール: %d件 / %dジャンル (seed=%d, 1ジャンルあたり最大%d件) %s",
+            len(pool),
+            len(labels),
+            seed,
+            per_genre,
+            ",".join(labels),
+        )
         return pool

@@ -17,7 +17,7 @@ from .compliance.checker import CheckResult, ComplianceChecker
 from .config import Config
 from .content.builder import ContentBuilder, Draft
 from .errors import ComplianceSkip, NoDataError
-from .rakuten.client import RakutenClient
+from .rakuten.client import DEFAULT_SORTS, RakutenClient
 from .rakuten.models import RakutenItem
 from .selector.filters import filter_items
 from .selector.scoring import ScoredItem, score_items
@@ -127,16 +127,33 @@ class Pipeline:
 
         # 投稿タイプに応じて取得条件を変える
         postage_flag = 1 if post_type == "postage_free" else None
-        sorts: tuple[str, ...]
-        if post_type == "review_heavy":
-            sorts = ("-reviewCount", "-reviewAverage")
-        elif post_type == "price_band":
-            sorts = ("+itemPrice", "standard")
-        else:
-            sorts = ("standard", "-reviewCount", "+itemPrice")
+        # ソートは投稿タイプによらず -reviewCount に統一する。
+        # standard や価格ソートはレビュー0件の商品ばかり返し、除外フィルタで
+        # 全滅して取得枠を無駄にする（実測: standard は30件中0件しか通らない）。
+        # 「価格帯別」「送料無料」といった切り口は、ソートではなく
+        # 取得条件（price 範囲・postageFlag）とスコアリングで表現する。
+        sorts = DEFAULT_SORTS
+
+        # 価格帯別のまとめは、価格の幅を狭めて取り直すと粒が揃う
+        price_window: tuple[int | None, int | None] = (None, None)
+        if post_type == "price_band":
+            lo = selection["min_price"]
+            hi = selection["max_price"]
+            span = (hi - lo) // 3
+            band = self.state.next_rotation("price_band_window", ["low", "mid", "high"])
+            price_window = {
+                "low": (lo, lo + span),
+                "mid": (lo + span, lo + span * 2),
+                "high": (lo + span * 2, hi),
+            }[band]
+            logger.info("価格帯まとめ: %s帯 %s円〜%s円", band, *price_window)
 
         pool = self.rakuten.collect_candidates(
-            genres, sorts=sorts, postage_flag=postage_flag
+            genres,
+            sorts=sorts,
+            postage_flag=postage_flag,
+            min_price=price_window[0],
+            max_price=price_window[1],
         )
 
         blocked_codes, blocked_hashes = self._blocked()

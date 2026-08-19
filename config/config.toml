@@ -27,7 +27,7 @@ user_agent = "cosme-bot/1.0 (+https://github.com/Ryota-Sotoguchi/cosme)"
 # 1 applicationId につき 1秒1リクエスト以下。安全側に倒して 1.2 秒あける。
 min_interval_seconds = 1.2
 hits_per_page = 30
-max_pages = 3
+max_pages = 8
 connect_timeout = 10.0
 read_timeout = 20.0
 max_retries = 4
@@ -61,7 +61,7 @@ min_review_average = 3.5
 require_image = true
 require_available = true
 # 1回の投稿で検討する候補数の上限
-candidate_pool = 90
+candidate_pool = 300
 
 # 対象ジャンル
 # 2026-08-20 に実APIで検証済み。キーワード検索で返る genreId を集計し、
