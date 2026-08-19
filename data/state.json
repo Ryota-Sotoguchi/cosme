@@ -2,7 +2,8 @@
   "operation_started_on": "2026-08-20",
   "part_history": {
     "closing": [
-      "cl_compare"
+      "cl_compare",
+      "cl_candidate"
     ],
     "cta": [
       "cta_rakuten"
@@ -27,7 +28,8 @@
     "band_focus",
     "topic",
     "topic",
-    "topic"
+    "topic",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
