@@ -35,7 +35,8 @@
       "nl_price_band",
       "nl_capacity",
       "nl_makeup_tools",
-      "nl_question_routine"
+      "nl_question_routine",
+      "nl_body_care"
     ]
   },
   "rotation_cursor": {
@@ -53,6 +54,7 @@
     "short",
     "band_focus",
     "thread",
+    "topic",
     "topic"
   ],
   "threads_token": {
