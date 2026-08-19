@@ -115,13 +115,13 @@ def build_facts(item: RakutenItem, *, bullet: str = "・") -> FactSet:
 
 
 def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
-    """事実を1〜2文の話し言葉にする。
+    """事実を一言で置く。
 
-    **数値は詰め込まない。** 価格・レビュー件数・平均・ポイントを全部並べると
-    人が書いた文章に見えなくなるので、1文あたり1〜2個までに抑え、
-    style で切り口を回して同じ形が続かないようにする。
+    **数値は1つだけ。** 価格・レビュー件数・平均を並べると表になってしまい、
+    人が書いた文章に見えなくなる。驚きや温度感は文章パーツ側（開き・締め）が
+    担当し、ここは数字を一つ置くだけにする。
 
-    送料無料は数値ではないので、密度に影響せず入れられる。
+    送料無料は数値ではないので、密度を上げずに添えられる。
     """
     allowed: set[str] = {
         normalize_number(str(item.item_price)),
@@ -130,7 +130,6 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
 
     price = format_price(item.item_price)
     free = bool(item.is_postage_free)
-
     count = item.review_count if (item.review_count or 0) > 0 else None
     average = item.review_average if count is not None else None
 
@@ -139,30 +138,17 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
     if average is not None:
         allowed.add(normalize_number(format_review_average(average)))
 
-    variants: list[str] = []
-
-    # 価格だけ（いちばん軽い）
-    variants.append(f"{price}。送料もかからない。" if free else f"{price}。")
-
+    variants: list[str] = [
+        f"{price}。送料もかからない。" if free else f"{price}。",
+        f"{price}だった。",
+    ]
     if count is not None:
-        cnt = format_review_count(count)
-        variants.append(
-            f"{price}で送料無料。レビューは{cnt}。" if free else f"{price}で、レビューは{cnt}。"
-        )
-        variants.append(
-            f"レビュー{cnt}ついてて{price}。送料無料。" if free else f"レビュー{cnt}ついてて{price}。"
-        )
-
+        variants.append(f"レビュー{format_review_count(count)}ついてる。")
     if average is not None:
-        avg = format_review_average(average)
-        variants.append(
-            f"{price}で送料無料。レビューの平均は{avg}。"
-            if free
-            else f"{price}。レビューの平均は{avg}。"
-        )
+        variants.append(f"レビューの平均は{format_review_average(average)}。")
+    variants.append(f"{price}で送料無料。" if free else f"{price}みたい。")
 
-    text = variants[style % len(variants)]
-    return text, allowed
+    return variants[style % len(variants)], allowed
 
 
 def inline_facts(item: RakutenItem) -> tuple[str, set[str]]:

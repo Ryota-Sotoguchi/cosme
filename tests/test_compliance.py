@@ -368,3 +368,12 @@ def test_no_link_topic_pool_is_deep_enough():
         f"トピックが{len(NO_LINK_TOPICS)}件しかない。"
         "3本/日で21日分（63件）を下回ると、同じ話題が月内に繰り返される"
     )
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["楽天ランキング1位", "ベストコスメ殿堂入り", "24冠達成", "モンドセレクション受賞", "第一位"],
+)
+def test_detects_ranking_claims(text):
+    """裏を取れない順位・受賞表示は載せない。"""
+    assert "exaggeration" in {r.category for r in scan(text)}

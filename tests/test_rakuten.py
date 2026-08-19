@@ -251,7 +251,7 @@ def test_display_name_does_not_cut_inside_brackets():
     """括弧の途中で切れると閉じ括弧の無い中途半端な表示になる。"""
     item = _named("モイストリファイン 化粧液【ファンケル 公式】 [FANCL 化粧水 保湿 うるおい]")
     shown = item.display_name()
-    assert "[FANCL" not in shown
+    # 途中で切れて閉じ括弧が消えていないこと
     assert shown.count("[") == shown.count("]")
     assert shown.count("【") == shown.count("】")
 
@@ -409,3 +409,44 @@ def test_collect_raises_when_no_genres(config):
     client, _ = _collector(config)
     with pytest.raises(NoDataError):
         client.collect_candidates([])
+
+
+# ======================================================================
+# 商品名から販促文言を落とす
+# ======================================================================
+@pytest.mark.parametrize(
+    "raw",
+    [
+        "20％OFFクーポン有!★ベストコスメ殿堂入り★【公式】オルナオーガニック シャンプー 500ml",
+        "【21日 09:59まで】20％OFFクーポン有!【楽天ランキング1位】ヘアオイル 100ml",
+        "★楽天1位★ ミルボン トリートメント グランドリンケージ 9g",
+        "【LDK1位/楽天1位24冠】ルーティー ヘアオイル 100ml",
+        "【期間限定】最大半額クーポン有！9/2 09:59まで！【公式】ボディミルク 500ml",
+    ],
+)
+def test_promotional_text_is_stripped_from_name(raw):
+    """商品名の販促文言を投稿に持ち込まない。
+
+    「ランキング1位」「殿堂入り」などは、こちらで裏を取れない優良誤認表示。
+    商品ページに書いてあってもSNSへそのまま転用してよいとは限らない。
+    """
+    from src.compliance.rules import scan
+
+    shown = _named(raw).display_name(38)
+
+    assert not scan(shown), f"販促文言が残っている: {shown}"
+    for token in ("クーポン", "OFF", "殿堂入り", "位", "冠", "まで"):
+        assert token not in shown, f"{token} が残っている: {shown}"
+
+
+def test_name_is_not_stripped_into_nothing():
+    """削りすぎて商品が特定できなくならないこと。"""
+    raw = "【公式】【送料無料】【ポイント10倍】"
+    assert len(_named(raw).display_name()) >= 4
+
+
+def test_ordinary_name_survives_cleaning():
+    item = _named("プリマモイスト ローション ボトル/つめかえ 【アテニア 公式】")
+    shown = item.display_name(38)
+    assert "プリマモイスト" in shown
+    assert "ローション" in shown

@@ -225,7 +225,12 @@ class Pipeline:
         if needed == 0:
             return self._run_no_link(recent_texts)
 
-        scored = self.gather_candidates(post_type)
+        try:
+            scored = self.gather_candidates(post_type)
+        except NoDataError as exc:
+            # 楽天側が一時的に返さない・全部除外された、等。枠は埋める。
+            logger.warning("候補商品が取れないため、リンクなし投稿に切り替えます（%s）", exc)
+            return self._run_no_link(recent_texts)
         if needed > 1:
             scored = self._same_category_first(scored, needed)
         max_skips = int(self.config.compliance.get("max_item_skips", 12))
@@ -275,11 +280,16 @@ class Pipeline:
 
             logger.info("候補 %d 番目をスキップします", skip_index + 1)
 
+        # 商品側で作れなかった場合は、リンクなし投稿に切り替えて枠を埋める。
+        #
+        # 30日クールダウンで候補が尽きたり、除外フィルタで全滅したりしても、
+        # 投稿が丸ごと無くなるとアカウントの更新が止まって見える。
+        # 収益は出ないが、話題投稿なら商品データが無くても作れる。
         detail = last_check.summary() if last_check else "候補なし"
-        raise ComplianceSkip(
-            f"コンプライアンスに合格する投稿を生成できませんでした（最後の不合格: {detail}）",
-            violations=[str(v) for v in (last_check.violations if last_check else [])],
+        logger.warning(
+            "商品投稿を作れなかったため、リンクなし投稿に切り替えます（%s）", detail
         )
+        return self._run_no_link(recent_texts)
 
     # ------------------------------------------------------------------
     def _run_no_link(self, recent_texts: list[str]) -> PipelineResult:

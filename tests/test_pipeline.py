@@ -83,15 +83,16 @@ def test_late_slot_rotates_post_types(config, tmp_path):
 
 
 def test_excluded_products_are_never_selected(config, tmp_path):
-    """除外対象しか無ければ、投稿せずスキップする。"""
+    """除外対象は絶対に投稿しない（枠はリンクなし投稿で埋める）。"""
     banned = [
         make_item(item_code=f"s{i}:{i}", item_name=f"【第2類医薬品】テスト薬{i}", shop_code=f"s{i}")
         for i in range(5)
     ]
     pipeline = make_pipeline(config, tmp_path, items=banned)
-    with pytest.raises(Exception) as exc:
-        pipeline.run("noon")
-    assert exc.type.__name__ in {"NoDataError", "ComplianceSkip"}
+    draft = pipeline.run("noon").draft
+
+    assert draft.post_type == "no_link"
+    assert not draft.items          # 除外商品は一切出てこない
 
 
 def test_recently_posted_item_is_skipped(config, tmp_path):
@@ -345,3 +346,60 @@ def test_same_category_first_falls_back_when_no_group_is_large_enough(config, tm
     pipeline = make_pipeline(config, tmp_path, items=items)
     scored = pipeline.gather_candidates("product")
     assert pipeline._same_category_first(scored, 3) == scored
+
+
+# ======================================================================
+# 商品が用意できないときのフォールバック
+# ======================================================================
+def test_falls_back_to_topic_post_when_no_products(config, tmp_path):
+    """商品が1件も取れなくても、投稿枠は埋める。
+
+    30日クールダウンで候補が尽きたり除外で全滅したりしたときに
+    投稿が丸ごと消えると、アカウントの更新が止まって見える。
+    """
+    # make_pipeline は `items or pool()` なので、空リストだと既定プールに
+    # すり替わってしまう。ここは本当に0件の状態を作りたいので直接組む。
+    pipeline = Pipeline(
+        config,
+        history=History(tmp_path / "history.jsonl"),
+        state=State(tmp_path / "state.json"),
+        rakuten=FakeRakuten([]),
+    )
+    result = pipeline.run("noon")
+
+    assert result.check.passed
+    assert result.draft.post_type == "no_link"
+    assert not result.draft.has_affiliate_link
+    assert result.draft.text.strip()
+
+
+def test_falls_back_when_every_product_is_excluded(config, tmp_path):
+    banned = [
+        make_item(item_code=f"s{i}:{i}", item_name=f"【第2類医薬品】テスト薬{i}", shop_code=f"s{i}")
+        for i in range(5)
+    ]
+    pipeline = make_pipeline(config, tmp_path, items=banned)
+    result = pipeline.run("night")
+
+    assert result.draft.post_type == "no_link"
+    assert result.check.passed
+
+
+def test_falls_back_when_all_products_are_in_cooldown(config, tmp_path):
+    """全候補がクールダウン中でも投稿は出る。"""
+    items = pool(3)
+    pipeline = make_pipeline(config, tmp_path, items=items)
+    for item in items:
+        pipeline.history.append(
+            PostRecord(
+                posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+                slot="noon", post_type="product", template_id="objective",
+                status="success", text="過去の投稿", has_affiliate_link=True,
+                item_code=item.item_code, item_url_hash=item.item_url_hash,
+                affiliate_url_hash=item.affiliate_url_hash,
+            )
+        )
+    pipeline.history._records = None
+
+    result = pipeline.run("noon")
+    assert result.draft.post_type == "no_link"
