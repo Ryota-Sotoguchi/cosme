@@ -16,13 +16,15 @@
     "topic": [
       "nl_budget_first",
       "nl_postage_trap",
-      "nl_price_band"
+      "nl_price_band",
+      "nl_capacity"
     ]
   },
   "template_history": [
     "topic",
     "topic",
     "band_focus",
+    "topic",
     "topic"
   ],
   "threads_token": {
