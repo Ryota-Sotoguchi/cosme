@@ -1,0 +1,37 @@
+# --- Secrets: 絶対にコミットしない ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+token.txt
+*_token.txt
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- ローカル開発ツールの設定（環境依存なので共有しない） ---
+.claude/settings.local.json
+.idea/
+.vscode/
+
+# --- ログ・一時ファイル ---
+*.log
+logs/
+tmp/
+.DS_Store
+
+# --- data/ は「履歴のみ」コミットする。生レスポンスキャッシュは除外 ---
+data/cache/
+data/*.tmp
