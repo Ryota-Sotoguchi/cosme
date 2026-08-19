@@ -208,3 +208,24 @@ def test_secret_writeback_is_skipped_without_pat(config, tmp_path, monkeypatch):
 
     manager = ThreadsTokenManager(config, State(tmp_path / "state.json"), http=_http([]))
     assert manager.store_to_github_secret("TOKEN") is False
+
+
+def test_non_numeric_user_id_is_ignored(config):
+    """THREADS_USER_ID にユーザー名を入れてしまっても /me で引き直す。
+
+    Graph API は username を渡すと
+    「Object with ID '<username>' does not exist」という分かりにくい
+    エラーを返すので、手前で弾く。
+    """
+    _with_token(config, user_id="cosme_memo_jp")
+    http = _http([_Resp({"id": "28013906364885767", "username": "cosme_memo_jp"})])
+    client = ThreadsClient(config, http=http)
+
+    assert client.get_user_id() == "28013906364885767"
+    assert http.session.calls[0]["url"].endswith("/me")
+
+
+def test_numeric_user_id_is_used_directly(config):
+    _with_token(config, user_id="28013906364885767")
+    client = ThreadsClient(config, http=_http([]))
+    assert client.get_user_id() == "28013906364885767"

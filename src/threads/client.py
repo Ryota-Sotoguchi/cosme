@@ -55,7 +55,18 @@ class ThreadsClient:
             max_retries=th.get("max_retries", 3),
             default_headers={"Accept": "application/json"},
         )
-        self._user_id: str | None = self.credentials.threads_user_id
+        # 数値IDでなければ無視して /me から引き直す。
+        # ユーザー名を設定してしまう間違いが起きやすく、その場合 Graph API は
+        # 「Object with ID '<username>' does not exist」という分かりにくい
+        # エラーを返すため、ここで弾いておく。
+        configured = (self.credentials.threads_user_id or "").strip()
+        if configured and not configured.isdigit():
+            logger.warning(
+                "THREADS_USER_ID が数値ではないため無視します（ユーザー名ではなく"
+                "数値IDを指定してください）。/me から取得し直します。"
+            )
+            configured = ""
+        self._user_id: str | None = configured or None
 
     # ------------------------------------------------------------------
     @property
