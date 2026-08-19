@@ -15,13 +15,15 @@
     ],
     "topic": [
       "nl_budget_first",
-      "nl_postage_trap"
+      "nl_postage_trap",
+      "nl_price_band"
     ]
   },
   "template_history": [
     "topic",
     "topic",
-    "band_focus"
+    "band_focus",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
