@@ -260,6 +260,21 @@ class Pipeline:
         )
         blocked_codes, blocked_hashes = self._blocked()
 
+        # --- リンクを付けられないなら、商品は出さない ---
+        #
+        # リンクの無い商品投稿は誰の得にもならない。
+        # 読者はその商品ページへ行けないし、こちらは収益にならない。
+        # そのうえ「投稿済み」として記録されるので、その商品が30日間
+        # クールダウンに入ってしまう（在庫だけ減って見返りがない）。
+        #
+        # ランプアップ中はリンク枠が1日1〜2本に絞られるため、
+        # 対策しないと初期の2週間で20件前後の商品を無駄に焼くことになる。
+        if needed > 0 and not with_link:
+            logger.info(
+                "リンクを付けられないスロットなので、商品を消費せずリンクなし投稿にします"
+            )
+            return self._run_no_link(recent_texts)
+
         # --- リンクなし投稿は商品取得が不要 ---
         if needed == 0:
             return self._run_no_link(recent_texts)

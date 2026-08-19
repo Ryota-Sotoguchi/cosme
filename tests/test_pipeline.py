@@ -99,6 +99,9 @@ def test_excluded_products_are_never_selected(config, tmp_path):
 
 
 def test_recently_posted_item_is_skipped(config, tmp_path):
+    # ここで見たいのは商品選定なので、ランプアップのリンク枠制限は外す
+    # （枠を使い切るとリンクなし投稿へ切り替わり、商品を選ばなくなる）
+    config.raw["ramp_up"]["enabled"] = False
     items = pool(3)
     pipeline = make_pipeline(config, tmp_path, items=items)
 
@@ -478,3 +481,43 @@ def test_every_thread_segment_fits_the_platform_limit(config, tmp_path):
     draft = pipeline.builder.build("product", pool(3)[:1], template_id="thread")
     for segment in draft.segments:
         assert 0 < len(segment) <= 500
+
+
+def test_link_less_slot_does_not_consume_a_product(config, tmp_path):
+    """リンクを付けられないときに商品を焼かないこと。
+
+    リンクの無い商品投稿は読者が買えず収益にもならないのに、
+    「投稿済み」として記録されて30日クールダウンに入ってしまう。
+    ランプアップ中はリンク枠が絞られるので、放置すると初期に
+    20件前後の商品を無駄に消費する。
+    """
+    pipeline = make_pipeline(config, tmp_path)
+    pipeline.state.operation_start_date()
+
+    # ランプアップ1段目（1日1本）の枠を使い切らせる
+    pipeline.history.append(
+        PostRecord(
+            posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+            slot="noon", post_type="product", template_id="thread",
+            status="success", text="#PR 済み", has_affiliate_link=True,
+            item_code="used:1",
+        )
+    )
+    pipeline.history._records = None
+
+    draft = pipeline.run("night").draft
+
+    assert draft.post_type == "no_link"
+    assert draft.items == [], "リンクなしなのに商品を消費している"
+    assert "円" not in draft.text, "リンクなしなのに商品情報が出ている"
+
+
+def test_link_allowed_slot_still_posts_products(config, tmp_path):
+    """リンクが付けられるときは、これまで通り商品投稿を出す。"""
+    pipeline = make_pipeline(config, tmp_path)
+    pipeline.state.operation_start_date()
+
+    draft = pipeline.run("noon").draft
+    assert draft.post_type == "product"
+    assert draft.items
+    assert draft.link_attachment
