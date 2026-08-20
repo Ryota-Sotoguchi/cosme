@@ -71,6 +71,9 @@ class PostRecord:
     error_type: str | None = None
     error_message: str | None = None
 
+    # 投稿後に取得する成績。どの投稿が効いたかを判断する材料。
+    insights: dict[str, Any] = field(default_factory=dict)
+
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_json(self) -> str:
@@ -198,6 +201,21 @@ class History:
 
     def recent_template_ids(self, limit: int) -> list[str]:
         return [r.template_id for r in self.recent(limit) if r.template_id]
+
+    def update_insights(self, post_id: str, values: dict[str, Any]) -> bool:
+        """投稿IDに対応する行の成績を更新して書き戻す。
+
+        追記型のJSONLだが、成績は後から確定するので該当行だけ差し替える。
+        """
+        records = self.load()
+        target = next((r for r in records if r.thread_post_id == post_id), None)
+        if target is None:
+            return False
+        target.insights = {**target.insights, **values}
+        self.path.write_text(
+            "\n".join(r.to_json() for r in records) + "\n", encoding="utf-8"
+        )
+        return True
 
     def counter(self, attribute: str, limit: int) -> dict[str, int]:
         """直近 limit 件における属性値の出現回数。偏り抑制のペナルティ計算に使う。"""

@@ -1,0 +1,59 @@
+name: insights
+
+# 投稿の成績を毎日集めて履歴へ書き戻し、運用の異常を点検する。
+#
+# 定期投稿は失敗しても静かに次へ進む設計なので、これが無いと
+# 「何日も投稿できていない」ことに気づけない。
+# doctor が問題を見つけたらジョブを失敗させ、GitHubの通知に載せる。
+on:
+  schedule:
+    - cron: '0 13 * * *'   # 22:00 JST（その日の投稿がほぼ出そろってから）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: insights
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Collect insights
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+        run: python -m src.main insights
+
+      - name: Commit insights
+        if: always()
+        run: |
+          if [ -z "$(git status --porcelain data/)" ]; then exit 0; fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git commit -m "chore(data): 投稿の成績を更新 [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+
+      # 点検は最後。ここで落ちると通知が飛ぶ。
+      - name: Health check
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+        run: python -m src.main doctor

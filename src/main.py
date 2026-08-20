@@ -43,6 +43,7 @@ from .rakuten.client import RakutenClient
 from .storage.history import History, PostRecord
 from .storage.state import State
 from .threads.client import ThreadsClient
+from .threads.insights import ThreadsInsights
 from .threads.token import ThreadsTokenManager
 
 logger = logging.getLogger("cosme")
@@ -348,6 +349,126 @@ def cmd_token(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_insights(config: Config, args: argparse.Namespace) -> int:
+    """公開済み投稿の成績を取得して履歴へ書き戻す。
+
+    収益化の判断材料。どのテンプレート・時間帯・カテゴリーが
+    見られているかが分からないと、改善が勘になる。
+    """
+    history = History(config.history_path)
+    insights = ThreadsInsights(config)
+
+    account = insights.for_account()
+    if account:
+        print("\n=== アカウント全体 ===")
+        for key, value in account.items():
+            print(f"  {key:16s} {value:,}")
+
+    targets = [r for r in history.successful() if r.thread_post_id]
+    updated = 0
+    for record in targets:
+        result = insights.for_post(record.thread_post_id)
+        if result is None:
+            continue
+        if history.update_insights(record.thread_post_id, result.as_dict()):
+            updated += 1
+
+    print(f"\n成績を更新: {updated}/{len(targets)} 件")
+
+    rows = [
+        r for r in history.successful() if r.insights.get("views") is not None
+    ]
+    if rows:
+        print("\n=== 投稿別（表示回数の多い順）===")
+        rows.sort(key=lambda r: r.insights.get("views") or 0, reverse=True)
+        print(f"  {'表示':>7} {'反応':>5}  {'種別':<12} {'テンプレ':<12} {'リンク':<5} 冒頭")
+        for r in rows[:20]:
+            i = r.insights
+            reactions = sum(
+                (i.get(k) or 0) for k in ("likes", "replies", "reposts", "shares")
+            )
+            head = (r.text or "").replace("\n", " ")[:26]
+            print(
+                f"  {(i.get('views') or 0):>7,} {reactions:>5}  "
+                f"{r.post_type:<12} {r.template_id:<12} "
+                f"{'あり' if r.has_affiliate_link else 'なし':<5} {head}"
+            )
+
+        # 種別ごとの平均表示回数。次に何を増やすかの判断材料。
+        buckets: dict[str, list[int]] = {}
+        for r in rows:
+            buckets.setdefault(r.post_type, []).append(r.insights.get("views") or 0)
+        print("\n=== 種別ごとの平均表示回数 ===")
+        for kind, values in sorted(
+            buckets.items(), key=lambda kv: -sum(kv[1]) / len(kv[1])
+        ):
+            print(f"  {kind:<12} 平均 {sum(values)//len(values):>6,}  ({len(values)}件)")
+    print()
+    return EXIT_OK
+
+
+def cmd_doctor(config: Config, args: argparse.Namespace) -> int:
+    """運用が壊れていないかを点検する。
+
+    定期実行は失敗しても静かに次へ進む設計なので、放っておくと
+    「何日も投稿できていない」ことに気づけない。
+    問題があれば非ゼロで終了し、GitHub Actions の失敗通知に載せる。
+    """
+    history = History(config.history_path)
+    state = State(config.state_path)
+    problems: list[str] = []
+    warnings: list[str] = []
+
+    print("\n=== 運用点検 ===\n")
+
+    # --- トークン期限 ---
+    remaining = state.token_days_remaining()
+    if remaining is None:
+        warnings.append("Threads トークンの期限が記録されていません")
+    elif remaining <= 0:
+        problems.append("Threads トークンが失効しています。再認可が必要です")
+    elif remaining <= int(config.threads.get("token_warn_days", 14)):
+        problems.append(f"Threads トークンの残りが {remaining} 日です。更新を確認してください")
+    print(f"  トークン残日数     : {remaining if remaining is not None else '不明'}")
+
+    # --- 直近の投稿状況 ---
+    recent = history.since(3, only_success=False)
+    succeeded = [r for r in recent if r.status == "success"]
+    failed = [r for r in recent if r.status == "failed"]
+    print(f"  直近3日の投稿      : 成功 {len(succeeded)} / 失敗 {len(failed)}")
+
+    if recent and not succeeded:
+        problems.append("直近3日で成功した投稿がありません。投稿が止まっています")
+    if len(failed) >= 3:
+        problems.append(f"直近3日で {len(failed)} 件失敗しています")
+
+    # --- アフィリエイト投稿が出ているか（収益の前提） ---
+    link_posts = [r for r in history.since(7) if r.has_affiliate_link]
+    print(f"  直近7日のリンク投稿: {len(link_posts)} 件")
+    if not link_posts:
+        warnings.append(
+            "直近7日にリンク投稿がありません。収益は発生しません"
+            "（ランプアップ中か、商品候補が枯れている可能性）"
+        )
+
+    # --- 成績が取れているか ---
+    with_insights = [r for r in history.successful() if r.insights.get("views") is not None]
+    print(f"  成績記録済み       : {len(with_insights)} 件")
+    if history.successful() and not with_insights:
+        warnings.append("投稿の成績が1件も記録されていません。改善の判断材料がありません")
+
+    print()
+    for item in problems:
+        print(f"  ❌ {item}")
+    for item in warnings:
+        print(f"  ⚠️  {item}")
+    if not problems and not warnings:
+        print("  ✅ 問題なし")
+    print()
+
+    return EXIT_CONFIG if problems else EXIT_OK
+
+
 # ======================================================================
 def cmd_schedule(config: Config, args: argparse.Namespace) -> int:
     """設定されている投稿スケジュールと、次回実行時刻を表示する。"""
@@ -469,6 +590,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("check", help="楽天/Threads への接続確認")
     sub.add_parser("schedule", help="スケジュールと次回実行時刻を表示")
+    sub.add_parser("insights", help="投稿の成績を取得して履歴へ記録する")
+    sub.add_parser("doctor", help="運用が壊れていないか点検する")
     sub.add_parser("selftest", help="認証情報なしで生成〜検証の経路をテスト")
 
     p_token = sub.add_parser("token", help="Threads アクセストークンの管理")
@@ -515,6 +638,8 @@ def main(argv: list[str] | None = None) -> int:
         "preview": cmd_preview,
         "check": cmd_check,
         "schedule": cmd_schedule,
+        "insights": cmd_insights,
+        "doctor": cmd_doctor,
         "selftest": cmd_selftest,
         "token": cmd_token,
     }

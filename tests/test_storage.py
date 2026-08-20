@@ -190,3 +190,35 @@ def test_plain_item_url_is_kept(tmp_path):
     history.append(record(item_url="https://item.rakuten.co.jp/shop/1/"))
     raw = (tmp_path / "history.jsonl").read_text(encoding="utf-8")
     assert "https://item.rakuten.co.jp/shop/1/" in raw
+
+
+def test_insights_are_written_back_to_the_right_row(tmp_path):
+    """成績は後から確定するので、該当行だけ差し替えられること。"""
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(item_code="a:1", thread_post_id="P1"))
+    history.append(record(item_code="b:2", thread_post_id="P2"))
+
+    assert history.update_insights("P2", {"views": 1200, "likes": 3})
+
+    reloaded = History(tmp_path / "history.jsonl").load()
+    assert len(reloaded) == 2
+    assert reloaded[0].insights == {}
+    assert reloaded[1].insights["views"] == 1200
+    assert reloaded[1].item_code == "b:2"
+
+
+def test_insights_update_is_noop_for_unknown_post(tmp_path):
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(thread_post_id="P1"))
+    assert history.update_insights("UNKNOWN", {"views": 1}) is False
+
+
+def test_insights_write_back_keeps_urls_redacted(tmp_path):
+    """行を書き戻すときに、伏せ字にしたURLが復活しないこと。"""
+    history = History(tmp_path / "history.jsonl")
+    url = "https://hb.afl.rakuten.co.jp/hgc/abc/?pc=x"
+    history.append(record(thread_post_id="P1", text=f"メモ {url}", item_url=url))
+    history.update_insights("P1", {"views": 10})
+
+    raw = (tmp_path / "history.jsonl").read_text(encoding="utf-8")
+    assert "hb.afl.rakuten.co.jp" not in raw
