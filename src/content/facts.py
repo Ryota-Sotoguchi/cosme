@@ -198,11 +198,24 @@ TOPIC_TAGS: dict[str, tuple[str, ...]] = {
 }
 
 
-def topic_tag_for(category: str, cursor: int = 0) -> str:
-    """カテゴリーに対応するトピックタグを1つ選ぶ。
+def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product") -> str | None:
+    """トピックタグを1つ選ぶ。付けないこともある。
+
+    全投稿に付けると宣伝アカウントの見た目になる。人は毎回タグを付けない。
+
+      * つぶやき    … 付けない。「今日の湿気」にコスメタグは明らかに不自然
+      * リンクなし  … 3回に1回くらい
+      * 商品投稿    … 2回に1回くらい（発見導線が要るので少し高め）
 
     Threads はタグを1投稿に1つしか付けられないので、
     同じタグに偏らないよう cursor で回す。
     """
+    if post_type == "casual":
+        return None
+
+    every = 3 if post_type == "no_link" else 2
+    if cursor % every != 0:
+        return None
+
     tags = TOPIC_TAGS.get(category) or TOPIC_TAGS["コスメ"]
-    return tags[cursor % len(tags)]
+    return tags[(cursor // every) % len(tags)]

@@ -1,4 +1,7 @@
 {
+  "answered_replies": [
+    "18611881231024120"
+  ],
   "operation_started_on": "2026-08-20",
   "part_history": {
     "casual": [
@@ -73,5 +76,6 @@
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
     "refreshed_at": "2026-08-19T19:53:20.032020+00:00"
-  }
+  },
+  "threads_username": "cosme_memo_jp"
 }

@@ -51,6 +51,15 @@ jobs:
             sleep 5
           done
 
+      # 自分の投稿に付いたコメントに返す。
+      # 会話が続くと投稿自体のリーチも伸びる。
+      # 他人の投稿への自動返信はしない（Metaのスパム規定に触れるため）。
+      - name: Reply to comments
+        env:
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+        run: python -m src.main replies --live
+
       # 点検は最後。ここで落ちると通知が飛ぶ。
       - name: Health check
         env:

@@ -221,6 +221,7 @@ class ContentBuilder:
             topic_tag=F.topic_tag_for(
                 F.category_label(primary) if primary else "コスメ",
                 len(self.state.recent_part_ids("closing", limit=10_000)),
+                post_type,
             ),
         )
         logger.info(

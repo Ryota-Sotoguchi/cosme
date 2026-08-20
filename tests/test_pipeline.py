@@ -587,13 +587,27 @@ def test_link_never_appears_on_the_first_post(config, tmp_path):
         assert draft.segments[0].startswith("#PR"), template_id
 
 
-def test_every_post_gets_a_topic_tag(config, tmp_path):
-    """フォロワーが少ないうちはタグ経由がほぼ唯一の発見導線になる。"""
-    pipeline = make_pipeline(config, tmp_path)
-    for slot in ("morning", "noon", "evening", "night", "late"):
-        draft = pipeline.run(slot).draft
-        assert draft.topic_tag, f"{slot} にタグが無い"
-        pipeline.builder.commit(draft)
+def test_topic_tags_are_occasional_not_every_post(config, tmp_path):
+    """全投稿にタグを付けると宣伝アカウントの見た目になる。
+
+    人は毎回タグを付けない。付ける投稿と付けない投稿が混ざるのが自然。
+    """
+    from src.content.facts import topic_tag_for
+
+    product = [topic_tag_for("スキンケア", i, "product") for i in range(8)]
+    no_link = [topic_tag_for("スキンケア", i, "no_link") for i in range(8)]
+
+    assert any(product) and not all(product), "商品投稿のタグが全付け/全無し"
+    assert any(no_link) and not all(no_link), "リンクなし投稿のタグが全付け/全無し"
+    # 商品投稿のほうが発見導線が要るので、付ける頻度は高め
+    assert sum(1 for t in product if t) > sum(1 for t in no_link if t)
+
+
+def test_casual_posts_never_get_a_topic_tag():
+    """「今日の湿気」にコスメタグが付くのは明らかに不自然。"""
+    from src.content.facts import topic_tag_for
+
+    assert all(topic_tag_for("スキンケア", i, "casual") is None for i in range(10))
 
 
 def test_topic_tags_rotate(config, tmp_path):

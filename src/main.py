@@ -44,6 +44,7 @@ from .storage.history import History, PostRecord
 from .storage.state import State
 from .threads.client import ThreadsClient
 from .threads.insights import ThreadsInsights
+from .threads.replies import ReplyResponder
 from .threads.token import ThreadsTokenManager
 
 logger = logging.getLogger("cosme")
@@ -413,6 +414,80 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_replies(config: Config, args: argparse.Namespace) -> int:
+    """自分の投稿に付いたコメントに返信する。
+
+    会話が続くと投稿自体のリーチも伸びる。露出を増やす手段のうち
+    規約上いちばん安全なもの（他人の投稿への自動返信とは別物）。
+    既定は下書き表示のみ。--live のときだけ実際に返信する。
+    """
+    state = State(config.state_path)
+    responder = ReplyResponder(config, state)
+
+    try:
+        planned = responder.run(dry_run=not args.live)
+    except MissingSecretError as exc:
+        logger.error("%s", exc)
+        return EXIT_CONFIG
+    except (AuthError, PostRejectedError) as exc:
+        logger.error("返信の取得に失敗しました: %s", exc)
+        return EXIT_CONFIG
+    except TransientError as exc:
+        logger.error("一時障害: %s", exc)
+        return EXIT_TRANSIENT
+
+    if not planned:
+        print("\n未返信のコメントはありません\n")
+        state.save()
+        return EXIT_OK
+
+    print(f"\n=== 未返信のコメント {len(planned)}件 ===")
+    for entry in planned:
+        mark = "✅ 返信済み" if entry["posted"] else "（下書き）"
+        print(f"\n  @{entry['username']}: {entry['comment']}")
+        print(f"    → {entry['reply']}  {mark}")
+    if not args.live:
+        print("\n  実際に返信するには --live を付けてください")
+    print()
+    state.save()
+    return EXIT_OK
+
+
+def cmd_hours(config: Config, args: argparse.Namespace) -> int:
+    """時間帯ごとの成績を出す。投稿時刻を決める材料。"""
+    from collections import defaultdict
+
+    history = History(config.history_path)
+    rows = [
+        r for r in history.successful()
+        if r.insights.get("views") is not None and r.posted_datetime
+    ]
+    if not rows:
+        print("\nまだ成績データがありません。insights を実行してください\n")
+        return EXIT_OK
+
+    by_hour: dict[int, list[int]] = defaultdict(list)
+    for r in rows:
+        by_hour[r.posted_datetime.astimezone(JST).hour].append(r.insights["views"] or 0)
+
+    print(f"\n=== 時間帯ごとの表示回数（{len(rows)}件）===\n")
+    print(f"  {'時刻':<6}{'件数':>4}{'平均':>9}{'最大':>9}")
+    print("  " + "\u2500" * 30)
+    for hour in sorted(by_hour):
+        values = by_hour[hour]
+        print(f"  {hour:>2}時 {len(values):>4}{sum(values)//len(values):>9,}{max(values):>9,}")
+
+    ranked = sorted(by_hour.items(), key=lambda kv: -sum(kv[1]) / len(kv[1]))
+    print("\n  よく見られている時間帯: " + ", ".join(f"{h}時" for h, _ in ranked[:3]))
+    print("  現在の投稿時刻        : " + ", ".join(s.time_jst for s in config.schedule))
+
+    if len(rows) < 20:
+        print(f"\n  ※ まだ{len(rows)}件なので判断材料としては不十分です。"
+              "1〜2週間ためてから見てください")
+    print()
+    return EXIT_OK
+
+
 def cmd_doctor(config: Config, args: argparse.Namespace) -> int:
     """運用が壊れていないかを点検する。
 
@@ -598,6 +673,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("schedule", help="スケジュールと次回実行時刻を表示")
     sub.add_parser("insights", help="投稿の成績を取得して履歴へ記録する")
     sub.add_parser("doctor", help="運用が壊れていないか点検する")
+    sub.add_parser("hours", help="時間帯ごとの成績を見る")
+
+    p_replies = sub.add_parser("replies", help="自分の投稿へのコメントに返信する")
+    p_replies.add_argument("--live", action="store_true", help="実際に返信する（既定は下書き表示のみ）")
     sub.add_parser("selftest", help="認証情報なしで生成〜検証の経路をテスト")
 
     p_token = sub.add_parser("token", help="Threads アクセストークンの管理")
@@ -646,6 +725,8 @@ def main(argv: list[str] | None = None) -> int:
         "schedule": cmd_schedule,
         "insights": cmd_insights,
         "doctor": cmd_doctor,
+        "hours": cmd_hours,
+        "replies": cmd_replies,
         "selftest": cmd_selftest,
         "token": cmd_token,
     }
