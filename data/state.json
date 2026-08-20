@@ -38,7 +38,8 @@
       "nl_question_routine",
       "nl_body_care",
       "nl_brand_lock",
-      "nl_refill"
+      "nl_refill",
+      "nl_compare_axis"
     ]
   },
   "rotation_cursor": {
@@ -57,6 +58,7 @@
     "short",
     "band_focus",
     "thread",
+    "topic",
     "topic",
     "topic",
     "topic",
