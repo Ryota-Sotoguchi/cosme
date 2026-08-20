@@ -39,6 +39,8 @@ class Draft:
     segments: list[str] = field(default_factory=list)
     # リンクカードとして添付するURL。本文の文字数を消費しない。
     link_attachment: str | None = None
+    # トピックタグ。フォロワーがいなくても一覧経由で見てもらえる導線。
+    topic_tag: str | None = None
 
     def __post_init__(self) -> None:
         if not self.segments:
@@ -214,6 +216,12 @@ class ContentBuilder:
             allowed_numbers=set(rendered.allowed_numbers),
             link_attachment=affiliate_url,
             segments=segments,
+            # フォロワーが少ないうちは、タグ経由がほぼ唯一の発見導線になる。
+            # リンクなし投稿にも付ける（むしろそちらのほうが伸びる）。
+            topic_tag=F.topic_tag_for(
+                F.category_label(primary) if primary else "コスメ",
+                len(self.state.recent_part_ids("closing", limit=10_000)),
+            ),
         )
         logger.info(
             "生成: template=%s type=%s len=%d link=%s parts=%s",

@@ -183,3 +183,26 @@ def category_label(item: RakutenItem) -> str:
     """収集時に付与したジャンルラベル。無ければ汎用語にフォールバックする。"""
     label = (item.raw or {}).get("_genre_label")
     return str(label) if label else "コスメ"
+
+
+# 投稿に付けるトピックタグ。
+# フォロワーが少ないうちは、タグ経由の流入がほぼ唯一の発見導線になる。
+# 広く使われている語を選ぶ（狭すぎると誰も見ていない）。
+TOPIC_TAGS: dict[str, tuple[str, ...]] = {
+    "スキンケア": ("スキンケア", "コスメ", "プチプラコスメ"),
+    "メイク": ("コスメ", "メイク", "プチプラコスメ"),
+    "ヘアケア": ("ヘアケア", "コスメ"),
+    "ボディケア": ("ボディケア", "コスメ"),
+    "美容小物": ("コスメ", "メイク"),
+    "コスメ": ("コスメ", "スキンケア", "美容"),
+}
+
+
+def topic_tag_for(category: str, cursor: int = 0) -> str:
+    """カテゴリーに対応するトピックタグを1つ選ぶ。
+
+    Threads はタグを1投稿に1つしか付けられないので、
+    同じタグに偏らないよう cursor で回す。
+    """
+    tags = TOPIC_TAGS.get(category) or TOPIC_TAGS["コスメ"]
+    return tags[cursor % len(tags)]

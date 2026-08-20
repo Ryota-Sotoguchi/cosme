@@ -178,14 +178,18 @@ def cmd_post(config: Config, args: argparse.Namespace) -> int:
     try:
         if len(draft.segments) > 1:
             results = client.post_thread(
-                draft.segments, link_attachment=draft.link_attachment
+                draft.segments,
+                link_attachment=draft.link_attachment,
+                topic_tag=draft.topic_tag,
             )
             published = results[0] if results else None
             if published is None:
                 raise PostRejectedError("スレッドを1本も投稿できませんでした")
         else:
             published = client.post_text(
-                draft.text, link_attachment=draft.link_attachment
+                draft.text,
+                link_attachment=draft.link_attachment,
+                topic_tag=draft.topic_tag,
             )
     except MissingSecretError as exc:
         logger.error("%s", exc)

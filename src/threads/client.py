@@ -126,6 +126,7 @@ class ThreadsClient:
         *,
         link_attachment: str | None = None,
         reply_to_id: str | None = None,
+        topic_tag: str | None = None,
     ) -> str:
         """テキスト投稿のメディアコンテナを作成し creation_id を返す。
 
@@ -153,6 +154,10 @@ class ThreadsClient:
             data["link_attachment"] = link_attachment
         if reply_to_id:
             data["reply_to_id"] = reply_to_id
+        if topic_tag:
+            # トピックタグはそのトピックの一覧に載るので、
+            # フォロワーがいなくても見つけてもらえる導線になる。
+            data["topic_tag"] = topic_tag
 
         response = self.http.post(f"{self.api_base}/{user_id}/threads", data=data)
         payload = response.json()
@@ -209,13 +214,17 @@ class ThreadsClient:
         wait_seconds: int | None = None,
         link_attachment: str | None = None,
         reply_to_id: str | None = None,
+        topic_tag: str | None = None,
     ) -> PublishedPost:
         """テキスト投稿の全工程を実行する。
 
         成功レスポンスだけを根拠にせず、最後に GET で実在検証する。
         """
         creation_id = self.create_container(
-            text, link_attachment=link_attachment, reply_to_id=reply_to_id
+            text,
+            link_attachment=link_attachment,
+            reply_to_id=reply_to_id,
+            topic_tag=topic_tag,
         )
 
         wait = self.publish_wait if wait_seconds is None else wait_seconds
@@ -251,6 +260,7 @@ class ThreadsClient:
         *,
         link_attachment: str | None = None,
         wait_seconds: int | None = None,
+        topic_tag: str | None = None,
     ) -> list[PublishedPost]:
         """複数の投稿をつなげてスレッドにする。
 
@@ -274,6 +284,8 @@ class ThreadsClient:
                     wait_seconds=wait_seconds,
                     link_attachment=link_attachment if is_last else None,
                     reply_to_id=parent_id,
+                    # タグは1本目だけ。返信に付けても一覧には出ない。
+                    topic_tag=topic_tag if index == 0 else None,
                 )
             except (PostRejectedError, TransientError) as exc:
                 if not published:

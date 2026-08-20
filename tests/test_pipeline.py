@@ -585,3 +585,20 @@ def test_link_never_appears_on_the_first_post(config, tmp_path):
         assert len(draft.segments) >= 2, f"{template_id}: リンクが分離されていない"
         assert "http" not in draft.segments[0], template_id
         assert draft.segments[0].startswith("#PR"), template_id
+
+
+def test_every_post_gets_a_topic_tag(config, tmp_path):
+    """フォロワーが少ないうちはタグ経由がほぼ唯一の発見導線になる。"""
+    pipeline = make_pipeline(config, tmp_path)
+    for slot in ("morning", "noon", "evening", "night", "late"):
+        draft = pipeline.run(slot).draft
+        assert draft.topic_tag, f"{slot} にタグが無い"
+        pipeline.builder.commit(draft)
+
+
+def test_topic_tags_rotate(config, tmp_path):
+    """同じタグに偏らないこと。"""
+    from src.content.facts import topic_tag_for
+
+    seen = {topic_tag_for("スキンケア", i) for i in range(3)}
+    assert len(seen) == 3

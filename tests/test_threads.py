@@ -302,3 +302,20 @@ def test_thread_raises_when_the_first_post_fails(config):
 
     with pytest.raises(PostRejectedError):
         client.post_thread(["1本目", "2本目"], wait_seconds=0)
+
+
+def test_topic_tag_is_sent_on_the_first_post_only(config):
+    """タグは1本目だけ。返信に付けてもトピック一覧には出ない。"""
+    _with_token(config)
+    responses = []
+    for i in (1, 2):
+        responses += [_Resp({"id": f"C{i}"}), _Resp({"id": f"P{i}"}),
+                      _Resp({"id": f"P{i}", "permalink": "x"})]
+    http = _http(responses)
+    client = ThreadsClient(config, http=http)
+
+    client.post_thread(["1本目", "2本目"], topic_tag="スキンケア", wait_seconds=0)
+
+    containers = [c for c in http.session.calls if c["url"].endswith("/threads")]
+    assert containers[0]["data"]["topic_tag"] == "スキンケア"
+    assert "topic_tag" not in containers[1]["data"]
