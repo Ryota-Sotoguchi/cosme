@@ -39,12 +39,13 @@
       "nl_body_care",
       "nl_brand_lock",
       "nl_refill",
-      "nl_compare_axis"
+      "nl_compare_axis",
+      "nl_impulse"
     ]
   },
   "rotation_cursor": {
     "evening": 1,
-    "late": 1
+    "late": 2
   },
   "template_history": [
     "topic",
@@ -58,6 +59,7 @@
     "short",
     "band_focus",
     "thread",
+    "topic",
     "topic",
     "topic",
     "topic",
