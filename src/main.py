@@ -99,6 +99,8 @@ def _record(
         extra={
             "template_parts": draft.part_ids if draft else {},
             "item_codes": [i.item_code for i in draft.items] if draft else [],
+            # 手動実行か定期実行か。ランプアップの枠計算で使う。
+            "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual"),
         },
     )
     history.append(record)

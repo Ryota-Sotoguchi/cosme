@@ -103,7 +103,10 @@ class Pipeline:
                 limit = int(stage.get("max_link_posts", limit))
                 break
 
-        already = self.history.affiliate_posts_today()
+        # 動作確認のための手動実行が、本番のリンク枠を食わないようにする。
+        # ランプアップは1日1〜2本しか許さないので、テストで1本使うと
+        # その日の定期実行がリンクなしになってしまう（実際に起きた）。
+        already = self.history.affiliate_posts_today(scheduled_only=True)
         if already >= limit:
             logger.info(
                 "ランプアップ制限: 運用%d日目、本日のリンク投稿 %d/%d 件のためリンクなしにします",

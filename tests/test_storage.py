@@ -222,3 +222,33 @@ def test_insights_write_back_keeps_urls_redacted(tmp_path):
 
     raw = (tmp_path / "history.jsonl").read_text(encoding="utf-8")
     assert "hb.afl.rakuten.co.jp" not in raw
+
+
+def test_manual_posts_do_not_count_toward_the_daily_link_quota(tmp_path):
+    """動作確認の手動実行が、本番のリンク枠を食わないこと。
+
+    ランプアップは1日1〜2本しか許さないので、テストで1本使うと
+    その日の定期実行がリンクなしになってしまう（実際に起きた）。
+    """
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(item_code="a:1", has_affiliate_link=True,
+                          extra={"trigger": "workflow_dispatch"}))
+    history.append(record(item_code="b:2", has_affiliate_link=True,
+                          extra={"trigger": "manual"}))
+
+    assert history.affiliate_posts_today() == 2                    # 全部
+    assert history.affiliate_posts_today(scheduled_only=True) == 0  # 定期実行分だけ
+
+
+def test_scheduled_posts_do_count(tmp_path):
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(item_code="a:1", has_affiliate_link=True,
+                          extra={"trigger": "schedule"}))
+    assert history.affiliate_posts_today(scheduled_only=True) == 1
+
+
+def test_old_records_without_trigger_are_treated_as_scheduled(tmp_path):
+    """trigger を持たない既存行との後方互換。"""
+    history = History(tmp_path / "history.jsonl")
+    history.append(record(item_code="a:1", has_affiliate_link=True))
+    assert history.affiliate_posts_today(scheduled_only=True) == 1

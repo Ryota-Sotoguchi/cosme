@@ -177,8 +177,17 @@ class History:
             if (dt := r.posted_datetime) is not None and dt.astimezone(JST).date() == today
         ]
 
-    def affiliate_posts_today(self) -> int:
-        return sum(1 for r in self.posts_today() if r.has_affiliate_link)
+    def affiliate_posts_today(self, *, scheduled_only: bool = False) -> int:
+        """本日のアフィリエイト投稿数。
+
+        scheduled_only=True のときは定期実行によるものだけ数える。
+        動作確認の手動実行がランプアップの枠を食うと、その日の
+        定期投稿からリンクが消えてしまうため。
+        """
+        posts = self.posts_today()
+        if scheduled_only:
+            posts = [r for r in posts if r.extra.get("trigger", "schedule") == "schedule"]
+        return sum(1 for r in posts if r.has_affiliate_link)
 
     # ------------------------------------------------------------------
     def recent_item_codes(self, days: int) -> set[str]:
