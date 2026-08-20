@@ -122,6 +122,34 @@ def _opening_text(part: Part, ctx: RenderContext) -> str:
     )
 
 
+
+def _split_for_thread(ctx: RenderContext, rendered: Rendered, body: list[Block]) -> None:
+    """リンクがあるときは、リンク導線を別の投稿（返信）に分ける。
+
+    Threads は外部リンクのある投稿の表示回数を落とす。本文にURLを直接
+    書いた場合はとくに顕著、という運用側の観測が公式アルゴリズム解説でも
+    裏づけられている。
+
+    そこでタイムラインに出る1本目にはリンクを持たせず、返信側に付ける。
+    参考にした運用アカウントが揃ってこの形にしていたのも同じ理由と思われる。
+
+    リンクが無いときは分割しない（普通の1投稿）。
+    """
+    if not ctx.affiliate_url:
+        rendered.blocks = body
+        return
+
+    cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
+    disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+    rendered.part_ids["cta"] = cta.id
+    rendered.part_ids["disclaimer"] = disclaimer.id
+
+    head = "\n\n".join(b.text.strip() for b in body if b.text.strip())
+    tail = f"{cta.text}\n{disclaimer.text}"
+    rendered.segments = [head, tail]
+    rendered.blocks = [Block(head, 0), Block(tail, 0)]
+
+
 # ======================================================================
 # 単一商品テンプレート
 # ======================================================================
@@ -138,13 +166,16 @@ def render_objective(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    r.blocks.append(Block(_pr(ctx, _opening_text(opening, ctx)), 0))
-    body = item.display_name()
-    if intro.text:
-        body += f"\n{intro.text}"
-    r.blocks.append(Block(f"{body}\n{sentence}", 0))
-    r.blocks.append(Block(closing.text, 2))
-    r.blocks.extend(_link_blocks(ctx, r))
+    _split_for_thread(ctx, r, [
+        Block(_pr(ctx, _opening_text(opening, ctx)), 0),
+        Block(
+            f"{item.display_name()}\n{intro.text}\n{sentence}"
+            if intro.text
+            else f"{item.display_name()}\n{sentence}",
+            0,
+        ),
+        Block(closing.text, 2),
+    ])
     return r
 
 
@@ -159,9 +190,10 @@ def render_short(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    r.blocks.append(Block(_pr(ctx, _opening_text(opening, ctx)), 0))
-    r.blocks.append(Block(f"{item.display_name(34)}\n{sentence}", 0))
-    r.blocks.extend(_link_blocks(ctx, r))
+    _split_for_thread(ctx, r, [
+        Block(_pr(ctx, _opening_text(opening, ctx)), 0),
+        Block(f"{item.display_name(34)}\n{sentence}", 0),
+    ])
     return r
 
 
@@ -176,10 +208,11 @@ def render_checklist(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    r.blocks.append(Block(_pr(ctx, f"{ctx.category}選ぶとき、だいたいこのへん見てる。"), 0))
-    r.blocks.append(Block(f"{item.display_name(38)}\n{sentence}", 0))
-    r.blocks.append(Block(closing.text, 2))
-    r.blocks.extend(_link_blocks(ctx, r))
+    _split_for_thread(ctx, r, [
+        Block(_pr(ctx, f"{ctx.category}選ぶとき、だいたいこのへん見てる。"), 0),
+        Block(f"{item.display_name(38)}\n{sentence}", 0),
+        Block(closing.text, 2),
+    ])
     return r
 
 
@@ -196,13 +229,16 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
     r.allowed_numbers |= allowed
     band = F.format_price_band(item.item_price)
 
-    r.blocks.append(Block(_pr(ctx, f"{band}の{ctx.category}探してたときのメモ。"), 0))
-    body = item.display_name(38)
-    if intro.text:
-        body += f"\n{intro.text}"
-    r.blocks.append(Block(f"{body}\n{sentence}", 0))
-    r.blocks.append(Block(closing.text, 2))
-    r.blocks.extend(_link_blocks(ctx, r))
+    _split_for_thread(ctx, r, [
+        Block(_pr(ctx, f"{band}の{ctx.category}探してたときのメモ。"), 0),
+        Block(
+            f"{item.display_name(38)}\n{intro.text}\n{sentence}"
+            if intro.text
+            else f"{item.display_name(38)}\n{sentence}",
+            0,
+        ),
+        Block(closing.text, 2),
+    ])
     return r
 
 
@@ -239,10 +275,14 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
 
     if ctx.affiliate_url:
         # 複数商品を並べているのにリンクは1つなので、どれのリンクかを明示する。
-        # 誤解を招く表示にしないための必須ブロック。
-        r.blocks.append(Block("※リンクは1つ目のものです", 0))
         r.allowed_numbers.add("1")
-        r.blocks.extend(_link_blocks(ctx, r))
+        cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
+        disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+        r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
+        head = "\n\n".join(b.text.strip() for b in r.blocks if b.text.strip())
+        tail = f"※リンクは1つ目のものです\n{cta.text}\n{disclaimer.text}"
+        r.segments = [head, tail]
+        r.blocks = [Block(head, 0), Block(tail, 0)]
     return r
 
 

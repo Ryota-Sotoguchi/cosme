@@ -218,6 +218,10 @@ def test_dry_run_does_not_post_and_records_dry_run(config, tmp_path, monkeypatch
             posted.append(text)
             raise AssertionError("DRY_RUN では投稿してはいけない")
 
+        def post_thread(self, segments, **kwargs):
+            posted.extend(segments)
+            raise AssertionError("DRY_RUN では投稿してはいけない")
+
     monkeypatch.setattr("src.main.ThreadsClient", _NoPost)
     monkeypatch.setattr(
         "src.pipeline.RakutenClient", lambda config: FakeRakuten(pool())
@@ -246,6 +250,9 @@ def test_live_run_posts_and_records_post_id(config, tmp_path, monkeypatch):
 
         def post_text(self, text, **kwargs):
             return _Published()
+
+        def post_thread(self, segments, **kwargs):
+            return [_Published() for _ in segments]
 
     monkeypatch.setattr("src.main.ThreadsClient", _Client)
     monkeypatch.setattr("src.pipeline.RakutenClient", lambda config: FakeRakuten(pool()))
@@ -291,6 +298,9 @@ def test_missing_threads_secret_returns_config_exit_code(config, tmp_path, monke
         def post_text(self, text, **kwargs):
             raise MissingSecretError(["THREADS_ACCESS_TOKEN"])
 
+        def post_thread(self, segments, **kwargs):
+            raise MissingSecretError(["THREADS_ACCESS_TOKEN"])
+
     monkeypatch.setattr("src.main.ThreadsClient", _NoToken)
     monkeypatch.setattr("src.pipeline.RakutenClient", lambda config: FakeRakuten(pool()))
 
@@ -307,6 +317,9 @@ def test_transient_failure_returns_transient_exit_code(config, tmp_path, monkeyp
             pass
 
         def post_text(self, text, **kwargs):
+            raise TransientError("一時障害")
+
+        def post_thread(self, segments, **kwargs):
             raise TransientError("一時障害")
 
     monkeypatch.setattr("src.main.ThreadsClient", _Flaky)
@@ -554,3 +567,21 @@ def test_casual_murmurs_are_short_and_clean():
         assert not scan(part.text), f"{part.id}: {[h.label for h in scan(part.text)]}"
         assert not any(c.isdigit() for c in part.text), f"{part.id} に数値"
         assert len(part.text) <= 120, f"{part.id} が長すぎる（つぶやきは短く）"
+
+
+def test_link_never_appears_on_the_first_post(config, tmp_path):
+    """タイムラインに出る1本目にリンクを載せない。
+
+    Threads は外部リンクのある投稿の表示回数を落とす。
+    実測でも、リンク付き投稿だけ同時間帯の他より2桁少なかった。
+    リンクは返信側に置き、1本目は読み物として成立させる。
+    """
+    pipeline = make_pipeline(config, tmp_path)
+    for template_id in ("thread", "objective", "short", "checklist", "band_focus"):
+        draft = pipeline.builder.build(
+            "product", pool(3)[:1], template_id=template_id
+        )
+        assert draft.link_attachment, template_id
+        assert len(draft.segments) >= 2, f"{template_id}: リンクが分離されていない"
+        assert "http" not in draft.segments[0], template_id
+        assert draft.segments[0].startswith("#PR"), template_id
