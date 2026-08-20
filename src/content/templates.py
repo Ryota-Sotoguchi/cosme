@@ -18,6 +18,7 @@ from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
     FACT_INTROS,
+    CASUAL_MURMURS,
     NO_LINK_TOPICS,
     PRODUCT_CLOSINGS,
     PRODUCT_OPENINGS,
@@ -308,6 +309,20 @@ def render_thread(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_casual(ctx: RenderContext) -> Rendered:
+    """ただのつぶやき。
+
+    役に立つ話しかしないアカウントは、人がやっている感じが出ない。
+    商品も買い物ノウハウも出さず、生活の断片だけを置く。
+    """
+    r = Rendered(blocks=[])
+    murmur = ctx.pick("casual", CASUAL_MURMURS)
+    r.part_ids["casual"] = murmur.id
+    r.blocks.append(Block(murmur.text, 0))
+    r.allowed_numbers |= set(F.extract_numbers(murmur.text))
+    return r
+
+
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     topic = ctx.pick("topic", NO_LINK_TOPICS)
@@ -339,6 +354,7 @@ TEMPLATES: tuple[Template, ...] = (
     Template("postage_free", render_postage_free, ("postage_free",), item_count=3),
     Template("comparison", render_comparison, ("comparison",), item_count=2),
     Template("topic", render_topic, ("no_link",), item_count=0, requires_affiliate=False),
+    Template("casual", render_casual, ("casual",), item_count=0, requires_affiliate=False),
 )
 
 TEMPLATES_BY_ID: dict[str, Template] = {t.id: t for t in TEMPLATES}

@@ -521,3 +521,36 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
     assert draft.post_type == "product"
     assert draft.items
     assert draft.link_attachment
+
+
+# ======================================================================
+# つぶやき投稿
+# ======================================================================
+def test_casual_posts_appear_in_rotation(config, tmp_path):
+    """役に立つ話だけにならないよう、つぶやきが混ざること。"""
+    pipeline = make_pipeline(config, tmp_path)
+    seen = [pipeline.resolve_post_type("morning") for _ in range(7)]
+    assert "casual" in seen
+    assert "no_link" in seen
+
+
+def test_casual_post_has_no_product_and_no_link(config, tmp_path):
+    pipeline = make_pipeline(config, tmp_path)
+    draft = pipeline.builder.build("casual", [], with_affiliate_link=False)
+
+    assert draft.items == []
+    assert draft.link_attachment is None
+    assert "http" not in draft.text
+    assert draft.text.strip()
+
+
+def test_casual_murmurs_are_short_and_clean():
+    """つぶやきは短く、NG表現も数値も含まない。"""
+    from src.compliance.rules import scan
+    from src.content.parts import CASUAL_MURMURS
+
+    assert len(CASUAL_MURMURS) >= 30
+    for part in CASUAL_MURMURS:
+        assert not scan(part.text), f"{part.id}: {[h.label for h in scan(part.text)]}"
+        assert not any(c.isdigit() for c in part.text), f"{part.id} に数値"
+        assert len(part.text) <= 120, f"{part.id} が長すぎる（つぶやきは短く）"

@@ -203,7 +203,7 @@ template_cooldown = 4
 slot = "morning"
 time_jst = "07:30"
 cron_utc = "30 22 * * *"
-post_type = "no_link"
+post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
@@ -217,7 +217,7 @@ allow_affiliate = true
 slot = "evening"
 time_jst = "18:00"
 cron_utc = "0 9 * * *"
-post_type = "no_link"
+post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
@@ -234,8 +234,29 @@ cron_utc = "30 13 * * *"
 post_type = "rotation"
 allow_affiliate = true
 
-# 夜スロットのローテーション順（state.json でカーソルを保持）
+# ローテーション順（state.json でカーソルを保持）
+#
+# no_link … 買い物・選び方の話
+# casual  … ただのつぶやき。役に立つ話しかしないと人がやっている感じが消えるので、
+#           3〜4回に1回くらい混ぜる
 [rotation]
+morning = [
+    "no_link",
+    "no_link",
+    "casual",
+    "no_link",
+    "no_link",
+    "no_link",
+    "casual",
+]
+evening = [
+    "no_link",
+    "casual",
+    "no_link",
+    "no_link",
+    "casual",
+    "no_link",
+]
 late = [
     "product",        # 商品紹介
     "price_band",     # 価格帯別候補

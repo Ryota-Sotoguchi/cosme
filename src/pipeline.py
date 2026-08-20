@@ -36,6 +36,7 @@ ITEMS_NEEDED = {
     "postage_free": 3,
     "comparison": 2,
     "no_link": 0,
+    "casual": 0,
 }
 
 
@@ -277,7 +278,7 @@ class Pipeline:
 
         # --- リンクなし投稿は商品取得が不要 ---
         if needed == 0:
-            return self._run_no_link(recent_texts)
+            return self._run_no_link(recent_texts, post_type=post_type)
 
         try:
             scored = self.gather_candidates(post_type)
@@ -346,12 +347,14 @@ class Pipeline:
         return self._run_no_link(recent_texts)
 
     # ------------------------------------------------------------------
-    def _run_no_link(self, recent_texts: list[str]) -> PipelineResult:
+    def _run_no_link(
+        self, recent_texts: list[str], post_type: str = "no_link"
+    ) -> PipelineResult:
         max_regen = int(self.config.compliance.get("max_regenerations", 4))
         last_check: CheckResult | None = None
 
         for attempt in range(1, max_regen + 1):
-            draft = self.builder.build("no_link", [], with_affiliate_link=False)
+            draft = self.builder.build(post_type, [], with_affiliate_link=False)
             check = self.checker.check(draft, recent_texts=recent_texts)
             last_check = check
             if check.passed:
