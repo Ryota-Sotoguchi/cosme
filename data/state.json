@@ -1,6 +1,9 @@
 {
   "operation_started_on": "2026-08-20",
   "part_history": {
+    "casual": [
+      "cm_humid"
+    ],
     "closing": [
       "cl_compare",
       "cl_candidate",
@@ -44,7 +47,7 @@
     ]
   },
   "rotation_cursor": {
-    "evening": 1,
+    "evening": 2,
     "late": 2
   },
   "template_history": [
@@ -64,7 +67,8 @@
     "topic",
     "topic",
     "topic",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
