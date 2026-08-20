@@ -138,15 +138,16 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
     if average is not None:
         allowed.add(normalize_number(format_review_average(average)))
 
+    # 語尾に感情を乗せる。数値は増やさない。
     variants: list[str] = [
-        f"{price}。送料もかからない。" if free else f"{price}。",
-        f"{price}だった。",
+        f"{price}。送料もかからないの、うれしい🤍" if free else f"{price}。",
+        f"{price}だった…！",
     ]
     if count is not None:
-        variants.append(f"レビュー{format_review_count(count)}ついてる。")
+        variants.append(f"レビュー{format_review_count(count)}ついてる👀")
     if average is not None:
-        variants.append(f"レビューの平均は{format_review_average(average)}。")
-    variants.append(f"{price}で送料無料。" if free else f"{price}みたい。")
+        variants.append(f"レビューの平均{format_review_average(average)}だって☺️")
+    variants.append(f"{price}で送料無料〜" if free else f"{price}みたい💭")
 
     return variants[style % len(variants)], allowed
 

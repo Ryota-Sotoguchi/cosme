@@ -209,7 +209,7 @@ def render_checklist(ctx: RenderContext) -> Rendered:
     r.allowed_numbers |= allowed
 
     _split_for_thread(ctx, r, [
-        Block(_pr(ctx, f"{ctx.category}選ぶとき、だいたいこのへん見てる。"), 0),
+        Block(_pr(ctx, f"{ctx.category}選ぶとき、だいたいこのへん見てる👀"), 0),
         Block(f"{item.display_name(38)}\n{sentence}", 0),
         Block(closing.text, 2),
     ])
@@ -230,7 +230,7 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
     band = F.format_price_band(item.item_price)
 
     _split_for_thread(ctx, r, [
-        Block(_pr(ctx, f"{band}の{ctx.category}探してたときのメモ。"), 0),
+        Block(_pr(ctx, f"{band}の{ctx.category}探してたときのメモ📝"), 0),
         Block(
             f"{item.display_name(38)}\n{intro.text}\n{sentence}"
             if intro.text
