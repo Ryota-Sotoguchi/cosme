@@ -37,10 +37,12 @@
       "nl_makeup_tools",
       "nl_question_routine",
       "nl_body_care",
-      "nl_brand_lock"
+      "nl_brand_lock",
+      "nl_refill"
     ]
   },
   "rotation_cursor": {
+    "evening": 1,
     "late": 1
   },
   "template_history": [
@@ -55,6 +57,7 @@
     "short",
     "band_focus",
     "thread",
+    "topic",
     "topic",
     "topic",
     "topic"
