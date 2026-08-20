@@ -46,12 +46,14 @@
       "nl_brand_lock",
       "nl_refill",
       "nl_compare_axis",
-      "nl_impulse"
+      "nl_impulse",
+      "nl_question_category"
     ]
   },
   "rotation_cursor": {
     "evening": 2,
-    "late": 2
+    "late": 2,
+    "morning": 1
   },
   "template_history": [
     "topic",
@@ -71,7 +73,8 @@
     "topic",
     "topic",
     "topic",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
