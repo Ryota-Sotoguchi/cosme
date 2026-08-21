@@ -137,3 +137,35 @@ def test_ordering_is_deterministic(config, items):
     first = [s.item.item_code for s in score_items(items, config.scoring, config.selection)]
     second = [s.item.item_code for s in score_items(items, config.scoring, config.selection)]
     assert first == second
+
+
+# ======================================================================
+# 経口サプリの疑い判定（剤形語の有無で切り分ける）
+# ======================================================================
+def test_excludes_oral_supplement_without_cosmetic_form_word(config):
+    """成分名だけが並ぶ商品名は経口サプリの可能性が高い。
+
+    実際に候補プールに混ざっていた
+    「DHC直販 アスタキサンチン コラーゲン ヒアルロン酸エラスチン」
+    のパターン。化粧水・美容液などの剤形語が無い。
+    """
+    item = make_item(item_name="DHC直販 アスタキサンチン コラーゲン ヒアルロン酸エラスチン")
+    result = is_excluded(item, config.exclusion, config.selection)
+    assert result.excluded
+    assert "経口サプリ疑い" in result.reason
+
+
+def test_keeps_cosmetic_with_the_same_ingredient_name(config):
+    """同じ成分名でも、剤形語があれば化粧品として扱う。
+
+    「アスタリフト アドバンスドローション...コラーゲン」のように
+    ローション等の剤形語があれば誤除外しない。
+    """
+    item = make_item(item_name="アスタリフト アドバンスドローション 130mL コラーゲン 乾燥 化粧水")
+    result = is_excluded(item, config.exclusion, config.selection)
+    assert not result.excluded
+
+
+def test_keeps_serum_with_niacinamide(config):
+    item = make_item(item_name="KISO CARE ナイアシンアミド 20%配合 美容液 30ml")
+    assert not is_excluded(item, config.exclusion, config.selection).excluded

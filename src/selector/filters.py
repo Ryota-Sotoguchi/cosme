@@ -37,6 +37,22 @@ def _normalize(text: str) -> str:
     return text.translate(table).lower()
 
 
+# 化粧品の剤形を示す語。これが商品名にあれば「塗るもの」と判断できる。
+_COSMETIC_FORM_WORDS = (
+    "化粧水", "美容液", "乳液", "クリーム", "ローション", "ジェル", "エッセンス",
+    "オイル", "パック", "マスク", "ミルク", "ファンデーション", "リップ",
+    "シャンプー", "トリートメント", "コンディショナー", "ソープ", "洗顔",
+    "クレンジング", "下地", "アイシャドウ", "マスカラ", "チーク", "ブラシ",
+)
+
+# 経口サプリでよく使われるが、化粧品の配合成分としても普通に使われる語。
+# 単独では判定しない（誤除外が多いため）。剤形語が無いときだけ疑う。
+_ORAL_SUSPECT_WORDS = (
+    "アスタキサンチン", "エラスチン", "コエンザイムQ10", "NMN", "オルニチン",
+    "乳酸菌", "青汁", "酵素ドリンク", "マルチビタミン", "葉酸",
+)
+
+
 def is_excluded(
     item: RakutenItem,
     exclusion: dict[str, Any],
@@ -78,6 +94,20 @@ def is_excluded(
     # --- 画像 ---
     if selection.get("require_image", True) and not item.image_url:
         return ExclusionResult(True, "商品画像なし")
+
+    # --- 剤形語なしの経口サプリ疑い成分 ---
+    #
+    # 「アスタキサンチン コラーゲン ヒアルロン酸エラスチン」のような
+    # DHC系の商品名は、化粧水・美容液などの剤形語を伴わずに成分名だけが
+    # 並ぶことが多く、経口サプリの可能性が高い。
+    # 逆に「アスタリフト アドバンスドローション...コラーゲン」のように
+    # 剤形語（ローション）が入っていれば化粧品と判断し、除外しない。
+    # 成分名だけで機械的に弾くと、コラーゲン配合美容液のような
+    # 正当な化粧品まで落としてしまうため、剤形語の有無で切り分ける。
+    if not any(_normalize(w) in haystack for w in _COSMETIC_FORM_WORDS):
+        for word in _ORAL_SUSPECT_WORDS:
+            if _normalize(word) in haystack:
+                return ExclusionResult(True, f"剤形語なしの経口サプリ疑い成分: {word}")
 
     # --- レビュー（客観情報を柱にするアカウントなので必須扱い） ---
     min_count = selection.get("min_review_count")
