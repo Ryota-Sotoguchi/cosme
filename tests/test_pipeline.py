@@ -71,8 +71,8 @@ def test_no_link_slots_never_contain_urls(config, tmp_path):
 def test_product_slot_includes_pr_marker_and_link(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path)
     draft = pipeline.run("noon").draft
-    # 広告表示は、商品が初めて出てくる2本目の冒頭に置く
-    assert draft.segments[1].startswith("#PR")
+    # 広告表示・商品名・リンクは、すべて最後の1本に集約する
+    assert draft.segments[-1].startswith("#PR")
     # URLは本文ではなくリンクカードとして添付する（500文字を消費しないため）
     assert draft.link_attachment
     assert "hb.afl.rakuten.co.jp" in draft.link_attachment
@@ -481,25 +481,69 @@ def test_pool_is_not_refilled_when_enough(config, tmp_path):
     assert len(rakuten.seeds) == 1
 
 
-def test_thread_first_post_is_free_of_product_and_ad_markers(config, tmp_path):
-    """タイムラインに出る1本目は、単体で読み物として成立させる。
+def test_product_info_is_confined_to_the_last_post(config, tmp_path):
+    """商品名・広告表示・リンクは最後の1本だけ。
 
-    商品名も数値もリンクも広告表示も入れない。
-    広告表示は商品が初めて出てくる2本目の冒頭に置く。
+    タイムラインに出るのは1本目なので、そこは単体で読み物として
+    成立させる。前振りには商品を出さない。
     """
     pipeline = make_pipeline(config, tmp_path)
-    draft = pipeline.builder.build("product", pool(3)[:1], template_id="thread")
+    for template_id in ("thread", "objective", "short", "checklist", "band_focus"):
+        draft = pipeline.builder.build("product", pool(3)[:1], template_id=template_id)
+        name = draft.items[0].display_name(38)
 
+        assert draft.segments[-1].startswith("#PR"), template_id
+        assert name in draft.segments[-1], template_id
+
+        for index, segment in enumerate(draft.segments[:-1]):
+            assert "#PR" not in segment, f"{template_id}: {index + 1}本目にPR表記"
+            assert name not in segment, f"{template_id}: {index + 1}本目に商品名"
+            assert "http" not in segment, f"{template_id}: {index + 1}本目にURL"
+
+
+def test_link_posts_do_not_show_price_or_reviews(config, tmp_path):
+    """値段・レビュー・送料を本文に出さない。
+
+    スペック表に見えるので外した。商品名に含まれる容量（「10g」）は
+    商品名の一部なので残る。ここで見たいのは、こちらが数値を
+    「主張として」置いていないこと。
+    """
+    pipeline = make_pipeline(config, tmp_path)
+    for template_id in ("thread", "objective", "short", "checklist", "band_focus"):
+        draft = pipeline.builder.build("product", pool(3)[:1], template_id=template_id)
+        item = draft.items[0]
+        last = draft.segments[-1]
+
+        # 商品名の部分を取り除いてから検査する
+        rest = last.replace(item.display_name(38), "")
+        assert f"{item.item_price:,}" not in rest, f"{template_id}: 値段が出ている"
+        assert "円" not in rest, f"{template_id}: 値段が出ている — {rest}"
+        assert "レビュー" not in rest, f"{template_id}: レビューが出ている"
+        assert "送料" not in rest, f"{template_id}: 送料が出ている"
+
+
+def test_segment_count_varies_by_template(config, tmp_path):
+    """本数は固定しない。テンプレートによって2〜4本と変わる。"""
+    pipeline = make_pipeline(config, tmp_path)
+    counts = {
+        template_id: len(
+            pipeline.builder.build("product", pool(3)[:1], template_id=template_id).segments
+        )
+        for template_id in ("short", "thread", "objective", "checklist", "band_focus")
+    }
+    assert counts["short"] == 2
+    assert counts["checklist"] == 4
+    assert len(set(counts.values())) >= 3, f"本数に幅がない: {counts}"
+
+
+def test_tips_stage_is_never_empty(config, tmp_path):
+    """剤形が判定できない商品でも、ノウハウ段を空にしない。"""
+    pipeline = make_pipeline(config, tmp_path)
+    brush = make_item(item_code="b:1", item_name="メイクブラシ 5本セット", shop_code="b")
+
+    draft = pipeline.builder.build("product", [brush], template_id="thread")
     assert len(draft.segments) == 3
-    first, second = draft.segments[0], draft.segments[1]
-
-    assert "#PR" not in first
-    assert "http" not in first
-    assert not any(c.isdigit() for c in first), f"1本目に数値: {first}"
-    assert draft.items[0].display_name(38) not in first
-
-    assert second.startswith("#PR")
-    assert draft.items[0].display_name(38) in second
+    assert "・" in draft.segments[1], f"箇条書きが無い: {draft.segments[1]}"
 
 
 def test_every_thread_segment_fits_the_platform_limit(config, tmp_path):
@@ -588,18 +632,13 @@ def test_link_never_appears_on_the_first_post(config, tmp_path):
 
     Threads は外部リンクのある投稿の表示回数を落とす。
     実測でも、リンク付き投稿だけ同時間帯の他より2桁少なかった。
-    リンクは返信側に置き、1本目は読み物として成立させる。
     """
     pipeline = make_pipeline(config, tmp_path)
     for template_id in ("thread", "objective", "short", "checklist", "band_focus"):
-        draft = pipeline.builder.build(
-            "product", pool(3)[:1], template_id=template_id
-        )
+        draft = pipeline.builder.build("product", pool(3)[:1], template_id=template_id)
         assert draft.link_attachment, template_id
         assert len(draft.segments) >= 2, f"{template_id}: リンクが分離されていない"
         assert "http" not in draft.segments[0], template_id
-        # 広告表示は商品が出てくる2本目に置く
-        assert draft.segments[1].startswith("#PR"), template_id
 
 
 def test_topic_tags_are_occasional_not_every_post(config, tmp_path):

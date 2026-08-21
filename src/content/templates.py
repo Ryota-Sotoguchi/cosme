@@ -14,7 +14,7 @@ from typing import Callable, Protocol
 
 from ..rakuten.models import RakutenItem
 from . import facts as F
-from .benefits import benefit_for
+from .benefits import benefit_by_cursor, benefit_for, tips_block
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -116,22 +116,34 @@ def _link_blocks(ctx: RenderContext, rendered: Rendered) -> list[Block]:
     ]
 
 
-def _benefit_line(ctx: RenderContext) -> str:
-    """剤形に許された効能と、煽らない悩みの文脈。
+def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
+    """箇条書きのノウハウ段。
 
-    判定できない商品（ブラシ・ポーチなど）では空文字を返す。
-    無理に紐づけると、その剤形に許されていない効能を書くことになる。
+    商品の剤形に対応した「選ぶとき見るところ」を並べ、
+    末尾に56項目の範囲内の役割を置く。
+
+    剤形が判定できない商品（ブラシ・ポーチ）では、
+    カテゴリー横断のノウハウにフォールバックする。空にはしない。
     """
-    if not ctx.items:
-        return ""
-    # 楽天の商品名の末尾には検索用キーワードが羅列されていることが多く
-    # （「…[ ヘアパック ヘアマスク 美髪 …]」）、そのまま判定すると
-    # 別の剤形として誤判定する。販促文を落とした表示名で判定する。
-    benefit = benefit_for(ctx.item.display_name(60))
+    benefit = None
+    if ctx.items:
+        # 楽天の商品名の末尾には検索用キーワードが羅列されていることが多く
+        # （「…[ ヘアパック ヘアマスク 美髪 …]」）、そのまま判定すると
+        # 別の剤形として誤判定する。販促文を落とした表示名で判定する。
+        benefit = benefit_for(ctx.item.display_name(60))
     if benefit is None:
-        return ""
-    # 役割と悩みの文脈を交互に出して、同じ形が続かないようにする
-    return benefit.role if ctx.fact_style % 2 == 0 else benefit.concern
+        benefit = benefit_by_cursor(ctx.fact_style)
+    return tips_block(benefit, heading)
+
+
+def _concern_stage(ctx: RenderContext) -> str:
+    """所感・悩みの段。煽らない形にとどめる。"""
+    benefit = None
+    if ctx.items:
+        benefit = benefit_for(ctx.item.display_name(60))
+    if benefit is None:
+        benefit = benefit_by_cursor(ctx.fact_style + 1)
+    return benefit.concern
 
 
 def _opening_text(part: Part, ctx: RenderContext) -> str:
@@ -146,31 +158,42 @@ def _opening_text(part: Part, ctx: RenderContext) -> str:
 def _split_for_thread(
     ctx: RenderContext,
     rendered: Rendered,
-    lead: Block,
-    body: list[Block],
+    stages: list[str],
 ) -> None:
-    """1本目は導入だけ、2本目に商品と広告表示、3本目にリンク導線。
+    """前振り（可変本数）＋ 最後の1本（広告表示・商品名・リンク）に分ける。
 
-    Threads は外部リンクのある投稿の表示回数を落とすうえ、
-    タイムラインに出る1本目が広告然としていると読まれない。
+    決まっているのは「最後がPRとリンク」だけで、前振りの本数は
+    テンプレートによって1〜3本と変わる。見た目に幅が出る。
 
-    lead … 1本目。商品名も数値もリンクも入れない
-    body … 2本目。商品の話。ここから広告なので #PR を先頭に置く
+    最後の1本には**数値を一切入れない**（値段・レビュー・送料）。
+    スペック羅列をやめ、前振りで作った興味のまま押してもらう形にする。
+
+    そのぶん「この商品が良い」とは書けない。使っていないうえ、
+    客観的な裏付け（値段・レビュー）も本文から外すので、
+    良し悪しの主張は根拠を失う。書けるのは
+    「このカテゴリーはこう選ぶ → これがその一つ」まで。
+
+    Threads は外部リンクのある投稿の表示回数を落とすので、
+    タイムラインに出る1本目にはリンクも商品名も置かない。
     """
+    body = [text.strip() for text in stages if text and text.strip()]
+
+    # ノウハウの箇条書きには「1本でどのくらいもつか」のような数値が入る。
+    # 商品データ由来ではないが、事実の主張でもないので許可する。
+    for text in body:
+        rendered.allowed_numbers |= set(F.extract_numbers(text))
+
     if not ctx.affiliate_url:
-        rendered.blocks = [lead, *body]
+        rendered.blocks = [Block(text, 0) for text in body]
         return
 
     cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
-    disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
     rendered.part_ids["cta"] = cta.id
-    rendered.part_ids["disclaimer"] = disclaimer.id
 
-    first = lead.text.strip()
-    second = _pr(ctx, "\n\n".join(b.text.strip() for b in body if b.text.strip()))
-    third = f"{cta.text}\n{disclaimer.text}"
+    # 最後の1本。押す理由はCTAだけなので、注記で埋もれさせない。
+    final = f"{PR_TAG}\n\n{ctx.item.display_name(38)}\n\n{cta.text}"
 
-    rendered.segments = [first, second, third]
+    rendered.segments = [*body, final]
     rendered.blocks = [Block(seg, 0) for seg in rendered.segments]
 
 
@@ -178,107 +201,54 @@ def _split_for_thread(
 # 単一商品テンプレート
 # ======================================================================
 def render_objective(ctx: RenderContext) -> Rendered:
-    """客観情報型: 導入 → 商品名 → 箇条書きの事実 → 締め → リンク。"""
+    """悩み → 箇条書きノウハウ → 商品（3本）。"""
     r = Rendered(blocks=[])
-    item = ctx.item
-
-    opening = ctx.pick("opening", PRODUCT_OPENINGS, **ctx.flags())
-    intro = ctx.pick("fact_intro", FACT_INTROS, **ctx.flags())
-    closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
-    r.part_ids.update({"opening": opening.id, "fact_intro": intro.id, "closing": closing.id})
-
-    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
-    r.allowed_numbers |= allowed
-
-    _split_for_thread(
-        ctx, r,
-        Block(_opening_text(opening, ctx), 0),
-        [
-            Block(
-                f"{item.display_name()}\n{intro.text}\n{sentence}"
-                if intro.text
-                else f"{item.display_name()}\n{sentence}",
-                0,
-            ),
-            Block(_benefit_line(ctx), 1),
-            Block(closing.text, 2),
-        ],
-    )
-    return r
-
-
-def render_short(ctx: RenderContext) -> Rendered:
-    """短文型: 導入 → 1〜2文の事実 → リンク。"""
-    r = Rendered(blocks=[])
-    item = ctx.item
-
     opening = ctx.pick("opening", PRODUCT_OPENINGS, **ctx.flags())
     r.part_ids["opening"] = opening.id
 
-    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
-    r.allowed_numbers |= allowed
-
-    _split_for_thread(
-        ctx, r,
-        Block(_opening_text(opening, ctx), 0),
-        [
-            Block(f"{item.display_name(34)}\n{sentence}", 0),
-            Block(_benefit_line(ctx), 1),
-        ],
-    )
+    _split_for_thread(ctx, r, [
+        _opening_text(opening, ctx),
+        _tips_stage(ctx),
+    ])
     return r
 
+def render_short(ctx: RenderContext) -> Rendered:
+    """悩みひとつ → 商品（2本）。いちばん短い形。"""
+    r = Rendered(blocks=[])
+    opening = ctx.pick("opening", PRODUCT_OPENINGS, **ctx.flags())
+    r.part_ids["opening"] = opening.id
+
+    _split_for_thread(ctx, r, [_opening_text(opening, ctx)])
+    return r
 
 def render_checklist(ctx: RenderContext) -> Rendered:
-    """チェック項目型: 「見た項目」を先に提示してから値を並べる。"""
+    """悩み → 箇条書きノウハウ → 所感 → 商品（4本）。いちばん長い形。"""
     r = Rendered(blocks=[])
-    item = ctx.item
-
     closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
     r.part_ids["closing"] = closing.id
 
-    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
-    r.allowed_numbers |= allowed
-
-    _split_for_thread(
-        ctx, r,
-        Block(f"{ctx.category}選ぶとき、だいたいこのへん見てる👀", 0),
-        [
-            Block(f"{item.display_name(38)}\n{sentence}", 0),
-            Block(_benefit_line(ctx), 1),
-            Block(closing.text, 2),
-        ],
-    )
+    _split_for_thread(ctx, r, [
+        f"{ctx.category}選ぶとき、だいたいこのへん見てる👀",
+        # 1本目で見出しを言っているので、ここは繰り返さない
+        _tips_stage(ctx, heading="こんな感じ📝"),
+        f"{_concern_stage(ctx)}\n\n{closing.text}",
+    ])
     return r
 
-
 def render_band_focus(ctx: RenderContext) -> Rendered:
-    """価格帯起点型: 価格帯を主語にして条件を並べる。"""
+    """価格帯の話 → 箇条書きノウハウ → 商品（3本）。
+
+    価格帯は「探していた文脈」として1本目に置く。
+    商品そのものの値段は最後の1本でも出さない。
+    """
     r = Rendered(blocks=[])
-    item = ctx.item
+    band = F.format_price_band(ctx.item.item_price)
+    r.allowed_numbers.add(F.normalize_number(str(F.price_band_value(ctx.item.item_price))))
 
-    intro = ctx.pick("fact_intro", FACT_INTROS, **ctx.flags())
-    closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
-    r.part_ids.update({"fact_intro": intro.id, "closing": closing.id})
-
-    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
-    r.allowed_numbers |= allowed
-    band = F.format_price_band(item.item_price)
-
-    _split_for_thread(
-        ctx, r,
-        Block(f"{band}の{ctx.category}探してたときのメモ📝", 0),
-        [
-            Block(
-                f"{item.display_name(38)}\n{intro.text}\n{sentence}"
-                if intro.text
-                else f"{item.display_name(38)}\n{sentence}",
-                0,
-            ),
-            Block(_benefit_line(ctx), 1),
-            Block(closing.text, 2),
-        ],
-    )
+    _split_for_thread(ctx, r, [
+        f"{band}の{ctx.category}探してたときのメモ📝",
+        _tips_stage(ctx),
+    ])
     return r
 
 
@@ -350,56 +320,21 @@ def render_comparison(ctx: RenderContext) -> Rendered:
 # リンクなし
 # ======================================================================
 def render_thread(ctx: RenderContext) -> Rendered:
-    """スレッド型: 1本目は普通の話 → 2本目で商品とPR → 3本目でリンク。
+    """フック → 箇条書きノウハウ → 商品（3本）。
 
-    タイムラインに出るのは1本目だけなので、そこを広告然とさせない。
-    1本目には商品名も数値もリンクも入れず、単体で読み物として成立させる。
-
-    広告表示は、商品が初めて出てくる2本目の冒頭に置く。
-    景表法が求めるのは「広告と判別できること」なので、
-    商品の紹介が始まる位置に表示があればよいと考えている。
-    1本目は特定の商品に触れないため、それ自体は広告表示ではない。
+    参考にした運用アカウントが、共感できる話から入って
+    最後にリンクを置く形にしていた。
     """
     r = Rendered(blocks=[])
-    item = ctx.item
-
     hooks = THREAD_HOOKS.get(ctx.category) or THREAD_HOOKS["コスメ"]
     hook = ctx.pick("thread_hook", hooks, **ctx.flags())
-    bridge = ctx.pick("thread_bridge", THREAD_BRIDGES, **ctx.flags())
-    closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
-    r.part_ids.update(
-        {"thread_hook": hook.id, "thread_bridge": bridge.id, "closing": closing.id}
-    )
+    r.part_ids["thread_hook"] = hook.id
 
-    sentence, allowed = F.sentence_facts(item, ctx.fact_style)
-    r.allowed_numbers |= allowed
-
-    bridge_text = bridge.text.format(
-        category=ctx.category,
-        band=F.format_price_band(item.item_price),
-        band_range="",
-    )
-
-    # 1本目: 商品にも数値にも触れない
-    first = hook.text
-    # 2本目: ここから広告なので #PR を先頭に置く
-    benefit = _benefit_line(ctx)
-    body = f"{bridge_text}\n\n{item.display_name(38)}\n{sentence}"
-    if benefit:
-        body += f"\n{benefit}"
-    second = _pr(ctx, body)
-    # 3本目: 感想とリンク導線
-    third = closing.text
-    if ctx.affiliate_url:
-        cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
-        disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
-        r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
-        third = f"{closing.text}\n\n{cta.text}\n{disclaimer.text}"
-
-    r.segments = [first, second, third]
-    r.blocks = [Block(seg, 0) for seg in r.segments]
+    _split_for_thread(ctx, r, [
+        hook.text,
+        _tips_stage(ctx),
+    ])
     return r
-
 
 def render_howto(ctx: RenderContext) -> Rendered:
     """ノウハウ投稿。保存したくなるチェックリスト型。
