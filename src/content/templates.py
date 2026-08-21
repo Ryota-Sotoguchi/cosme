@@ -14,6 +14,7 @@ from typing import Callable, Protocol
 
 from ..rakuten.models import RakutenItem
 from . import facts as F
+from .benefits import benefit_for
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -115,6 +116,24 @@ def _link_blocks(ctx: RenderContext, rendered: Rendered) -> list[Block]:
     ]
 
 
+def _benefit_line(ctx: RenderContext) -> str:
+    """剤形に許された効能と、煽らない悩みの文脈。
+
+    判定できない商品（ブラシ・ポーチなど）では空文字を返す。
+    無理に紐づけると、その剤形に許されていない効能を書くことになる。
+    """
+    if not ctx.items:
+        return ""
+    # 楽天の商品名の末尾には検索用キーワードが羅列されていることが多く
+    # （「…[ ヘアパック ヘアマスク 美髪 …]」）、そのまま判定すると
+    # 別の剤形として誤判定する。販促文を落とした表示名で判定する。
+    benefit = benefit_for(ctx.item.display_name(60))
+    if benefit is None:
+        return ""
+    # 役割と悩みの文脈を交互に出して、同じ形が続かないようにする
+    return benefit.role if ctx.fact_style % 2 == 0 else benefit.concern
+
+
 def _opening_text(part: Part, ctx: RenderContext) -> str:
     return part.text.format(
         category=ctx.category,
@@ -181,6 +200,7 @@ def render_objective(ctx: RenderContext) -> Rendered:
                 else f"{item.display_name()}\n{sentence}",
                 0,
             ),
+            Block(_benefit_line(ctx), 1),
             Block(closing.text, 2),
         ],
     )
@@ -201,7 +221,10 @@ def render_short(ctx: RenderContext) -> Rendered:
     _split_for_thread(
         ctx, r,
         Block(_opening_text(opening, ctx), 0),
-        [Block(f"{item.display_name(34)}\n{sentence}", 0)],
+        [
+            Block(f"{item.display_name(34)}\n{sentence}", 0),
+            Block(_benefit_line(ctx), 1),
+        ],
     )
     return r
 
@@ -222,6 +245,7 @@ def render_checklist(ctx: RenderContext) -> Rendered:
         Block(f"{ctx.category}選ぶとき、だいたいこのへん見てる👀", 0),
         [
             Block(f"{item.display_name(38)}\n{sentence}", 0),
+            Block(_benefit_line(ctx), 1),
             Block(closing.text, 2),
         ],
     )
@@ -251,6 +275,7 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
                 else f"{item.display_name(38)}\n{sentence}",
                 0,
             ),
+            Block(_benefit_line(ctx), 1),
             Block(closing.text, 2),
         ],
     )
@@ -358,7 +383,11 @@ def render_thread(ctx: RenderContext) -> Rendered:
     # 1本目: 商品にも数値にも触れない
     first = hook.text
     # 2本目: ここから広告なので #PR を先頭に置く
-    second = _pr(ctx, f"{bridge_text}\n\n{item.display_name(38)}\n{sentence}")
+    benefit = _benefit_line(ctx)
+    body = f"{bridge_text}\n\n{item.display_name(38)}\n{sentence}"
+    if benefit:
+        body += f"\n{benefit}"
+    second = _pr(ctx, body)
     # 3本目: 感想とリンク導線
     third = closing.text
     if ctx.affiliate_url:
