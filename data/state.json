@@ -29,6 +29,9 @@
       "fi_spec",
       "fi_page"
     ],
+    "howto": [
+      "hw_first_cosme"
+    ],
     "opening": [
       "op_curious",
       "op_saved"
@@ -55,12 +58,11 @@
     ]
   },
   "rotation_cursor": {
-    "evening": 2,
+    "evening": 3,
     "late": 2,
     "morning": 1
   },
   "template_history": [
-    "topic",
     "topic",
     "band_focus",
     "topic",
@@ -79,7 +81,8 @@
     "topic",
     "casual",
     "topic",
-    "band_focus"
+    "band_focus",
+    "howto"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
