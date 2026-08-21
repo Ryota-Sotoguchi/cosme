@@ -123,20 +123,22 @@ def _opening_text(part: Part, ctx: RenderContext) -> str:
 
 
 
-def _split_for_thread(ctx: RenderContext, rendered: Rendered, body: list[Block]) -> None:
-    """リンクがあるときは、リンク導線を別の投稿（返信）に分ける。
+def _split_for_thread(
+    ctx: RenderContext,
+    rendered: Rendered,
+    lead: Block,
+    body: list[Block],
+) -> None:
+    """1本目は導入だけ、2本目に商品と広告表示、3本目にリンク導線。
 
-    Threads は外部リンクのある投稿の表示回数を落とす。本文にURLを直接
-    書いた場合はとくに顕著、という運用側の観測が公式アルゴリズム解説でも
-    裏づけられている。
+    Threads は外部リンクのある投稿の表示回数を落とすうえ、
+    タイムラインに出る1本目が広告然としていると読まれない。
 
-    そこでタイムラインに出る1本目にはリンクを持たせず、返信側に付ける。
-    参考にした運用アカウントが揃ってこの形にしていたのも同じ理由と思われる。
-
-    リンクが無いときは分割しない（普通の1投稿）。
+    lead … 1本目。商品名も数値もリンクも入れない
+    body … 2本目。商品の話。ここから広告なので #PR を先頭に置く
     """
     if not ctx.affiliate_url:
-        rendered.blocks = body
+        rendered.blocks = [lead, *body]
         return
 
     cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
@@ -144,10 +146,12 @@ def _split_for_thread(ctx: RenderContext, rendered: Rendered, body: list[Block])
     rendered.part_ids["cta"] = cta.id
     rendered.part_ids["disclaimer"] = disclaimer.id
 
-    head = "\n\n".join(b.text.strip() for b in body if b.text.strip())
-    tail = f"{cta.text}\n{disclaimer.text}"
-    rendered.segments = [head, tail]
-    rendered.blocks = [Block(head, 0), Block(tail, 0)]
+    first = lead.text.strip()
+    second = _pr(ctx, "\n\n".join(b.text.strip() for b in body if b.text.strip()))
+    third = f"{cta.text}\n{disclaimer.text}"
+
+    rendered.segments = [first, second, third]
+    rendered.blocks = [Block(seg, 0) for seg in rendered.segments]
 
 
 # ======================================================================
@@ -166,16 +170,19 @@ def render_objective(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    _split_for_thread(ctx, r, [
-        Block(_pr(ctx, _opening_text(opening, ctx)), 0),
-        Block(
-            f"{item.display_name()}\n{intro.text}\n{sentence}"
-            if intro.text
-            else f"{item.display_name()}\n{sentence}",
-            0,
-        ),
-        Block(closing.text, 2),
-    ])
+    _split_for_thread(
+        ctx, r,
+        Block(_opening_text(opening, ctx), 0),
+        [
+            Block(
+                f"{item.display_name()}\n{intro.text}\n{sentence}"
+                if intro.text
+                else f"{item.display_name()}\n{sentence}",
+                0,
+            ),
+            Block(closing.text, 2),
+        ],
+    )
     return r
 
 
@@ -190,10 +197,11 @@ def render_short(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    _split_for_thread(ctx, r, [
-        Block(_pr(ctx, _opening_text(opening, ctx)), 0),
-        Block(f"{item.display_name(34)}\n{sentence}", 0),
-    ])
+    _split_for_thread(
+        ctx, r,
+        Block(_opening_text(opening, ctx), 0),
+        [Block(f"{item.display_name(34)}\n{sentence}", 0)],
+    )
     return r
 
 
@@ -208,11 +216,14 @@ def render_checklist(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    _split_for_thread(ctx, r, [
-        Block(_pr(ctx, f"{ctx.category}選ぶとき、だいたいこのへん見てる👀"), 0),
-        Block(f"{item.display_name(38)}\n{sentence}", 0),
-        Block(closing.text, 2),
-    ])
+    _split_for_thread(
+        ctx, r,
+        Block(f"{ctx.category}選ぶとき、だいたいこのへん見てる👀", 0),
+        [
+            Block(f"{item.display_name(38)}\n{sentence}", 0),
+            Block(closing.text, 2),
+        ],
+    )
     return r
 
 
@@ -229,16 +240,19 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
     r.allowed_numbers |= allowed
     band = F.format_price_band(item.item_price)
 
-    _split_for_thread(ctx, r, [
-        Block(_pr(ctx, f"{band}の{ctx.category}探してたときのメモ📝"), 0),
-        Block(
-            f"{item.display_name(38)}\n{intro.text}\n{sentence}"
-            if intro.text
-            else f"{item.display_name(38)}\n{sentence}",
-            0,
-        ),
-        Block(closing.text, 2),
-    ])
+    _split_for_thread(
+        ctx, r,
+        Block(f"{band}の{ctx.category}探してたときのメモ📝", 0),
+        [
+            Block(
+                f"{item.display_name(38)}\n{intro.text}\n{sentence}"
+                if intro.text
+                else f"{item.display_name(38)}\n{sentence}",
+                0,
+            ),
+            Block(closing.text, 2),
+        ],
+    )
     return r
 
 
@@ -262,7 +276,7 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
         category=ctx.category, band=band_range, band_range=band_range
     )
     # アフィリエイトリンクがある場合は【PR】を見出しの先頭に付ける（冒頭付近に置く）
-    r.blocks.append(Block(_pr(ctx, headline), 0))
+    r.blocks.append(Block(headline, 0))
 
     lines: list[str] = []
     for item in ctx.items:
@@ -279,10 +293,14 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
         cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
         disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
         r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
-        head = "\n\n".join(b.text.strip() for b in r.blocks if b.text.strip())
-        tail = f"※リンクは1つ目のものです\n{cta.text}\n{disclaimer.text}"
-        r.segments = [head, tail]
-        r.blocks = [Block(head, 0), Block(tail, 0)]
+        # 1本目は見出しだけ。商品と数値は2本目へ。
+        rest = "\n\n".join(b.text.strip() for b in r.blocks[1:] if b.text.strip())
+        r.segments = [
+            r.blocks[0].text.strip(),
+            _pr(ctx, rest),
+            f"※リンクは1つ目のものです\n{cta.text}\n{disclaimer.text}",
+        ]
+        r.blocks = [Block(seg, 0) for seg in r.segments]
     return r
 
 
@@ -306,14 +324,15 @@ def render_comparison(ctx: RenderContext) -> Rendered:
 # リンクなし
 # ======================================================================
 def render_thread(ctx: RenderContext) -> Rendered:
-    """スレッド型: フック → 商品 → 締め+リンク。
+    """スレッド型: 1本目は普通の話 → 2本目で商品とPR → 3本目でリンク。
 
-    参考にした運用アカウントは、1本目でいきなり商品を出さず、
-    共感できる話から入って最後にリンクを置いていた。
-    タイムラインに出るのは1本目なので、そこが広告然としていないほうが読まれる。
+    タイムラインに出るのは1本目だけなので、そこを広告然とさせない。
+    1本目には商品名も数値もリンクも入れず、単体で読み物として成立させる。
 
-    ただし1本目にも #PR は付ける。スレッド全体が広告なので、
-    最初に見える投稿で広告と分かる必要がある（景表法）。
+    広告表示は、商品が初めて出てくる2本目の冒頭に置く。
+    景表法が求めるのは「広告と判別できること」なので、
+    商品の紹介が始まる位置に表示があればよいと考えている。
+    1本目は特定の商品に触れないため、それ自体は広告表示ではない。
     """
     r = Rendered(blocks=[])
     item = ctx.item
@@ -329,13 +348,17 @@ def render_thread(ctx: RenderContext) -> Rendered:
     sentence, allowed = F.sentence_facts(item, ctx.fact_style)
     r.allowed_numbers |= allowed
 
-    first = _pr(ctx, hook.text)
     bridge_text = bridge.text.format(
         category=ctx.category,
         band=F.format_price_band(item.item_price),
         band_range="",
     )
-    second = f"{bridge_text}\n\n{item.display_name(38)}\n{sentence}"
+
+    # 1本目: 商品にも数値にも触れない
+    first = hook.text
+    # 2本目: ここから広告なので #PR を先頭に置く
+    second = _pr(ctx, f"{bridge_text}\n\n{item.display_name(38)}\n{sentence}")
+    # 3本目: 感想とリンク導線
     third = closing.text
     if ctx.affiliate_url:
         cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
@@ -344,7 +367,6 @@ def render_thread(ctx: RenderContext) -> Rendered:
         third = f"{closing.text}\n\n{cta.text}\n{disclaimer.text}"
 
     r.segments = [first, second, third]
-    # text は履歴・類似度判定用にまとめたもの
     r.blocks = [Block(seg, 0) for seg in r.segments]
     return r
 

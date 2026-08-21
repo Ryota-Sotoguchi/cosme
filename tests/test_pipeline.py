@@ -71,7 +71,8 @@ def test_no_link_slots_never_contain_urls(config, tmp_path):
 def test_product_slot_includes_pr_marker_and_link(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path)
     draft = pipeline.run("noon").draft
-    assert draft.text.startswith("#PR")
+    # 広告表示は、商品が初めて出てくる2本目の冒頭に置く
+    assert draft.segments[1].startswith("#PR")
     # URLは本文ではなくリンクカードとして添付する（500文字を消費しないため）
     assert draft.link_attachment
     assert "hb.afl.rakuten.co.jp" in draft.link_attachment
@@ -233,7 +234,7 @@ def test_dry_run_does_not_post_and_records_dry_run(config, tmp_path, monkeypatch
     records = History(config.history_path).load()
     assert len(records) == 1
     assert records[0].status == "dry_run"
-    assert records[0].text.startswith("#PR")
+    assert "#PR" in records[0].text
 
 
 def test_live_run_posts_and_records_post_id(config, tmp_path, monkeypatch):
@@ -480,16 +481,25 @@ def test_pool_is_not_refilled_when_enough(config, tmp_path):
     assert len(rakuten.seeds) == 1
 
 
-def test_thread_template_puts_pr_on_the_first_post(config, tmp_path):
-    """タイムラインに出るのは1本目なので、そこに #PR が要る。"""
+def test_thread_first_post_is_free_of_product_and_ad_markers(config, tmp_path):
+    """タイムラインに出る1本目は、単体で読み物として成立させる。
+
+    商品名も数値もリンクも広告表示も入れない。
+    広告表示は商品が初めて出てくる2本目の冒頭に置く。
+    """
     pipeline = make_pipeline(config, tmp_path)
     draft = pipeline.builder.build("product", pool(3)[:1], template_id="thread")
 
     assert len(draft.segments) == 3
-    assert draft.segments[0].startswith("#PR")
-    assert draft.link_attachment
-    # 商品名と数字は2本目、リンク導線は3本目
-    assert "http" not in draft.text
+    first, second = draft.segments[0], draft.segments[1]
+
+    assert "#PR" not in first
+    assert "http" not in first
+    assert not any(c.isdigit() for c in first), f"1本目に数値: {first}"
+    assert draft.items[0].display_name(38) not in first
+
+    assert second.startswith("#PR")
+    assert draft.items[0].display_name(38) in second
 
 
 def test_every_thread_segment_fits_the_platform_limit(config, tmp_path):
@@ -537,6 +547,7 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
     assert draft.post_type == "product"
     assert draft.items
     assert draft.link_attachment
+    assert "#PR" in draft.text
 
 
 # ======================================================================
@@ -587,7 +598,8 @@ def test_link_never_appears_on_the_first_post(config, tmp_path):
         assert draft.link_attachment, template_id
         assert len(draft.segments) >= 2, f"{template_id}: リンクが分離されていない"
         assert "http" not in draft.segments[0], template_id
-        assert draft.segments[0].startswith("#PR"), template_id
+        # 広告表示は商品が出てくる2本目に置く
+        assert draft.segments[1].startswith("#PR"), template_id
 
 
 def test_topic_tags_are_occasional_not_every_post(config, tmp_path):

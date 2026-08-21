@@ -113,7 +113,7 @@ def test_rejects_affiliate_link_without_pr_marker(checker, item):
 
 def test_rejects_pr_marker_placed_too_late(checker, item):
     filler = "あ" * 60
-    text = f"{filler}\n#PR\n\n\n楽天市場 → {item.affiliate_url}"
+    text = f"{filler}\n#PR\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
     assert any(v.category == "pr" for v in result.violations)
 
@@ -352,3 +352,66 @@ def test_all_parts_contain_only_expected_characters():
         for part in pool:
             bad = [c for c in part.text if not acceptable(c)]
             assert not bad, f"{part.id} に想定外の文字: {bad}"
+
+
+# ======================================================================
+# スレッド投稿の広告表示
+# ======================================================================
+def _thread_draft(segments, items, link=None):
+    from src.content.builder import Draft
+
+    return Draft(
+        text="\n\n".join(segments),
+        template_id="thread",
+        post_type="product",
+        items=items,
+        segments=segments,
+        link_attachment=link,
+    )
+
+
+def test_pr_marker_may_sit_on_the_post_where_the_product_appears(checker, item):
+    """1本目に商品を出さない構成では、2本目の冒頭に表示があればよい。
+
+    連結した全文の先頭だけを見ると、この構成を弾いてしまう。
+    """
+    draft = _thread_draft(
+        [
+            "ヘアケアって減りが早いから、値段の差がじわじわ効いてくる。",
+            f"#PR\n\nで、いま候補にしてるのがこれ！\n\n{item.display_name(38)}\n1,980円。",
+            "リンクは下に置いとくね👇",
+        ],
+        [item],
+        link=item.affiliate_url,
+    )
+    assert checker.check(draft).passed, checker.check(draft).summary()
+
+
+def test_pr_marker_after_the_product_is_rejected(checker, item):
+    """商品を出したあとに広告表示を置くのは認めない。"""
+    draft = _thread_draft(
+        [
+            f"{item.display_name(38)}\n1,980円。",
+            "#PR\n\nリンクは下に置いとくね",
+        ],
+        [item],
+        link=item.affiliate_url,
+    )
+    result = checker.check(draft)
+    assert not result.passed
+    assert any(v.category == "pr" for v in result.violations)
+
+
+def test_pr_marker_buried_mid_post_is_rejected(checker, item):
+    """投稿の途中に埋もれた表示は認めない。"""
+    draft = _thread_draft(
+        [
+            "ヘアケアの話。",
+            f"{'あ' * 40}\n#PR\n{item.display_name(38)}",
+        ],
+        [item],
+        link=item.affiliate_url,
+    )
+    result = checker.check(draft)
+    assert not result.passed
+    assert any(v.category == "pr" for v in result.violations)

@@ -166,20 +166,54 @@ class ComplianceChecker:
         return violations
 
     def _check_pr_marker(self, text: str, draft: Draft) -> list[Violation]:
-        # リンクカード添付でも広告であることに変わりはない。
+        """広告表示があるか、そして読者が見る位置にあるか。
+
+        スレッド投稿では、1本目に商品を出さず2本目から紹介を始める。
+        その場合、広告表示は「商品の紹介が始まる投稿の冒頭」にあればよい。
+        連結した全文の先頭で判定すると、この構成を弾いてしまう。
+        """
         has_url = bool(URL_PATTERN.search(text)) or bool(draft.link_attachment)
         if not has_url:
             # リンクなし投稿にPR表記は不要（付いていても害はないので許容）
             return []
 
-        index = text.find(self.pr_marker)
-        if index < 0:
-            return [Violation("pr", f"アフィリエイトリンクがあるのに {self.pr_marker} がありません")]
-        if index > self.pr_max_offset:
+        segments = draft.segments or [text]
+
+        # 広告表示が冒頭にある投稿を探す
+        marked = [
+            index
+            for index, segment in enumerate(segments)
+            if 0 <= segment.find(self.pr_marker) <= self.pr_max_offset
+        ]
+        if not marked:
+            if any(self.pr_marker in segment for segment in segments):
+                return [
+                    Violation(
+                        "pr",
+                        f"{self.pr_marker} はありますが、投稿の冒頭にありません",
+                    )
+                ]
+            return [
+                Violation("pr", f"アフィリエイトリンクがあるのに {self.pr_marker} がありません")
+            ]
+
+        # 商品名が最初に出てくる投稿より後ろに表示があってはいけない
+        first_product = next(
+            (
+                index
+                for index, segment in enumerate(segments)
+                if any(
+                    item.display_name(38) and item.display_name(38) in segment
+                    for item in draft.items
+                )
+            ),
+            None,
+        )
+        if first_product is not None and min(marked) > first_product:
             return [
                 Violation(
                     "pr",
-                    f"{self.pr_marker} の位置が冒頭から遠すぎます: {index}文字目 > {self.pr_max_offset}",
+                    f"商品の紹介が始まる投稿より後ろに {self.pr_marker} があります",
                 )
             ]
         return []
