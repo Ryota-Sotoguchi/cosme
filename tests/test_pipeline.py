@@ -277,6 +277,9 @@ def test_compliance_skip_does_not_break_future_runs(config, tmp_path, monkeypatc
         def run(self, slot):
             raise ComplianceSkip("テスト用スキップ")
 
+        def daily_cap_reached(self):
+            return False
+
         builder = None
 
     monkeypatch.setattr("src.main.Pipeline", _AlwaysSkip)
@@ -616,3 +619,47 @@ def test_topic_tags_rotate(config, tmp_path):
 
     seen = {topic_tag_for("スキンケア", i) for i in range(3)}
     assert len(seen) == 3
+
+
+# ======================================================================
+# 1日の総投稿数の上限
+# ======================================================================
+def test_daily_cap_stops_posting(config, tmp_path):
+    """種別もトリガーも問わず、1日の総投稿数で頭打ちにする。
+
+    ランプアップはリンク投稿しか見ていなかったため、動作確認の手動実行が
+    積み上がって1日18件投稿し、Meta に API アクセスをブロックされた。
+    """
+    pipeline = make_pipeline(config, tmp_path)
+    limit = int(config.ramp_up["max_posts_per_day"])
+
+    assert pipeline.daily_cap_reached() is False
+
+    for i in range(limit):
+        pipeline.history.append(
+            PostRecord(
+                posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+                slot="noon", post_type="no_link", template_id="topic",
+                status="success", text=f"投稿{i}", has_affiliate_link=False,
+                extra={"trigger": "workflow_dispatch"},   # 手動でも数える
+            )
+        )
+    pipeline.history._records = None
+
+    assert pipeline.daily_cap_reached() is True
+
+
+def test_daily_cap_counts_manual_runs_too(config, tmp_path):
+    """リンク枠と違い、こちらは手動実行も数える（ブロック対策のため）。"""
+    pipeline = make_pipeline(config, tmp_path)
+    for i in range(int(config.ramp_up["max_posts_per_day"])):
+        pipeline.history.append(
+            PostRecord(
+                posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+                slot="noon", post_type="no_link", template_id="topic",
+                status="success", text=f"手動{i}", has_affiliate_link=False,
+                extra={"trigger": "manual"},
+            )
+        )
+    pipeline.history._records = None
+    assert pipeline.daily_cap_reached() is True

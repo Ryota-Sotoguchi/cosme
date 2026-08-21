@@ -132,6 +132,14 @@ def cmd_post(config: Config, args: argparse.Namespace) -> int:
 
     pipeline = Pipeline(config, history=history, state=state)
 
+    # 1日の総投稿数の上限。ここを超えると Meta にブロックされうる。
+    if pipeline.daily_cap_reached():
+        _record(history, slot=args.slot, status="skipped",
+                error_type="DailyCapReached",
+                error_message="本日の投稿数が上限に達したためスキップしました")
+        state.save()
+        return EXIT_OK
+
     try:
         result = pipeline.run(args.slot)
     except ComplianceSkip as exc:
@@ -231,6 +239,14 @@ def cmd_preview(config: Config, args: argparse.Namespace) -> int:
     history = History(config.history_path)
     state = State(config.state_path)
     pipeline = Pipeline(config, history=history, state=state)
+
+    # 1日の総投稿数の上限。ここを超えると Meta にブロックされうる。
+    if pipeline.daily_cap_reached():
+        _record(history, slot=args.slot, status="skipped",
+                error_type="DailyCapReached",
+                error_message="本日の投稿数が上限に達したためスキップしました")
+        state.save()
+        return EXIT_OK
 
     try:
         result = pipeline.run(args.slot)
@@ -501,6 +517,32 @@ def cmd_doctor(config: Config, args: argparse.Namespace) -> int:
     warnings: list[str] = []
 
     print("\n=== 運用点検 ===\n")
+
+    # --- APIが使えるか（アプリごとブロックされることがある）---
+    try:
+        profile = ThreadsClient(config).get_profile()
+        print(f"  Threads API        : ✅ @{profile.get('username')}")
+    except AuthError as exc:
+        detail = str(exc)
+        if "API access blocked" in detail:
+            problems.append(
+                "Threads API がブロックされています。"
+                "Meta アプリダッシュボードの通知を確認してください "
+                "（アプリ単位の制限で、トークンもアカウントも有効なまま起きる）"
+            )
+        else:
+            problems.append(f"Threads API の認証エラー: {detail[:120]}")
+        print("  Threads API        : ❌ 使用不可")
+    except (MissingSecretError, TransientError) as exc:
+        warnings.append(f"Threads API を確認できませんでした: {str(exc)[:100]}")
+        print("  Threads API        : ⚠️ 確認不可")
+
+    # --- 本日の投稿数（出しすぎるとブロックされる）---
+    posted_today = len(history.posts_today())
+    cap = int(config.ramp_up.get("max_posts_per_day", 7))
+    print(f"  本日の投稿数       : {posted_today}/{cap}")
+    if posted_today > cap:
+        problems.append(f"本日の投稿数が上限を超えています（{posted_today}/{cap}）")
 
     # --- トークン期限 ---
     remaining = state.token_days_remaining()

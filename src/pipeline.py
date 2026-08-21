@@ -83,6 +83,23 @@ class Pipeline:
             return "product"
         return self.state.next_rotation(slot_name, options)
 
+    def daily_cap_reached(self) -> bool:
+        """本日の投稿数が上限に達しているか。
+
+        種別も実行トリガーも問わず数える。手動での動作確認が積み上がって
+        1日18件投稿し、Meta に API アクセスをブロックされたことがあるため、
+        ここは無条件の頭打ちにしておく。
+        """
+        limit = int(self.config.ramp_up.get("max_posts_per_day", 7))
+        today = len(self.history.posts_today())
+        if today >= limit:
+            logger.error(
+                "本日の投稿数が上限に達しています（%d/%d件）。投稿しません。", today, limit
+            )
+            return True
+        logger.info("本日の投稿数 %d/%d件", today, limit)
+        return False
+
     def affiliate_allowed(self, slot_name: str) -> bool:
         """このスロットでアフィリエイトリンクを付けてよいか。
 
