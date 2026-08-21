@@ -139,3 +139,16 @@ def test_hair_pack_is_not_confused_with_face_mask(name, expected):
     benefit = benefit_for(name)
     assert benefit is not None, name
     assert benefit.id == expected, f"{name} → {benefit.id}（期待: {expected}）"
+
+
+def test_tips_contain_no_numbers():
+    """箇条書きにも数値を出さない。
+
+    リンク投稿では値段・レビュー・容量を含め数値を出さない方針なので、
+    ノウハウ側にも「1本でどのくらいもつか」のような表記を残さない。
+    """
+    for benefit in BENEFITS:
+        for tip in benefit.tips:
+            assert not any(c.isdigit() for c in tip), f"{benefit.id}: {tip}"
+        for text in (benefit.role, benefit.concern):
+            assert not any(c.isdigit() for c in text), f"{benefit.id}: {text}"

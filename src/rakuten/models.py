@@ -66,6 +66,14 @@ _PROMO_PHRASES = tuple(
         r"全[0-9０-９]+\s*種",
     )
 )
+# 容量・入数の表記。リンク投稿では数値を出さないので落とす。
+# 「300mL/レフィル 500mL」「90g」「30枚入り」など。
+_VOLUME = re.compile(
+    r"[0-9０-９]+(?:\.[0-9０-９]+)?\s*"
+    r"(?:mL|ml|ｍｌ|L|g|ｇ|kg|kｇ|個|枚|包|本|袋|回分|回|錠|粒|セット|P|ペア|双)"
+    r"(?:入り?|入)?"
+)
+
 # 先頭・末尾に残った記号や区切り
 _JUNK_EDGE = re.compile(r"^[\s　！!？?・/／|｜\-–—＊*+＋、,。.★☆■◆●○▼▲»▶【】\[\]（）]+")
 _JUNK_TAIL = re.compile(r"[\s　！!・/／|｜\-–—＊*+＋、,★☆]+$")
@@ -256,13 +264,32 @@ class RakutenItem:
     def item_url_hash(self) -> str:
         return hashlib.sha256(self.item_url.encode("utf-8")).hexdigest()
 
+    def display_name_without_volume(self, max_length: int = 42) -> str:
+        """容量・入数を落とした商品名。
+
+        リンク投稿では数値を出さない方針なので、「90g」「300mL」
+        「30枚入り」といった表記を削る。商品の特定に必要な情報は
+        ブランド名と品目名なので、容量が無くても困らない。
+        """
+        name = _VOLUME.sub(" ", self.clean_name)
+        name = re.sub(r"[／/]\s*(?:レフィル|詰め替え|つめかえ|替え)", " ", name)
+        name = _JUNK_EDGE.sub("", name)
+        name = _JUNK_TAIL.sub("", name)
+        name = re.sub(r"[\s　]{2,}", " ", name).strip()
+        if len(name) < 4:
+            return self.display_name(max_length)
+        return self._truncate(name, max_length)
+
     def display_name(self, max_length: int = 42) -> str:
         """投稿本文に載せる商品名。長すぎる場合は自然な位置で切る。
 
         括弧の途中で切れると「[FANCL 化粧水」のように閉じ括弧が無い
         中途半端な表示になるので、括弧の開始位置まで戻して切る。
         """
-        name = self.clean_name
+        return self._truncate(self.clean_name, max_length)
+
+    def _truncate(self, name: str, max_length: int) -> str:
+        """長すぎる名前を、区切りのよい位置で切る。"""
         if len(name) <= max_length:
             return self._balance(name)
 

@@ -490,7 +490,8 @@ def test_product_info_is_confined_to_the_last_post(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path)
     for template_id in ("thread", "objective", "short", "checklist", "band_focus"):
         draft = pipeline.builder.build("product", pool(3)[:1], template_id=template_id)
-        name = draft.items[0].display_name(38)
+        # リンク投稿では容量を落とした名前を使う
+        name = draft.items[0].display_name_without_volume(38)
 
         assert draft.segments[-1].startswith("#PR"), template_id
         assert name in draft.segments[-1], template_id
@@ -515,7 +516,7 @@ def test_link_posts_do_not_show_price_or_reviews(config, tmp_path):
         last = draft.segments[-1]
 
         # 商品名の部分を取り除いてから検査する
-        rest = last.replace(item.display_name(38), "")
+        rest = last.replace(item.display_name_without_volume(38), "")
         assert f"{item.item_price:,}" not in rest, f"{template_id}: 値段が出ている"
         assert "円" not in rest, f"{template_id}: 値段が出ている — {rest}"
         assert "レビュー" not in rest, f"{template_id}: レビューが出ている"
@@ -714,3 +715,31 @@ def test_daily_cap_counts_manual_runs_too(config, tmp_path):
         )
     pipeline.history._records = None
     assert pipeline.daily_cap_reached() is True
+
+
+def test_link_posts_use_recommending_tone(config, tmp_path):
+    """リンク投稿で「どう思う？」と問いかけない。
+
+    薦めたいのか意見がほしいのか分からなくなるため、
+    リンクがあるときは薦める側の温度感にする。
+    """
+    pipeline = make_pipeline(config, tmp_path)
+    for template_id in ("thread", "objective", "short", "checklist", "band_focus"):
+        draft = pipeline.builder.build("product", pool(3)[:1], template_id=template_id)
+        assert draft.link_attachment, template_id
+        for index, segment in enumerate(draft.segments):
+            assert "どう思う" not in segment, f"{template_id}: {index + 1}本目に問いかけ"
+            assert "みんなならどうする" not in segment, template_id
+
+
+def test_link_posts_hide_volume_numbers(config, tmp_path):
+    """容量・入数の数値も出さない。"""
+    pipeline = make_pipeline(config, tmp_path)
+    item = make_item(
+        item_code="v:1", item_name="サロンプレミアム トリートメント 300mL", shop_code="v"
+    )
+    draft = pipeline.builder.build("product", [item], template_id="short")
+
+    assert "300" not in draft.segments[-1]
+    assert "mL" not in draft.segments[-1]
+    assert "サロンプレミアム" in draft.segments[-1]

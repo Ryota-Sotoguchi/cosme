@@ -24,6 +24,8 @@ from .parts import (
     NO_LINK_TOPICS,
     PRODUCT_CLOSINGS,
     PRODUCT_OPENINGS,
+    RECOMMEND_CLOSINGS,
+    RECOMMEND_OPENINGS,
     ROUNDUP_CLOSINGS,
     ROUNDUP_OPENINGS,
     THREAD_BRIDGES,
@@ -146,6 +148,27 @@ def _concern_stage(ctx: RenderContext) -> str:
     return benefit.concern
 
 
+def _lead_opening(ctx: RenderContext) -> str:
+    """前振りの導入。
+
+    リンクがあるときは薦める側の温度感にする。
+    「どう思う？」と問いかけると、薦めたいのか意見がほしいのか
+    分からなくなるため。
+    """
+    pool = RECOMMEND_OPENINGS if ctx.affiliate_url else PRODUCT_OPENINGS
+    group = "recommend_opening" if ctx.affiliate_url else "opening"
+    part = ctx.pick(group, pool, **ctx.flags())
+    return part.id, _opening_text(part, ctx)
+
+
+def _lead_closing(ctx: RenderContext) -> str:
+    """締め。リンクがあるときは薦める温度感を保つ。"""
+    pool = RECOMMEND_CLOSINGS if ctx.affiliate_url else PRODUCT_CLOSINGS
+    group = "recommend_closing" if ctx.affiliate_url else "closing"
+    part = ctx.pick(group, pool, **ctx.flags())
+    return part.id, part.text
+
+
 def _opening_text(part: Part, ctx: RenderContext) -> str:
     return part.text.format(
         category=ctx.category,
@@ -191,7 +214,8 @@ def _split_for_thread(
     rendered.part_ids["cta"] = cta.id
 
     # 最後の1本。押す理由はCTAだけなので、注記で埋もれさせない。
-    final = f"{PR_TAG}\n\n{ctx.item.display_name(38)}\n\n{cta.text}"
+    # 容量・入数の数値も出さない方針なので、名前から落とす
+    final = f"{PR_TAG}\n\n{ctx.item.display_name_without_volume(38)}\n\n{cta.text}"
 
     rendered.segments = [*body, final]
     rendered.blocks = [Block(seg, 0) for seg in rendered.segments]
@@ -203,35 +227,32 @@ def _split_for_thread(
 def render_objective(ctx: RenderContext) -> Rendered:
     """悩み → 箇条書きノウハウ → 商品（3本）。"""
     r = Rendered(blocks=[])
-    opening = ctx.pick("opening", PRODUCT_OPENINGS, **ctx.flags())
-    r.part_ids["opening"] = opening.id
+    opening_id, opening_text = _lead_opening(ctx)
+    r.part_ids["opening"] = opening_id
 
-    _split_for_thread(ctx, r, [
-        _opening_text(opening, ctx),
-        _tips_stage(ctx),
-    ])
+    _split_for_thread(ctx, r, [opening_text, _tips_stage(ctx)])
     return r
 
 def render_short(ctx: RenderContext) -> Rendered:
     """悩みひとつ → 商品（2本）。いちばん短い形。"""
     r = Rendered(blocks=[])
-    opening = ctx.pick("opening", PRODUCT_OPENINGS, **ctx.flags())
-    r.part_ids["opening"] = opening.id
+    opening_id, opening_text = _lead_opening(ctx)
+    r.part_ids["opening"] = opening_id
 
-    _split_for_thread(ctx, r, [_opening_text(opening, ctx)])
+    _split_for_thread(ctx, r, [opening_text])
     return r
 
 def render_checklist(ctx: RenderContext) -> Rendered:
     """悩み → 箇条書きノウハウ → 所感 → 商品（4本）。いちばん長い形。"""
     r = Rendered(blocks=[])
-    closing = ctx.pick("closing", PRODUCT_CLOSINGS, **ctx.flags())
-    r.part_ids["closing"] = closing.id
+    closing_id, closing_text = _lead_closing(ctx)
+    r.part_ids["closing"] = closing_id
 
     _split_for_thread(ctx, r, [
         f"{ctx.category}選ぶとき、だいたいこのへん見てる👀",
         # 1本目で見出しを言っているので、ここは繰り返さない
         _tips_stage(ctx, heading="こんな感じ📝"),
-        f"{_concern_stage(ctx)}\n\n{closing.text}",
+        f"{_concern_stage(ctx)}\n\n{closing_text}",
     ])
     return r
 
