@@ -450,3 +450,40 @@ def test_ordinary_name_survives_cleaning():
     shown = item.display_name(38)
     assert "プリマモイスト" in shown
     assert "ローション" in shown
+
+
+@pytest.mark.parametrize(
+    "raw,must_not_contain",
+    [
+        ("メール便 送料無料 マカダミ屋 茶ボトル20ml", ("メール便", "送料無料")),
+        ("【あす楽】送料無料 クレンジングバーム 90g", ("あす楽", "送料無料")),
+        ("ネコポス対応 メイクブラシ 5本セット 送料込み", ("ネコポス", "対応", "送料")),
+    ],
+)
+def test_shipping_promo_is_stripped_from_name(raw, must_not_contain):
+    """配送まわりの販促文は囲みの外に裸で置かれることが多い。
+
+    「メール便 送料無料 マカダミ屋…」のように商品名の頭に付くので、
+    囲みの中だけを見ていると取りこぼす。送料の有無は事実側で別途書くため、
+    商品名に残ると二重になる。
+    """
+    shown = _named(raw).display_name(38)
+    for token in must_not_contain:
+        assert token not in shown, f"{token} が残っている: {shown}"
+    assert len(shown) >= 4
+
+
+def test_orphan_bracket_is_removed():
+    """中身だけ消えて閉じ括弧が孤立するのを防ぐ。
+
+    「【全2種】」の全2種だけを販促文として落とすと「】」が残る。
+    """
+    shown = _named("ポイント5倍!【全2種】【資生堂認定ショップ】アクアレーベル 化粧水 200ml").display_name(40)
+    assert "】" not in shown and "【" not in shown
+    assert "アクアレーベル" in shown
+
+
+def test_balanced_brackets_are_kept():
+    """対になっている括弧は消さない（商品名の一部なので）。"""
+    shown = _named("清 et moi (セイ・エ・モア) ローション").display_name(40)
+    assert shown.count("(") == shown.count(")")

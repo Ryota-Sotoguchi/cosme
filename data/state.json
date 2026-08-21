@@ -12,18 +12,22 @@
       "cl_candidate",
       "cl_push",
       "cl_postage",
-      "cl_someday"
+      "cl_someday",
+      "cl_reviews_soft"
     ],
     "cta": [
-      "cta_rakuten"
+      "cta_rakuten",
+      "cta_check"
     ],
     "disclaimer": [
-      "dc_point"
+      "dc_point",
+      "dc_change"
     ],
     "fact_intro": [
       "fi_plain",
       "fi_soft",
-      "fi_spec"
+      "fi_spec",
+      "fi_page"
     ],
     "opening": [
       "op_curious",
@@ -74,7 +78,8 @@
     "topic",
     "topic",
     "casual",
-    "topic"
+    "topic",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
