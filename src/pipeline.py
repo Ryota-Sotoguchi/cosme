@@ -37,6 +37,7 @@ ITEMS_NEEDED = {
     "comparison": 2,
     "no_link": 0,
     "casual": 0,
+    "howto": 0,
 }
 
 

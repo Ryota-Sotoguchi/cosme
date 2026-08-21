@@ -19,6 +19,7 @@ from .parts import (
     DISCLAIMERS,
     FACT_INTROS,
     CASUAL_MURMURS,
+    HOWTO_POSTS,
     NO_LINK_TOPICS,
     PRODUCT_CLOSINGS,
     PRODUCT_OPENINGS,
@@ -371,6 +372,24 @@ def render_thread(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_howto(ctx: RenderContext) -> Rendered:
+    """ノウハウ投稿。保存したくなるチェックリスト型。
+
+    参考にした伸びている投稿がこの形だった。商品もリンクも出さず、
+    それ単体で価値があるので保存・リポストされやすい。
+
+    効能には踏み込まない（薬機法）。扱うのは選び方・買い方・
+    コスパの考え方に限る。
+    """
+    r = Rendered(blocks=[])
+    post = ctx.pick("howto", HOWTO_POSTS)
+    r.part_ids["howto"] = post.id
+    r.blocks.append(Block(post.text, 0))
+    # 手順番号など、本文に含まれる数値は商品データ由来ではないので許可する
+    r.allowed_numbers |= set(F.extract_numbers(post.text))
+    return r
+
+
 def render_casual(ctx: RenderContext) -> Rendered:
     """ただのつぶやき。
 
@@ -417,6 +436,7 @@ TEMPLATES: tuple[Template, ...] = (
     Template("comparison", render_comparison, ("comparison",), item_count=2),
     Template("topic", render_topic, ("no_link",), item_count=0, requires_affiliate=False),
     Template("casual", render_casual, ("casual",), item_count=0, requires_affiliate=False),
+    Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),
 )
 
 TEMPLATES_BY_ID: dict[str, Template] = {t.id: t for t in TEMPLATES}

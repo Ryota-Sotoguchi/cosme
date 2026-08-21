@@ -470,7 +470,11 @@ def cmd_replies(config: Config, args: argparse.Namespace) -> int:
 
 
 def cmd_hours(config: Config, args: argparse.Namespace) -> int:
-    """時間帯ごとの成績を出す。投稿時刻を決める材料。"""
+    """自分の投稿の成績を、判断に使える形で出す。
+
+    見たいのは「次に何を増やすか」なので、時間帯だけでなく
+    投稿タイプ・テンプレート・タグの有無でも割る。
+    """
     from collections import defaultdict
 
     history = History(config.history_path)
@@ -482,24 +486,52 @@ def cmd_hours(config: Config, args: argparse.Namespace) -> int:
         print("\nまだ成績データがありません。insights を実行してください\n")
         return EXIT_OK
 
-    by_hour: dict[int, list[int]] = defaultdict(list)
+    def reactions(record) -> int:
+        i = record.insights
+        return sum((i.get(k) or 0) for k in ("likes", "replies", "reposts", "shares"))
+
+    def report(title: str, buckets: dict[str, list]) -> None:
+        print(f"\n=== {title} ===")
+        print(f"  {'':<14}{'件数':>4}{'平均表示':>10}{'反応':>6}{'反応率':>8}")
+        print("  " + "\u2500" * 44)
+        ranked = sorted(
+            buckets.items(),
+            key=lambda kv: -sum(r.insights["views"] or 0 for r in kv[1]) / len(kv[1]),
+        )
+        for name, items in ranked:
+            views = [r.insights["views"] or 0 for r in items]
+            total_reactions = sum(reactions(r) for r in items)
+            total_views = sum(views) or 1
+            print(
+                f"  {name:<14}{len(items):>4}{sum(views)//len(views):>10,}"
+                f"{total_reactions:>6}{total_reactions / total_views:>8.2%}"
+            )
+
+    by_type: dict[str, list] = defaultdict(list)
+    by_template: dict[str, list] = defaultdict(list)
+    by_hour: dict[str, list] = defaultdict(list)
+    by_tag: dict[str, list] = defaultdict(list)
     for r in rows:
-        by_hour[r.posted_datetime.astimezone(JST).hour].append(r.insights["views"] or 0)
+        by_type[r.post_type or "?"].append(r)
+        by_template[r.template_id or "?"].append(r)
+        by_hour[f"{r.posted_datetime.astimezone(JST).hour}時"].append(r)
+        by_tag["リンクあり" if r.has_affiliate_link else "リンクなし"].append(r)
 
-    print(f"\n=== 時間帯ごとの表示回数（{len(rows)}件）===\n")
-    print(f"  {'時刻':<6}{'件数':>4}{'平均':>9}{'最大':>9}")
-    print("  " + "\u2500" * 30)
-    for hour in sorted(by_hour):
-        values = by_hour[hour]
-        print(f"  {hour:>2}時 {len(values):>4}{sum(values)//len(values):>9,}{max(values):>9,}")
+    print(f"\n分析対象: {len(rows)}件")
+    report("投稿タイプ別", by_type)
+    report("テンプレート別", by_template)
+    report("リンクの有無", by_tag)
+    report("時間帯별".replace("별", "別"), by_hour)
 
-    ranked = sorted(by_hour.items(), key=lambda kv: -sum(kv[1]) / len(kv[1]))
-    print("\n  よく見られている時間帯: " + ", ".join(f"{h}時" for h, _ in ranked[:3]))
-    print("  現在の投稿時刻        : " + ", ".join(s.time_jst for s in config.schedule))
+    best = max(
+        by_type.items(),
+        key=lambda kv: sum(r.insights["views"] or 0 for r in kv[1]) / len(kv[1]),
+    )
+    print(f"\n  いちばん見られている型: {best[0]}")
 
-    if len(rows) < 20:
-        print(f"\n  ※ まだ{len(rows)}件なので判断材料としては不十分です。"
-              "1〜2週間ためてから見てください")
+    if len(rows) < 30:
+        print(f"\n  ※ まだ{len(rows)}件です。型ごとに10件は欲しいので、"
+              "1〜2週間ためてから判断してください")
     print()
     return EXIT_OK
 

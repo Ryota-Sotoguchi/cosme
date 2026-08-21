@@ -243,22 +243,25 @@ allow_affiliate = true
 # casual  … ただのつぶやき。役に立つ話しかしないと人がやっている感じが消えるので、
 #           3〜4回に1回くらい混ぜる
 [rotation]
+# howto … 保存されやすいチェックリスト型。伸びる型なので朝に厚めに置く
 morning = [
+    "howto",
+    "no_link",
+    "casual",
+    "howto",
     "no_link",
     "no_link",
     "casual",
-    "no_link",
-    "no_link",
-    "no_link",
-    "casual",
+    "howto",
 ]
 evening = [
     "no_link",
     "casual",
-    "no_link",
+    "howto",
     "no_link",
     "casual",
     "no_link",
+    "howto",
 ]
 late = [
     "product",        # 商品紹介
