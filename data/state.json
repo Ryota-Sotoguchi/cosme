@@ -46,7 +46,6 @@
       "hk_hair_1"
     ],
     "topic": [
-      "nl_postage_trap",
       "nl_price_band",
       "nl_capacity",
       "nl_makeup_tools",
@@ -57,16 +56,16 @@
       "nl_compare_axis",
       "nl_impulse",
       "nl_question_category",
-      "nl_new_release"
+      "nl_new_release",
+      "nl_stock"
     ]
   },
   "rotation_cursor": {
     "evening": 3,
     "late": 2,
-    "morning": 1
+    "morning": 2
   },
   "template_history": [
-    "topic",
     "topic",
     "topic",
     "checklist",
@@ -85,6 +84,7 @@
     "band_focus",
     "howto",
     "checklist",
+    "topic",
     "topic"
   ],
   "threads_token": {
