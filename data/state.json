@@ -13,15 +13,18 @@
       "cl_push",
       "cl_postage",
       "cl_someday",
-      "cl_reviews_soft"
+      "cl_reviews_soft",
+      "cl_ask"
     ],
     "cta": [
       "cta_rakuten",
-      "cta_check"
+      "cta_check",
+      "cta_page"
     ],
     "disclaimer": [
       "dc_point",
-      "dc_change"
+      "dc_change",
+      "dc_time"
     ],
     "fact_intro": [
       "fi_plain",
@@ -63,7 +66,6 @@
     "morning": 1
   },
   "template_history": [
-    "topic",
     "band_focus",
     "topic",
     "topic",
@@ -82,7 +84,8 @@
     "casual",
     "topic",
     "band_focus",
-    "howto"
+    "howto",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
