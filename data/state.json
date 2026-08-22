@@ -48,7 +48,6 @@
       "hk_hair_1"
     ],
     "topic": [
-      "nl_makeup_tools",
       "nl_question_routine",
       "nl_body_care",
       "nl_brand_lock",
@@ -59,16 +58,16 @@
       "nl_new_release",
       "nl_stock",
       "nl_travel_size",
-      "nl_review_read"
+      "nl_review_read",
+      "nl_season"
     ]
   },
   "rotation_cursor": {
     "evening": 4,
-    "late": 2,
+    "late": 3,
     "morning": 2
   },
   "template_history": [
-    "objective",
     "short",
     "band_focus",
     "thread",
@@ -86,6 +85,7 @@
     "topic",
     "topic",
     "objective",
+    "topic",
     "topic",
     "topic"
   ],
