@@ -104,7 +104,7 @@ class ComplianceChecker:
         violations: list[Violation] = []
         text = draft.text
 
-        violations += self._check_expressions(text)
+        violations += self._check_expressions(text, draft)
         violations += self._check_length(text)
         violations += self._check_urls(text, draft)
         violations += self._check_pr_marker(text, draft)
@@ -124,10 +124,14 @@ class ComplianceChecker:
         return result
 
     # ------------------------------------------------------------------
-    def _check_expressions(self, text: str) -> list[Violation]:
+    def _check_expressions(self, text: str, draft: Draft) -> list[Violation]:
+        # リンクが無い投稿には景表法系のルールをかけない。理由は rules.py。
+        # 判定は「本文にURLがあるか」ではなく draft が商品を持つかで見る。
+        # リンクカードとして添付する形でも、商品を伴えば広告だから。
+        has_link = bool(draft.has_affiliate_link)
         return [
             Violation(rule.category, f"NG表現に該当: {rule.label}")
-            for rule in R.scan(text)
+            for rule in R.scan(text, has_link=has_link)
         ]
 
     def _check_length(self, text: str) -> list[Violation]:
