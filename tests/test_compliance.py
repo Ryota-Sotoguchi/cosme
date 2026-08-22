@@ -415,3 +415,61 @@ def test_pr_marker_buried_mid_post_is_rejected(checker, item):
     result = checker.check(draft)
     assert not result.passed
     assert any(v.category == "pr" for v in result.violations)
+
+
+# ======================================================================
+# 1行目で「何の話か」が分かること
+# ======================================================================
+# おすすめ欄に流れてきた人は、このアカウントが何のアカウントか知らない。
+# 「詰め替えあるかどうか、値段以上に効いてくる」だけ見せられても
+# 何の話か分からず、そのまま流される。
+#
+# だから買い物・選び方の話をする投稿は、1行目に対象を書く。
+# 対象語はコスメ一辺倒にせず、内容に合う具体語（シャンプー・化粧水・
+# リップなど）に散らしてある。ここはその語彙の一覧。
+SUBJECT_WORDS = (
+    "コスメ", "化粧品", "スキンケア", "メイク", "ヘアケア", "ボディ", "美容",
+    "化粧水", "美容液", "乳液", "クリーム", "シャンプー", "トリートメント",
+    "コンディショナー", "ヘアオイル", "日焼け止め", "リップ", "口紅", "洗顔",
+    "クレンジング", "パック", "マスク", "ファンデ", "下地", "アイシャドウ",
+    "チーク", "マスカラ", "ブラシ", "ネイル", "香水", "香り", "ポーチ",
+    "肌", "髪",
+)
+
+
+def _names_its_subject(text: str) -> bool:
+    return any(word in text.split("\n")[0] for word in SUBJECT_WORDS)
+
+
+def test_no_link_topics_name_their_subject_in_the_first_line():
+    from src.content.parts import NO_LINK_TOPICS
+
+    for part in NO_LINK_TOPICS:
+        assert _names_its_subject(part.text), (
+            f"{part.id} の1行目に対象が無い。"
+            f"知らない人が見て何の話か分からない: {part.text.splitlines()[0]}"
+        )
+
+
+def test_howto_posts_name_their_subject_in_the_first_line():
+    from src.content.parts import HOWTO_POSTS
+
+    for part in HOWTO_POSTS:
+        assert _names_its_subject(part.text), (
+            f"{part.id} の1行目に対象が無い: {part.text.splitlines()[0]}"
+        )
+
+
+def test_casual_murmurs_are_not_required_to_name_a_subject():
+    """つぶやきにまで主語を義務づけない。
+
+    「今日もおつかれさまでした」に主語は要らない。
+    むしろ全部に「コスメの」を付けると、人が書いている感じが消える。
+    ここは規則を課さない、と決めたことを残しておくためのテスト。
+    """
+    from src.content.parts import CASUAL_MURMURS
+
+    assert any(not _names_its_subject(p.text) for p in CASUAL_MURMURS), (
+        "つぶやきが全部「対象名入り」になっている。"
+        "機械的に主語を足していないか確認すること"
+    )
