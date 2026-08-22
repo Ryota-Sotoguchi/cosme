@@ -19,7 +19,8 @@
     "cta": [
       "cta_rakuten",
       "cta_check",
-      "cta_page"
+      "cta_page",
+      "cta_compare"
     ],
     "disclaimer": [
       "dc_point",
@@ -37,7 +38,8 @@
     ],
     "opening": [
       "op_curious",
-      "op_saved"
+      "op_saved",
+      "ro_forwho"
     ],
     "thread_bridge": [
       "br_found"
@@ -67,7 +69,6 @@
   },
   "template_history": [
     "topic",
-    "topic",
     "checklist",
     "objective",
     "short",
@@ -85,7 +86,8 @@
     "howto",
     "checklist",
     "topic",
-    "topic"
+    "topic",
+    "objective"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
