@@ -37,7 +37,8 @@
       "fi_page"
     ],
     "howto": [
-      "hw_first_cosme"
+      "hw_first_cosme",
+      "hw_volume"
     ],
     "opening": [
       "op_curious",
@@ -68,10 +69,9 @@
   "rotation_cursor": {
     "evening": 5,
     "late": 4,
-    "morning": 3
+    "morning": 4
   },
   "template_history": [
-    "topic",
     "topic",
     "topic",
     "topic",
@@ -90,7 +90,8 @@
     "band_focus",
     "casual",
     "topic",
-    "topic"
+    "topic",
+    "howto"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
