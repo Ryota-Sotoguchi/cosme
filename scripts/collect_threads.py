@@ -52,6 +52,18 @@ CHROME_LINES = {
     "もっと見る", "翻訳を見る", "Thread", "Replies", "Media", "Reposts",
 }
 
+# ログイン壁より後ろは投稿ではない。
+#
+# ログアウト状態だと数件でこの壁に当たる。GitHub Actions の
+# データセンターIPだと4〜6件、手元の回線だと十数件まで見られる。
+#
+# 毎日走らせる前提なので、前日からの新着が拾えれば足りる。
+# ログインして回避することはしない（アカウントを機械操作に使わない）。
+LOGIN_WALL = re.compile(
+    r"(投稿をもっと見るにはログイン|Threadsにログインするかサインアップ"
+    r"|Log in to see more|Instagramでログイン)"
+)
+
 
 def read_accounts() -> list[str]:
     if not ACCOUNTS_MD.exists():
@@ -63,26 +75,32 @@ def read_accounts() -> list[str]:
     return seen
 
 
-def clean(text: str) -> list[str]:
+def clean(text: str) -> tuple[list[str], bool]:
     """描画結果から、投稿本文らしい行だけ残す。
 
     余計なものを落としすぎるより、多めに残して人が読むほうがいい。
     判断は分析側でやる。
+
+    (本文の行, ログイン壁に当たったか) を返す。
     """
-    lines = []
+    lines: list[str] = []
+    walled = False
     for raw in text.split("\n"):
         line = raw.strip()
+        if LOGIN_WALL.search(line):
+            walled = True
+            break  # ここから先は投稿ではない
         if not line or line in CHROME_LINES:
             continue
         # いいね数などの数字だけの行
         if re.fullmatch(r"[\d,.万kK]+", line):
             continue
         lines.append(line)
-    return lines
+    return lines, walled
 
 
-def fetch(url: str, *, wait_ms: int, timeout_ms: int) -> tuple[list[str], str | None]:
-    """1アカウント分を取る。(本文の行, エラー) を返す。"""
+def fetch(url: str, *, wait_ms: int, timeout_ms: int) -> tuple[list[str], bool, str | None]:
+    """1アカウント分を取る。(本文の行, ログイン壁, エラー) を返す。"""
     from playwright.sync_api import sync_playwright
 
     try:
@@ -97,12 +115,12 @@ def fetch(url: str, *, wait_ms: int, timeout_ms: int) -> tuple[list[str], str | 
             finally:
                 browser.close()
     except Exception as exc:  # noqa: BLE001 — 何が起きても次のアカウントへ進む
-        return [], f"{type(exc).__name__}: {exc}"
+        return [], False, f"{type(exc).__name__}: {exc}"
 
-    lines = clean(body)
+    lines, walled = clean(body)
     if len(lines) < 5:
-        return lines, "描画されたが本文が少ない（ログイン壁の可能性）"
-    return lines, None
+        return lines, walled, "描画されたが本文がほとんど無い"
+    return lines, walled, None
 
 
 def main() -> int:
@@ -129,11 +147,16 @@ def main() -> int:
         "参考アカウントの公開ページを機械的にためたもの。**分析はしていない。**",
         "型の抽出は `/research` でやる。",
         "",
+        "ログアウトで見られる範囲までしか取れない。直近の数件が拾えれば、",
+        "毎日走らせている前提では足りる。",
+        "",
     ]
     ok = 0
     for url in accounts:
         name = url.rsplit("/", 1)[-1]
-        lines, error = fetch(url, wait_ms=args.wait_ms, timeout_ms=args.timeout_ms)
+        lines, walled, error = fetch(
+            url, wait_ms=args.wait_ms, timeout_ms=args.timeout_ms
+        )
         parts.append(f"## {name}")
         parts.append("")
         if error:
@@ -141,7 +164,11 @@ def main() -> int:
             print(f"NG  {name}: {error}", file=sys.stderr)
         else:
             ok += 1
-            print(f"OK  {name}: {len(lines)}行", file=sys.stderr)
+            note = "（ログイン壁まで）" if walled else ""
+            print(f"OK  {name}: {len(lines)}行{note}", file=sys.stderr)
+            if walled:
+                parts.append("※ ログイン壁の手前まで。これより古い投稿は取れていない。")
+                parts.append("")
         if lines:
             parts.append("```")
             parts.extend(lines[:200])
