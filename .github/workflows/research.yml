@@ -1,0 +1,56 @@
+name: research
+
+# 参考アカウントの投稿を毎日ためる。
+#
+# 分析はしない。型の抽出には「うちの制約で使えるか」という判断が要るので、
+# それは `/research` で人がやる。ここの仕事は取りこぼさないことだけ。
+#
+# ためておけば、何日か空けてから読んでも分析できる。
+# 逆に、ためていないと「あの日バズってた投稿」は二度と拾えない。
+on:
+  schedule:
+    - cron: '30 14 * * *'   # 23:30 JST（その日の投稿が出そろった後）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: research
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      # 本体の requirements には入れない。
+      # 投稿パイプラインはブラウザを必要としないので、依存を混ぜたくない。
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Collect
+        run: python scripts/collect_threads.py
+
+      - name: Commit
+        run: |
+          if [ -z "$(git status --porcelain research/)" ]; then
+            echo "変化なし"; exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/
+          git commit -m "chore(research): 参考アカウントの投稿を収集 [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
