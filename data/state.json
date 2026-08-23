@@ -51,7 +51,6 @@
       "hk_hair_1"
     ],
     "topic": [
-      "nl_question_routine",
       "nl_body_care",
       "nl_brand_lock",
       "nl_refill",
@@ -62,7 +61,8 @@
       "nl_stock",
       "nl_travel_size",
       "nl_review_read",
-      "nl_season"
+      "nl_season",
+      "nl_question_price"
     ]
   },
   "rotation_cursor": {
@@ -71,7 +71,6 @@
     "morning": 3
   },
   "template_history": [
-    "topic",
     "topic",
     "topic",
     "topic",
@@ -90,7 +89,8 @@
     "topic",
     "casual",
     "band_focus",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
