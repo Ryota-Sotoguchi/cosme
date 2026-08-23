@@ -6,7 +6,8 @@
   "part_history": {
     "casual": [
       "cm_humid",
-      "cm_morning"
+      "cm_morning",
+      "cm_sunscreen"
     ],
     "closing": [
       "cl_compare",
@@ -65,12 +66,11 @@
     ]
   },
   "rotation_cursor": {
-    "evening": 4,
+    "evening": 5,
     "late": 3,
     "morning": 3
   },
   "template_history": [
-    "thread",
     "topic",
     "topic",
     "topic",
@@ -89,7 +89,8 @@
     "topic",
     "topic",
     "casual",
-    "band_focus"
+    "band_focus",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
