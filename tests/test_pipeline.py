@@ -617,13 +617,20 @@ def test_casual_post_has_no_product_and_no_link(config, tmp_path):
 
 
 def test_casual_murmurs_are_short_and_clean():
-    """つぶやきは短く、NG表現も数値も含まない。"""
+    """つぶやきは短く、数値を含まず、薬機法まわりに触れないこと。
+
+    つぶやきはリンクを持たない投稿なので has_link=False で見る。
+    景表法・ステマ規制は商品を売っている投稿が対象なので、
+    ここに「使ってる」「お気に入り」が出てくるのは問題ない。
+    詳しくは src/compliance/rules.py の LINK_ONLY_RULES。
+    """
     from src.compliance.rules import scan
     from src.content.parts import CASUAL_MURMURS
 
     assert len(CASUAL_MURMURS) >= 30
     for part in CASUAL_MURMURS:
-        assert not scan(part.text), f"{part.id}: {[h.label for h in scan(part.text)]}"
+        hits = scan(part.text, has_link=False)
+        assert not hits, f"{part.id}: {[h.label for h in hits]}"
         assert not any(c.isdigit() for c in part.text), f"{part.id} に数値"
         assert len(part.text) <= 120, f"{part.id} が長すぎる（つぶやきは短く）"
 
