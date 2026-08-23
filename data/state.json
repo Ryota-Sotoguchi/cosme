@@ -21,7 +21,8 @@
       "cta_rakuten",
       "cta_check",
       "cta_page",
-      "cta_compare"
+      "cta_compare",
+      "cta_reviews"
     ],
     "disclaimer": [
       "dc_point",
@@ -69,7 +70,6 @@
     "morning": 3
   },
   "template_history": [
-    "band_focus",
     "thread",
     "topic",
     "topic",
@@ -88,7 +88,8 @@
     "topic",
     "topic",
     "topic",
-    "casual"
+    "casual",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-18T15:06:10.032020+00:00",
