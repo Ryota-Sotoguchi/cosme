@@ -54,10 +54,6 @@
       "hk_hair_1"
     ],
     "topic": [
-      "nl_brand_lock",
-      "nl_refill",
-      "nl_compare_axis",
-      "nl_impulse",
       "nl_question_category",
       "nl_new_release",
       "nl_stock",
@@ -65,11 +61,15 @@
       "nl_review_read",
       "nl_season",
       "nl_question_price",
-      "nl_shopping_list"
+      "nl_shopping_list",
+      "nl_body_care",
+      "nl_brand_lock",
+      "nl_refill",
+      "nl_compare_axis"
     ]
   },
   "rotation_cursor": {
-    "evening": 5,
+    "evening": 6,
     "late": 4,
     "morning": 4
   },
