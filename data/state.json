@@ -54,7 +54,6 @@
       "hk_hair_1"
     ],
     "topic": [
-      "nl_question_category",
       "nl_new_release",
       "nl_stock",
       "nl_travel_size",
@@ -65,7 +64,8 @@
       "nl_body_care",
       "nl_brand_lock",
       "nl_refill",
-      "nl_compare_axis"
+      "nl_compare_axis",
+      "nl_impulse"
     ]
   },
   "rotation_cursor": {
@@ -74,7 +74,6 @@
     "morning": 4
   },
   "template_history": [
-    "topic",
     "topic",
     "casual",
     "topic",
@@ -93,7 +92,8 @@
     "topic",
     "topic",
     "howto",
-    "checklist"
+    "checklist",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
