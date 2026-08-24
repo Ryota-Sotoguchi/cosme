@@ -16,14 +16,16 @@
       "cl_postage",
       "cl_someday",
       "cl_reviews_soft",
-      "cl_ask"
+      "cl_ask",
+      "rl_fit"
     ],
     "cta": [
       "cta_rakuten",
       "cta_check",
       "cta_page",
       "cta_compare",
-      "cta_reviews"
+      "cta_reviews",
+      "cta_detail"
     ],
     "disclaimer": [
       "dc_point",
@@ -74,7 +76,6 @@
   "template_history": [
     "topic",
     "topic",
-    "topic",
     "casual",
     "topic",
     "band_focus",
@@ -91,7 +92,8 @@
     "casual",
     "topic",
     "topic",
-    "howto"
+    "howto",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
