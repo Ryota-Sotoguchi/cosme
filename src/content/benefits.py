@@ -68,6 +68,8 @@ BENEFITS: tuple[Benefit, ...] = (
             "どのくらいもつか",
             "香りの強さ",
             "家族で使うなら容量",
+            "泡で出るかどうか",
+            "詰め替えの入れやすさ",
         ),
     ),
     Benefit(
@@ -80,6 +82,8 @@ BENEFITS: tuple[Benefit, ...] = (
             "ポンプかチューブか",
             "べたつかない使い心地か",
             "季節で使い分けるか",
+            "伸びのよさ",
+            "手が荒れる時期に使えるか",
         ),
     ),
     Benefit(
@@ -92,6 +96,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "洗い流すタイプか拭き取りか",
             "まつエクOKか",
             "一度に使う量",
+            "W洗顔がいるか",
+            "濡れた手で使えるか",
+            "肌に置く時間",
         ),
     ),
     Benefit(
@@ -103,6 +110,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "泡立てるタイプか泡で出るか",
             "朝用と夜用を分けるか",
             "どのくらいもつか",
+            "摩擦の少なさ",
+            "洗ったあとのつっぱり具合",
+            "容器の使いやすさ",
         ),
     ),
     Benefit(
@@ -115,6 +125,8 @@ BENEFITS: tuple[Benefit, ...] = (
             "詰め替えがあるか",
             "とろみの好み",
             "コットン派か手派か",
+            "ボトルかポンプか",
+            "顔以外にも使うか",
         ),
     ),
     Benefit(
@@ -126,6 +138,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "何を目的に足すのか",
             "容量と一度に使う量",
             "続けられる価格か",
+            "朝も使うか夜だけか",
+            "テクスチャの重さ",
+            "スポイトかポンプか",
         ),
     ),
     Benefit(
@@ -137,6 +152,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "さっぱりかしっとりか",
             "化粧水との相性",
             "朝も使うか夜だけか",
+            "伸びのよさ",
+            "べたつきの残り方",
+            "容量あたりの単価",
         ),
     ),
     Benefit(
@@ -148,6 +166,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "べたつかない使い心地か",
             "香りの強さ",
             "持ち歩きサイズか",
+            "チューブか缶か",
+            "塗ったあとスマホを触れるか",
+            "詰め替えがあるか",
         ),
     ),
     Benefit(
@@ -159,6 +180,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "季節に合うテクスチャか",
             "容量あたりの単価",
             "顔用か体用か",
+            "すくうタイプかチューブか",
+            "夜だけか日中もか",
+            "香りの強さ",
         ),
     ),
     Benefit(
@@ -171,6 +195,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "石けんで落ちるか",
             "顔用か体用か",
             "気兼ねなく使える量か",
+            "塗り直しやすい形状か",
+            "白浮きしにくいか",
+            "服につきにくいか",
         ),
     ),
     Benefit(
@@ -184,6 +211,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "枚数と一枚あたりの単価",
             "毎日使うか特別な日だけか",
             "シートの厚み",
+            "個包装かどうか",
+            "液の量",
+            "貼ったまま動けるか",
         ),
     ),
     Benefit(
@@ -196,6 +226,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "どのくらいもつか",
             "洗い上がりの好み",
             "ノンシリコンかどうか",
+            "ポンプの押しやすさ",
+            "泡立ちの好み",
+            "家族で使えるか",
         ),
     ),
     Benefit(
@@ -207,6 +240,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "少量で足りるか",
             "香りが残るタイプか",
             "朝use か夜useか",
+            "べたつかないか",
+            "スタイリングにも使えるか",
+            "ボトルの大きさ",
         ),
     ),
     Benefit(
@@ -218,6 +254,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "洗い流すか流さないか",
             "シャンプーとセットか単品か",
             "どのくらいもつか",
+            "置く時間がいるか",
+            "きしみにくいか",
+            "詰め替えがあるか",
         ),
     ),
     Benefit(
@@ -229,6 +268,9 @@ BENEFITS: tuple[Benefit, ...] = (
             "色つきか無色か",
             "ツヤかマットか",
             "持ち歩きやすさ",
+            "落ちにくさ",
+            "重ね塗りできるか",
+            "鏡なしで塗れるか",
         ),
     ),
 )
@@ -248,16 +290,48 @@ def benefit_for(item_name: str) -> Benefit | None:
     return None
 
 
-def tips_block(benefit: Benefit, heading: str | None = None) -> str:
+# 箇条書きの見出し。毎回同じだと、同じ投稿を繰り返しているように見える。
+TIPS_HEADINGS: tuple[str, ...] = (
+    "選ぶとき見てるところ👀",
+    "わたしが見てるのはここ📝",
+    "決める前に確認してるところ👀",
+    "ここだけ見れば外しません📝",
+    "見るのはこのへんだけ💭",
+    "比べるときの軸👀",
+)
+
+
+def tips_block(
+    benefit: Benefit,
+    heading: str | None = None,
+    *,
+    cursor: int = 0,
+    count: int = 3,
+) -> str:
     """選ぶときに見るところを箇条書きで組み立てる。
 
     参考にした伸びている投稿が「保存したくなるチェックリスト」型だった。
     箇条書きは保存・リポストされやすい。
+
+    ## なぜ全部を出さないのか
+
+    剤形ごとの tips は固定なので、全部並べると同じ剤形の商品では
+    毎回まったく同じ箇条書きになる。1日1本の投稿でこれをやると、
+    見ている側には「同じ投稿を繰り返している」ようにしか見えない。
+
+    そこで cursor をずらしながら count 件だけ取り出す。
+    順番も変わるので、同じ剤形でも見え方が変わる。
     """
     if not benefit.tips:
         return ""
-    title = heading or "選ぶとき見てるところ👀"
-    lines = "\n".join(f"・{tip}" for tip in benefit.tips)
+    title = heading if heading is not None else TIPS_HEADINGS[cursor % len(TIPS_HEADINGS)]
+
+    tips = benefit.tips
+    n = min(count, len(tips))
+    start = cursor % len(tips)
+    picked = [tips[(start + i) % len(tips)] for i in range(n)]
+
+    lines = "\n".join(f"・{tip}" for tip in picked)
     return f"{title}\n\n{lines}\n\n{benefit.role}"
 
 

@@ -9,6 +9,8 @@
 
 from __future__ import annotations
 
+import hashlib
+
 from dataclasses import dataclass, field
 from typing import Callable, Protocol
 
@@ -118,6 +120,28 @@ def _link_blocks(ctx: RenderContext, rendered: Rendered) -> list[Block]:
     ]
 
 
+def _variation_cursor(ctx: RenderContext) -> int:
+    """箇条書きの見え方をずらすためのカーソル。
+
+    ## なぜ商品から作るのか
+
+    もとは `ctx.fact_style` を使っていたが、これは `closing` グループの
+    使用履歴の長さで、**リンク投稿では動かない**。
+    リンク投稿は `recommend_closing` を使うので `closing` が増えないためだ。
+    結果、同じ剤形の商品では毎回まったく同じ箇条書きが出ていた。
+
+    `template_history` などの他のカウンタも、保存件数に上限があるので
+    途中で頭打ちになり、カウンタとして使えない。
+
+    商品コードから決定的に導けば、状態を持たずに商品ごとに変わる。
+    同じ商品は30日間再投稿しないので、値が固定でも困らない。
+    """
+    if ctx.items and ctx.item.item_code:
+        digest = hashlib.sha256(ctx.item.item_code.encode("utf-8")).hexdigest()
+        return int(digest[:8], 16)
+    return ctx.fact_style
+
+
 def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
     """箇条書きのノウハウ段。
 
@@ -135,7 +159,7 @@ def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
         benefit = benefit_for(ctx.item.display_name(60))
     if benefit is None:
         benefit = benefit_by_cursor(ctx.fact_style)
-    return tips_block(benefit, heading)
+    return tips_block(benefit, heading, cursor=_variation_cursor(ctx))
 
 
 def _concern_stage(ctx: RenderContext) -> str:
@@ -257,17 +281,19 @@ def render_checklist(ctx: RenderContext) -> Rendered:
     return r
 
 def render_band_focus(ctx: RenderContext) -> Rendered:
-    """価格帯の話 → 箇条書きノウハウ → 商品（3本）。
+    """悩みの文脈 → 箇条書きノウハウ → 商品（3本）。
 
-    価格帯は「探していた文脈」として1本目に置く。
-    商品そのものの値段は最後の1本でも出さない。
+    もとは「1,500円前後の◯◯探してたときのメモ」と価格帯から入る型だった。
+    リンク投稿から数値を全部外す方針にしたので、価格帯も出せなくなった
+    （実際に「1,500円前後のヘアケア」と本番に出ていた）。
+
+    価格の代わりに、剤形ごとの悩みの文脈から入る。
+    「詰め替えがあるかで、続けやすさが変わるカテゴリー」のような、
+    読み手が自分ごとにできる入り口。
     """
     r = Rendered(blocks=[])
-    band = F.format_price_band(ctx.item.item_price)
-    r.allowed_numbers.add(F.normalize_number(str(F.price_band_value(ctx.item.item_price))))
-
     _split_for_thread(ctx, r, [
-        f"{band}の{ctx.category}探してたときのメモ📝",
+        _concern_stage(ctx),
         _tips_stage(ctx),
     ])
     return r
