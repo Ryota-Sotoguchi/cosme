@@ -36,6 +36,7 @@ ITEMS_NEEDED = {
     "postage_free": 3,
     "comparison": 2,
     "no_link": 0,
+    "thread_topic": 0,
     "casual": 0,
     "howto": 0,
 }

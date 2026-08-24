@@ -32,6 +32,7 @@ from .parts import (
     ROUNDUP_OPENINGS,
     THREAD_BRIDGES,
     THREAD_HOOKS,
+    THREAD_TOPICS,
     Part,
 )
 
@@ -425,6 +426,26 @@ def render_topic(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_topic_thread(ctx: RenderContext) -> Rendered:
+    """リンクなしの連投。1本目で言い切り、2本目で理由。
+
+    タイムラインに出るのは1本目だけなので、そこで完結させない。
+    「で、どういうこと？」と思わせて2本目に進ませる。
+
+    参考アカウントはこの型でリーチを伸ばしている。
+    リンクが無いぶん Threads の表示回数も落とされない。
+    """
+    r = Rendered(blocks=[])
+    topic = ctx.pick("topic_thread", THREAD_TOPICS)
+    r.part_ids["topic_thread"] = topic.id
+
+    segments = list(topic.segments) or [topic.text]
+    r.allowed_numbers |= set(F.extract_numbers(topic.text))
+    r.segments = segments
+    r.blocks = [Block(seg, 0) for seg in segments]
+    return r
+
+
 # ======================================================================
 @dataclass(frozen=True)
 class Template:
@@ -446,6 +467,8 @@ TEMPLATES: tuple[Template, ...] = (
     Template("postage_free", render_postage_free, ("postage_free",), item_count=3),
     Template("comparison", render_comparison, ("comparison",), item_count=2),
     Template("topic", render_topic, ("no_link",), item_count=0, requires_affiliate=False),
+    Template("topic_thread", render_topic_thread, ("thread_topic",), item_count=0,
+             requires_affiliate=False),
     Template("casual", render_casual, ("casual",), item_count=0, requires_affiliate=False),
     Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),
 )
