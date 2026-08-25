@@ -183,3 +183,61 @@ def test_part_ids_are_unique_across_the_new_pools():
     ids = [p.id for p in P.CASUAL_MURMURS] + [p.id for p in P.QUESTION_POSTS]
     dupes = [i for i, c in Counter(ids).items() if c > 1]
     assert not dupes, f"IDが重複: {dupes}"
+
+
+# ======================================================================
+# 話し言葉であること
+# ======================================================================
+# 「日焼け止めの塗り直し、タイミングをいつも逃す」は観察メモの形で、
+# 人がSNSに書く文ではない。人はこう書く。
+#
+#   逃しちゃう…
+#   のがしちゃった😢
+#   忘れないようにしたい😭
+#
+# 違いは終止形かどうか。動作動詞の終止形で言い切ると、
+# 出来事を記録している文になって、喋っている感じが消える。
+#
+# 「ある」「思ってる」「〜ない」「〜たい」は話し言葉として自然なので
+# ここでは対象にしない。狙うのは事実を報告する形の動詞だけ。
+STIFF_ENDING = re.compile(
+    r"(?<![てでっんなよだかもわ])"
+    r"(逃す|なる|減る|変わる|増える|溶ける|終わる|消える|出てくる|かかる"
+    r"|見える|違う|分かる|できる|残る|効く|決まる|上がる|下がる|落ちる)$"
+)
+
+
+def _final_line(text: str) -> str:
+    """最後の行から絵文字と句点を落としたもの。"""
+    last = text.strip().split("\n")[-1]
+    return EMOJI.sub("", last).rstrip().rstrip("。")
+
+
+@pytest.mark.parametrize("pool_name", sorted(NO_LINK_POOLS))
+def test_posts_end_in_spoken_form(pool_name):
+    for part in NO_LINK_POOLS[pool_name]:
+        tail = _final_line(part.text)
+        assert not STIFF_ENDING.search(tail), (
+            f"{pool_name}.{part.id} が終止形で言い切っている。"
+            f"「〜ちゃう」「〜んだよね」のような話し言葉にすること:\n  {part.text}"
+        )
+
+
+def test_spoken_endings_are_varied():
+    """話し言葉の語尾も散らすこと。
+
+    全部「〜ちゃう」にすると、それはそれで型になる。
+    """
+    chau = [p for p in P.CASUAL_MURMURS if "ちゃう" in p.text or "ちゃった" in p.text]
+    ratio = len(chau) / len(P.CASUAL_MURMURS)
+    assert ratio <= 0.40, f"「〜ちゃう」が {ratio:.0%} を占めている"
+
+
+def test_some_posts_carry_feeling():
+    """感情を出す投稿があること。
+
+    整った観察ばかりだと、書いている人の気持ちが見えない。
+    """
+    feeling = re.compile("[😢😭🥲😮‍💨🫠🙃]|…$")
+    have = [p for p in P.CASUAL_MURMURS if feeling.search(p.text.strip())]
+    assert len(have) >= 12, f"感情の出ている投稿が {len(have)}件しかない"
