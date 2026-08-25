@@ -89,7 +89,11 @@ class ContentBuilder:
         if not eligible:
             raise ValueError(f"パーツプール '{group}' が空です")
 
-        recent = self.state.recent_part_ids(group, limit=max(3, len(eligible) // 2))
+        # プールの3/4を避ける。半分だと、6件のプールなら4投稿で一巡して
+        # 同じ言い回しが戻ってくる。1日1〜5投稿なので、それだと
+        # 見ている側には「同じことを繰り返している」ように映る。
+        # 候補が尽きたら下で eligible に戻すので、行き詰まりはしない。
+        recent = self.state.recent_part_ids(group, limit=max(3, len(eligible) * 3 // 4))
         fresh = [p for p in eligible if p.id not in recent]
         candidates = fresh or eligible
 

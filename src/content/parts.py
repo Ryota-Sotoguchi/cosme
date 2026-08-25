@@ -126,6 +126,12 @@ CTA_PARTS: tuple[Part, ...] = (
     Part("cta_compare", "比べたい人はここから見てみて👇"),
     Part("cta_save", "気になったら保存しておくと後で見返せます🔖👇"),
     Part("cta_check", "値段だけでも見てみて〜👇"),
+    Part("cta_reviews_many", "レビューの数がすごいので、そこだけでも👇", requires_many_reviews=True),
+    Part("cta_look", "とりあえず見てみて〜👇"),
+    Part("cta_decide", "迷ってるなら、ページ見てから決めていいと思う👇"),
+    Part("cta_leave", "置いておくので、気が向いたら👇"),
+    Part("cta_size", "サイズ違いもあったので、見比べてみて👇"),
+    Part("cta_later", "いま決めなくていいので、覚えておくだけでも👇"),
 )
 
 # ======================================================================

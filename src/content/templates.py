@@ -173,7 +173,15 @@ def _concern_stage(ctx: RenderContext) -> str:
     return benefit.concern
 
 
-def _lead_opening(ctx: RenderContext) -> str:
+# 選んだグループと同じ名前で記録しないと、連続使用の回避が効かない。
+#
+# 以前は pick を "recommend_opening" で行い、記録は "opening" に入れていた。
+# 履歴を読むときは "recommend_opening" を見るので中身が常に空で、
+# **クールダウンが一度も効いていなかった**。
+# 実測で同じ書き出しが2〜3日おきに戻ってきていた。
+#
+# ここで rendered に直接書き込むことで、選択と記録のキーを必ず一致させる。
+def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
     """前振りの導入。
 
     リンクがあるときは薦める側の温度感にする。
@@ -183,15 +191,17 @@ def _lead_opening(ctx: RenderContext) -> str:
     pool = RECOMMEND_OPENINGS if ctx.affiliate_url else PRODUCT_OPENINGS
     group = "recommend_opening" if ctx.affiliate_url else "opening"
     part = ctx.pick(group, pool, **ctx.flags())
-    return part.id, _opening_text(part, ctx)
+    rendered.part_ids[group] = part.id
+    return _opening_text(part, ctx)
 
 
-def _lead_closing(ctx: RenderContext) -> str:
+def _lead_closing(ctx: RenderContext, rendered: Rendered) -> str:
     """締め。リンクがあるときは薦める温度感を保つ。"""
     pool = RECOMMEND_CLOSINGS if ctx.affiliate_url else PRODUCT_CLOSINGS
     group = "recommend_closing" if ctx.affiliate_url else "closing"
     part = ctx.pick(group, pool, **ctx.flags())
-    return part.id, part.text
+    rendered.part_ids[group] = part.id
+    return part.text
 
 
 def _opening_text(part: Part, ctx: RenderContext) -> str:
@@ -252,8 +262,7 @@ def _split_for_thread(
 def render_objective(ctx: RenderContext) -> Rendered:
     """悩み → 箇条書きノウハウ → 商品（3本）。"""
     r = Rendered(blocks=[])
-    opening_id, opening_text = _lead_opening(ctx)
-    r.part_ids["opening"] = opening_id
+    opening_text = _lead_opening(ctx, r)
 
     _split_for_thread(ctx, r, [opening_text, _tips_stage(ctx)])
     return r
@@ -261,22 +270,25 @@ def render_objective(ctx: RenderContext) -> Rendered:
 def render_short(ctx: RenderContext) -> Rendered:
     """悩みひとつ → 商品（2本）。いちばん短い形。"""
     r = Rendered(blocks=[])
-    opening_id, opening_text = _lead_opening(ctx)
-    r.part_ids["opening"] = opening_id
+    opening_text = _lead_opening(ctx, r)
 
     _split_for_thread(ctx, r, [opening_text])
     return r
 
 def render_checklist(ctx: RenderContext) -> Rendered:
-    """悩み → 箇条書きノウハウ → 所感 → 商品（4本）。いちばん長い形。"""
+    """悩み → 箇条書きノウハウ → 所感 → 商品（4本）。いちばん長い形。
+
+    1本目はもとは「{category}選ぶとき、だいたいこのへん見てる👀」と
+    ベタ書きだった。ベタ書きは回らないので、このテンプレートが選ばれる
+    たびに同じ文が出ていた（実測で5日おき）。書き出しプールから取る。
+    """
     r = Rendered(blocks=[])
-    closing_id, closing_text = _lead_closing(ctx)
-    r.part_ids["closing"] = closing_id
+    opening_text = _lead_opening(ctx, r)
+    closing_text = _lead_closing(ctx, r)
 
     _split_for_thread(ctx, r, [
-        f"{ctx.category}選ぶとき、だいたいこのへん見てる👀",
-        # 1本目で見出しを言っているので、ここは繰り返さない
-        _tips_stage(ctx, heading="こんな感じ📝"),
+        opening_text,
+        _tips_stage(ctx),
         f"{_concern_stage(ctx)}\n\n{closing_text}",
     ])
     return r
