@@ -70,16 +70,16 @@
       "nl_question_price",
       "nl_shopping_list",
       "nl_body_care",
-      "nl_uv"
+      "nl_uv",
+      "nl_minimal"
     ]
   },
   "rotation_cursor": {
     "evening": 0,
-    "late": 5,
+    "late": 6,
     "morning": 5
   },
   "template_history": [
-    "band_focus",
     "howto",
     "checklist",
     "topic",
@@ -98,6 +98,7 @@
     "topic",
     "objective",
     "howto",
+    "topic",
     "topic"
   ],
   "threads_token": {
