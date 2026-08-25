@@ -24,6 +24,7 @@ from .parts import (
     CASUAL_MURMURS,
     HOWTO_POSTS,
     NO_LINK_TOPICS,
+    QUESTION_POSTS,
     PRODUCT_CLOSINGS,
     PRODUCT_OPENINGS,
     RECOMMEND_CLOSINGS,
@@ -428,6 +429,22 @@ def render_casual(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_question(ctx: RenderContext) -> Rendered:
+    """短い問いかけ。
+
+    返信はいちばん強い反応シグナルなので、専用のテンプレートにして
+    ローテーションで頻度を制御できるようにしている。
+
+    答えを自分で書かない。書くと問いかけではなく助言になる。
+    """
+    r = Rendered(blocks=[])
+    question = ctx.pick("question", QUESTION_POSTS)
+    r.part_ids["question"] = question.id
+    r.blocks.append(Block(question.text, 0))
+    r.allowed_numbers |= set(F.extract_numbers(question.text))
+    return r
+
+
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     topic = ctx.pick("topic", NO_LINK_TOPICS)
@@ -482,6 +499,8 @@ TEMPLATES: tuple[Template, ...] = (
     Template("topic_thread", render_topic_thread, ("thread_topic",), item_count=0,
              requires_affiliate=False),
     Template("casual", render_casual, ("casual",), item_count=0, requires_affiliate=False),
+    Template("question", render_question, ("question",), item_count=0,
+             requires_affiliate=False),
     Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),
 )
 

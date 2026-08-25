@@ -2,17 +2,28 @@ name: post
 
 # 日本はサマータイムが無く UTC+9 固定なので、cron は UTC で書いている。
 # timezone フィールドに依存せず、意味が一意に決まる方を選んだ。
-#   07:30 JST = 22:30 UTC (前日)  … morning  リンクなし
-#   12:15 JST = 03:15 UTC         … noon     商品紹介【PR】
-#   18:00 JST = 09:00 UTC         … evening  リンクなし
-#   20:30 JST = 11:30 UTC         … night    商品紹介【PR】
-#   22:30 JST = 13:30 UTC         … late     ローテーション
+#   07:30 JST = 22:30 UTC (前日)  … morning     リンクなし
+#   09:30 JST = 00:30 UTC         … midmorning  リンクなし
+#   12:15 JST = 03:15 UTC         … noon        商品紹介【PR】
+#   14:30 JST = 05:30 UTC         … afternoon   リンクなし
+#   16:30 JST = 07:30 UTC         … predinner   リンクなし
+#   18:00 JST = 09:00 UTC         … evening     リンクなし
+#   20:30 JST = 11:30 UTC         … night       商品紹介【PR】
+#   22:30 JST = 13:30 UTC         … late        ローテーション
+#
+# リンクを許可するのは noon / night / late の3枠だけ。
+# 枠を増やすときはリンクなし側に足すこと。
+# （test_affiliate_slots_are_limited が3枠以下を強制している）
+#
 # cron 文字列から config/config.toml の [[schedule]] を引いてスロットを決めるので、
 # 時刻を変えるときは「この cron」と「config.toml の cron_utc」の両方を揃えること。
 on:
   schedule:
     - cron: '30 22 * * *'
+    - cron: '30 0 * * *'
     - cron: '15 3 * * *'
+    - cron: '30 5 * * *'
+    - cron: '30 7 * * *'
     - cron: '0 9 * * *'
     - cron: '30 11 * * *'
     - cron: '30 13 * * *'
@@ -22,7 +33,7 @@ on:
         description: '投稿スロット'
         required: true
         type: choice
-        options: [morning, noon, evening, night, late]
+        options: [morning, midmorning, noon, afternoon, predinner, evening, night, late]
         default: morning
       dry_run:
         description: 'DRY_RUN（Threadsへは投稿しない）'

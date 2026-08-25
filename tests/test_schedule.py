@@ -48,8 +48,33 @@ def test_unknown_cron_raises_config_error(config):
         config.slot_for_cron("59 23 * * *")
 
 
-def test_five_posts_per_day(config):
-    assert len(config.schedule) == 5
+def test_eight_posts_per_day(config):
+    assert len(config.schedule) == 8
+
+
+def test_most_slots_are_link_free(config):
+    """増やすのはリンクなしの枠だけ、という方針を固定する。
+
+    露出を増やすのが目的で、広告を増やすのが目的ではない。
+    枠を足すときにうっかり allow_affiliate を立てると、
+    ランプアップの上限に届くまで広告が増えてしまう。
+    """
+    link_free = [s for s in config.schedule if not s.allow_affiliate]
+    assert len(link_free) >= 5, "リンクなしの枠が少なすぎる"
+    assert len(link_free) > len(config.schedule) / 2, "広告枠のほうが多い"
+
+
+def test_daily_cap_covers_every_slot(config):
+    """1日の上限が、スロット数を下回っていないこと。
+
+    下回っていると、最後のスロットが毎日 daily_cap_reached() で
+    黙って落ちる。上限自体は残す（手動実行が積み上がって
+    1日18件投稿し、MetaにAPIアクセスをブロックされた経緯がある）。
+    """
+    cap = int(config.ramp_up["max_posts_per_day"])
+    assert cap >= len(config.schedule), (
+        f"上限 {cap} 件がスロット数 {len(config.schedule)} を下回っている"
+    )
 
 
 def test_cron_utc_matches_jst_time(config):

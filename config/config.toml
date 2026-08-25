@@ -215,11 +215,34 @@ post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
+slot = "midmorning"
+time_jst = "09:30"
+cron_utc = "30 0 * * *"
+post_type = "rotation"
+allow_affiliate = false
+
+[[schedule]]
 slot = "noon"
 time_jst = "12:15"
 cron_utc = "15 3 * * *"
 post_type = "product"
 allow_affiliate = true
+
+# 12:15 から 18:00 まで5時間45分空いていたので、その間を埋める。
+# どちらもリンクなし。露出を増やすのが目的で、広告を増やすのが目的ではない。
+[[schedule]]
+slot = "afternoon"
+time_jst = "14:30"
+cron_utc = "30 5 * * *"
+post_type = "rotation"
+allow_affiliate = false
+
+[[schedule]]
+slot = "predinner"
+time_jst = "16:30"
+cron_utc = "30 7 * * *"
+post_type = "rotation"
+allow_affiliate = false
 
 [[schedule]]
 slot = "evening"
@@ -244,29 +267,62 @@ allow_affiliate = true
 
 # ローテーション順（state.json でカーソルを保持）
 #
-# no_link … 買い物・選び方の話
-# casual  … ただのつぶやき。役に立つ話しかしないと人がやっている感じが消えるので、
-#           3〜4回に1回くらい混ぜる
+# casual       … ただのつぶやき。結論も落ちもない一行
+# question     … 短い問いかけ。返信はいちばん強い反応シグナルなので専用枠にした
+# no_link      … 買い物・選び方の話（2段落の助言型）
+# thread_topic … 言い切り → 理由の連投
+# howto        … 箇条書きのチェックリスト
+#
+# もとは howto / thread_topic / no_link が枠の大半を占めていて、
+# 「役に立つことを整った形で言う」投稿しか出ていなかった。
+# 人がふだんThreadsに書くのは結論のない一行や答えのない疑問なので、
+# casual と question を主役にして、整った型は少数派にする。
 [rotation]
-# howto … 保存されやすいチェックリスト型。伸びる型なので朝に厚めに置く
 morning = [
-    "howto",
-    "thread_topic",
     "casual",
-    "howto",
+    "thread_topic",
+    "question",
     "no_link",
-    "thread_topic",
     "casual",
     "howto",
+    "question",
+    "casual",
+]
+midmorning = [
+    "casual",
+    "question",
+    "casual",
+    "casual",
+    "no_link",
+    "casual",
+    "question",
+]
+afternoon = [
+    "question",
+    "casual",
+    "casual",
+    "question",
+    "thread_topic",
+    "casual",
+    "question",
+]
+predinner = [
+    "casual",
+    "casual",
+    "question",
+    "casual",
+    "no_link",
+    "question",
+    "casual",
 ]
 evening = [
     "thread_topic",
     "casual",
-    "howto",
+    "question",
     "no_link",
     "casual",
-    "thread_topic",
     "howto",
+    "casual",
 ]
 late = [
     "product",        # 商品紹介
@@ -283,12 +339,15 @@ late = [
 # ------------------------------------------------------------
 [ramp_up]
 enabled = true
-# 1日の総投稿数の上限。スケジュールは5本なので、少しだけ余裕を持たせる。
+# 1日の総投稿数の上限。スケジュールは8本なので、少しだけ余裕を持たせる。
 #
 # ランプアップはリンク投稿の本数しか見ていなかったため、動作確認の手動実行が
 # 積み上がって1日18件投稿し、MetaにAPIアクセスをブロックされた。
 # 種別も実行トリガーも問わず、ここで頭打ちにする。
-max_posts_per_day = 7
+#
+# 通常投稿の枠を増やしたので 7 → 10 に上げた。**上限自体は外さない。**
+# ここが無いと、手動実行が積み上がったときに同じ事故が起きる。
+max_posts_per_day = 10
 # 運用開始からの日数 -> その日に許可するアフィリエイトリンク投稿の最大本数
 # キーは「この日数まで」
 stages = [
