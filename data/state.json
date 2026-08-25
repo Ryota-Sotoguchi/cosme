@@ -68,7 +68,9 @@
       "nl_review_read",
       "nl_season",
       "nl_question_price",
-      "nl_shopping_list"
+      "nl_shopping_list",
+      "nl_body_care",
+      "nl_uv"
     ]
   },
   "rotation_cursor": {
@@ -77,7 +79,6 @@
     "morning": 5
   },
   "template_history": [
-    "topic",
     "band_focus",
     "howto",
     "checklist",
@@ -96,7 +97,8 @@
     "checklist",
     "topic",
     "objective",
-    "howto"
+    "howto",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
