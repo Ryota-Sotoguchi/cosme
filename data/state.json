@@ -41,7 +41,8 @@
     ],
     "howto": [
       "hw_first_cosme",
-      "hw_volume"
+      "hw_volume",
+      "hw_budget"
     ],
     "opening": [
       "op_curious",
@@ -71,12 +72,11 @@
     ]
   },
   "rotation_cursor": {
-    "evening": 6,
+    "evening": 0,
     "late": 5,
     "morning": 5
   },
   "template_history": [
-    "casual",
     "topic",
     "band_focus",
     "howto",
@@ -95,7 +95,8 @@
     "howto",
     "checklist",
     "topic",
-    "objective"
+    "objective",
+    "howto"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
