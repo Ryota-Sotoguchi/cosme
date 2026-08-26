@@ -7,7 +7,8 @@
     "casual": [
       "cm_humid",
       "cm_morning",
-      "cm_sunscreen"
+      "cm_sunscreen",
+      "cm_lighting"
     ],
     "closing": [
       "cl_compare",
@@ -78,10 +79,10 @@
   "rotation_cursor": {
     "evening": 0,
     "late": 6,
+    "midmorning": 1,
     "morning": 6
   },
   "template_history": [
-    "checklist",
     "topic",
     "topic",
     "objective",
@@ -100,7 +101,8 @@
     "howto",
     "topic",
     "topic",
-    "howto"
+    "howto",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
