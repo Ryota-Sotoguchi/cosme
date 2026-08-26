@@ -53,6 +53,9 @@
       "ro_forwho",
       "ro_forwho"
     ],
+    "question": [
+      "q_bath_time"
+    ],
     "thread_bridge": [
       "br_found"
     ],
@@ -78,13 +81,13 @@
     ]
   },
   "rotation_cursor": {
+    "afternoon": 1,
     "evening": 0,
     "late": 6,
     "midmorning": 1,
     "morning": 6
   },
   "template_history": [
-    "topic",
     "objective",
     "topic",
     "topic",
@@ -103,7 +106,8 @@
     "topic",
     "howto",
     "casual",
-    "band_focus"
+    "band_focus",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
