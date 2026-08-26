@@ -40,6 +40,13 @@ jobs:
       - name: Collect
         run: python scripts/collect_threads.py
 
+      # 返信する価値のある他人の投稿を集める。
+      # 公式APIのキーワード検索はいいね数・返信数を返さないので、
+      # 「伸びている投稿」を判定するにはページを描画して読むしかない。
+      # **返信はしない。** 候補を出すだけで、返すのは人。
+      - name: Collect reply candidates
+        run: python scripts/collect_candidates.py --limit 12
+
       - name: Commit
         run: |
           if [ -z "$(git status --porcelain research/)" ]; then

@@ -23,6 +23,7 @@ import json
 import logging
 import os
 import sys
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 from .compliance.checker import ComplianceChecker
@@ -659,6 +660,68 @@ def cmd_schedule(config: Config, args: argparse.Namespace) -> int:
 
 
 # ======================================================================
+
+def cmd_engage(config: Config, args: argparse.Namespace) -> int:
+    """他人の投稿への返信を支援する。**このコマンドは投稿しない。**
+
+    スクレイプで取れる短縮ID（DTVoI4xlSTZ）は、API が reply_to_id に
+    要求する数値ID（17908396266285102）とは別のID空間なので、
+    そもそも API から自動で返信できない。パーマリンクを開いて人が返す。
+
+    ここでやるのは、返信文の検査と、返信した相手の記録だけ。
+    """
+    from .engage.review import EngagementLog, review
+
+    log = EngagementLog(config.engagements_path)
+
+    if args.check:
+        result = review(args.check)
+        print(f"{'✅' if result.ok else '❌'} {result.summary()}")
+        print(f"   {len(args.check)}字")
+        return 0 if result.ok else 1
+
+    if args.mark:
+        username, shortcode = args.mark
+        log.append(username.lstrip("@"), shortcode, args.text or "")
+        print(f"記録しました: @{username} / {shortcode}")
+        return 0
+
+    limit = int(config.engagement.get("max_per_day", 3))
+    today = log.replied_today()
+    recent = log.recent_usernames(days=int(config.engagement.get("same_account_cooldown_days", 7)))
+
+    print(f"本日の返信 {today}/{limit}件")
+    if today >= limit:
+        print("上限に達しています。今日はここまでにしてください。")
+    print(f"最近返信した相手 {len(recent)}人（この人たちには返さない）")
+    if recent:
+        print("  " + " ".join(f"@{u}" for u in sorted(recent)))
+
+    if args.history:
+        print()
+        for e in log.all()[-20:]:
+            print(f"  {e.replied_at[:16]}  @{e.username:20} {e.text[:40]}")
+        return 0
+
+    latest = _latest_candidate_file()
+    print()
+    if latest is None:
+        print("候補ファイルがありません。まず集めてください:")
+        print("  .venv/bin/python scripts/collect_candidates.py")
+        return 1
+    print(f"候補ファイル: {latest}")
+    print("返信案は /reply で作ります（投稿内容を読んでから書くため）。")
+    return 0
+
+
+def _latest_candidate_file() -> Path | None:
+    directory = Path("research/replies")
+    if not directory.is_dir():
+        return None
+    files = sorted(directory.glob("*.md"), reverse=True)
+    return files[0] if files else None
+
+
 def cmd_selftest(config: Config, args: argparse.Namespace) -> int:
     """認証情報なしで、生成〜コンプライアンスまでの経路を検証する。
 
@@ -751,6 +814,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_replies = sub.add_parser("replies", help="自分の投稿へのコメントに返信する")
     p_replies.add_argument("--live", action="store_true", help="実際に返信する（既定は下書き表示のみ）")
+    p_engage = sub.add_parser(
+        "engage", help="他人の投稿への返信を支援する（投稿はしない）")
+    p_engage.add_argument("--check", metavar="TEXT",
+                          help="返信文を検査する（URL・NG表現・テンプレ度）")
+    p_engage.add_argument("--mark", nargs=2, metavar=("USERNAME", "SHORTCODE"),
+                          help="返信したことを記録する")
+    p_engage.add_argument("--text", default="", help="--mark に添える返信本文")
+    p_engage.add_argument("--history", action="store_true",
+                          help="これまでの返信を表示する")
+
     sub.add_parser("selftest", help="認証情報なしで生成〜検証の経路をテスト")
 
     p_token = sub.add_parser("token", help="Threads アクセストークンの管理")
@@ -801,6 +874,7 @@ def main(argv: list[str] | None = None) -> int:
         "doctor": cmd_doctor,
         "hours": cmd_hours,
         "replies": cmd_replies,
+        "engage": cmd_engage,
         "selftest": cmd_selftest,
         "token": cmd_token,
     }

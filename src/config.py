@@ -225,6 +225,16 @@ class Config:
     def state_path(self) -> Path:
         return self.data_dir / "state.json"
 
+    @property
+    def engagement(self) -> dict:
+        """他人の投稿への返信の設定。無ければ既定値。"""
+        return self.raw.get("engagement", {})
+
+    @property
+    def engagements_path(self) -> Path:
+        """他人の投稿に返信した記録。同じ相手に張り付かないために使う。"""
+        return self.data_dir / "engagements.jsonl"
+
 
 def load_config(
     config_path: Path | None = None,
