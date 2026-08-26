@@ -711,6 +711,31 @@ def cmd_engage(config: Config, args: argparse.Namespace) -> int:
             print(f"✅ 返信しました: {result.reply_id}")
         return 0
 
+    if args.permissions:
+        from .engage.permissions import PermissionProbe
+
+        print("トークンで実際に何ができるかを確かめます。")
+        print("（Threads には権限の内省エンドポイントが無いので、叩いて判断します）\n")
+        missing = []
+        for check in PermissionProbe(config).run():
+            mark = "✅" if check.ok else "❌"
+            print(f"{mark} {check.name:16} {check.scope}")
+            print(f"     {check.detail}")
+            print(f"     用途: {check.needed_for}")
+            if not check.ok:
+                missing.append(check.scope)
+        if missing:
+            print("\n入っていない権限:", ", ".join(sorted(set(missing))))
+            print("\nアプリに権限を足しただけでは、既存のトークンには入りません。")
+            print("ダッシュボードでトークンを発行し直してください:")
+            print("  1. Meta アプリダッシュボード → Threads → アプリロール")
+            print("  2. 自分のアカウントで「アクセストークンを生成」")
+            print("  3. python -m src.main token --exchange <新しい短命トークン>")
+            print("  4. 出た長期トークンを .env と GitHub Secrets に入れる")
+            return 1
+        print("\nすべて通りました。")
+        return 0
+
     if args.search:
         from .threads.search import ThreadsSearch
 
@@ -863,6 +888,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_engage.add_argument("--text", default="", help="--mark に添える返信本文")
     p_engage.add_argument("--history", action="store_true",
                           help="これまでの返信を表示する")
+    p_engage.add_argument("--permissions", action="store_true",
+                          help="トークンに入っている権限を実際に叩いて確かめる")
     p_engage.add_argument("--search", metavar="KEYWORD",
                           help="公式APIで公開投稿を検索する（post_id が取れる）")
     p_engage.add_argument("--limit", type=int, default=10,
