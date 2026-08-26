@@ -78,7 +78,8 @@
       "nl_shopping_list",
       "nl_body_care",
       "nl_uv",
-      "nl_minimal"
+      "nl_minimal",
+      "nl_expiry"
     ],
     "topic_thread": [
       "tt_cheap_vs_value"
@@ -93,7 +94,6 @@
     "predinner": 1
   },
   "template_history": [
-    "topic",
     "topic",
     "casual",
     "band_focus",
@@ -112,7 +112,8 @@
     "band_focus",
     "question",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
