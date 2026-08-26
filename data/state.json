@@ -79,18 +79,20 @@
       "nl_body_care",
       "nl_uv",
       "nl_minimal"
+    ],
+    "topic_thread": [
+      "tt_cheap_vs_value"
     ]
   },
   "rotation_cursor": {
     "afternoon": 1,
-    "evening": 0,
+    "evening": 1,
     "late": 6,
     "midmorning": 1,
     "morning": 6,
     "predinner": 1
   },
   "template_history": [
-    "topic",
     "topic",
     "topic",
     "casual",
@@ -109,7 +111,8 @@
     "casual",
     "band_focus",
     "question",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
