@@ -8,7 +8,8 @@
       "cm_humid",
       "cm_morning",
       "cm_sunscreen",
-      "cm_lighting"
+      "cm_lighting",
+      "cm_night"
     ],
     "closing": [
       "cl_compare",
@@ -85,10 +86,10 @@
     "evening": 0,
     "late": 6,
     "midmorning": 1,
-    "morning": 6
+    "morning": 6,
+    "predinner": 1
   },
   "template_history": [
-    "objective",
     "topic",
     "topic",
     "topic",
@@ -107,7 +108,8 @@
     "howto",
     "casual",
     "band_focus",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
