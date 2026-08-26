@@ -726,12 +726,19 @@ def cmd_engage(config: Config, args: argparse.Namespace) -> int:
                 missing.append(check.scope)
         if missing:
             print("\n入っていない権限:", ", ".join(sorted(set(missing))))
-            print("\nアプリに権限を足しただけでは、既存のトークンには入りません。")
-            print("ダッシュボードでトークンを発行し直してください:")
-            print("  1. Meta アプリダッシュボード → Threads → アプリロール")
-            print("  2. 自分のアカウントで「アクセストークンを生成」")
-            print("  3. python -m src.main token --exchange <新しい短命トークン>")
-            print("  4. 出た長期トークンを .env と GitHub Secrets に入れる")
+            if "threads_keyword_search" in missing:
+                print()
+                print("キーワード検索が通らないときに見るところ（上から順に）:")
+                print("  1. Threadsテスターになっているか")
+                print("     アプリロールでの招待だけでは足りない。")
+                print("     Threads側（threads.net の設定 → ウェブサイトの許可）で")
+                print("     招待を**承諾**する必要がある。")
+                print("  2. トークンにスコープが入っているか")
+                print("     権限を足しても既存トークンには入らない。")
+                print("     Graph API Explorer でスコープを選んで発行し直す。")
+                print("  3. 高度なアクセス（App Review）を取っているか")
+                print("     **標準アクセスでは自分の投稿しか検索できない。**")
+                print("     他人の投稿を探すには App Review が要る。")
             return 1
         print("\nすべて通りました。")
         return 0
