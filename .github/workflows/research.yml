@@ -47,6 +47,20 @@ jobs:
       - name: Collect reply candidates
         run: python scripts/collect_candidates.py --limit 12
 
+      # 収集した生データには第三者のユーザー名と本文が含まれる。
+      # 公開リポジトリに残さず、成果物として90日だけ保持する。
+      # 分析（research/PATTERNS.md）は人が書いたものなのでコミットする。
+      - name: Upload collected data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: collected-${{ github.run_number }}
+          path: |
+            research/log/raw/
+            research/replies/
+          retention-days: 90
+          if-no-files-found: ignore
+
       - name: Commit
         run: |
           if [ -z "$(git status --porcelain research/)" ]; then

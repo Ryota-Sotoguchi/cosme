@@ -35,3 +35,10 @@ tmp/
 # --- data/ は「履歴のみ」コミットする。生レスポンスキャッシュは除外 ---
 data/cache/
 data/*.tmp
+
+# --- 他人の投稿を公開リポジトリに残さない ---
+# 返信候補・収集した生データには第三者のユーザー名と本文が含まれる。
+# 分析結果（research/PATTERNS.md、research/log/*.md）は自分の文章なので残す。
+# ワークフローは成果物（artifact）として保持し、コミットしない。
+research/log/raw/
+research/replies/
