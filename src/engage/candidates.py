@@ -111,8 +111,16 @@ class Candidate:
     replies: int = 0
     age_hours: float | None = None
     keyword: str = ""
+    # 公式検索で引けた数値ID。API から返信するのに要る。
+    # スクレイプだけでは取れない（短縮IDとは別のID空間）。
+    post_id: str = ""
     # 評価の内訳。なぜ選ばれたかを人が読めるように残す。
     scores: dict[str, float] = field(default_factory=dict)
+
+    @property
+    def is_postable(self) -> bool:
+        """API から返信できるか。post_id が無ければ手で返すしかない。"""
+        return bool(self.post_id)
 
     @property
     def permalink(self) -> str:
@@ -291,3 +299,54 @@ def rank_candidates(
 
     picked.sort(key=score, reverse=True)
     return picked
+
+
+# ======================================================================
+# 公式検索とスクレイプの突き合わせ
+# ======================================================================
+def merge_with_search(
+    scraped: list[Candidate],
+    hits: list["object"],
+) -> list[Candidate]:
+    """スクレイプした候補に、公式検索の post_id を付ける。
+
+    ## なぜ突き合わせるのか
+
+    それぞれ片方しか持っていない。
+
+        公式検索    post_id（返信に必要）        反応数を返さない
+        スクレイプ  いいね数・返信数（選別に必要） post_id が取れない
+
+    permalink の短縮ID が両方に入っているので、そこで繋ぐ。
+
+    **post_id が付かなかった候補は返信できない。** 落とさずに残すが、
+    `is_postable` が False になる。人が手で返す分には permalink があれば足りる。
+    """
+    by_shortcode = {}
+    for hit in hits:
+        code = getattr(hit, "shortcode", "")
+        if code:
+            by_shortcode[code] = hit
+
+    for candidate in scraped:
+        hit = by_shortcode.get(candidate.shortcode)
+        if hit is not None:
+            candidate.post_id = getattr(hit, "post_id", "")
+    return scraped
+
+
+def from_search_hit(hit: "object", *, keyword: str = "") -> Candidate:
+    """公式検索の結果だけから候補を作る。
+
+    反応数が取れないので、スクレイプで補えなかったときの形。
+    勢いでは選べないが、返信は可能。
+    """
+    return Candidate(
+        username=getattr(hit, "username", ""),
+        shortcode=getattr(hit, "shortcode", ""),
+        text=getattr(hit, "text", ""),
+        keyword=keyword,
+        post_id=getattr(hit, "post_id", ""),
+        # has_replies しか分からないので、最低限の目安を入れる
+        replies=1 if getattr(hit, "has_replies", False) else 0,
+    )

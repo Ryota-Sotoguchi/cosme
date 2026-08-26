@@ -686,6 +686,46 @@ def cmd_engage(config: Config, args: argparse.Namespace) -> int:
         print(f"記録しました: @{username} / {shortcode}")
         return 0
 
+    if args.reply_to:
+        # 公式検索で引いた投稿にだけ返信できる。
+        # スクレイプの短縮IDは別のID空間なので reply_to_id に使えない。
+        from .engage.responder import Responder
+
+        username, post_id = args.reply_to
+        if not args.text:
+            print("--text で返信文を渡してください")
+            return 1
+        responder = Responder(config, log)
+        result = responder.reply(
+            username=username.lstrip("@"), post_id=post_id,
+            shortcode=args.shortcode or "", text=args.text,
+            dry_run=not args.live,
+        )
+        if not result.ok:
+            print(f"❌ {result.reason}")
+            return 1
+        if not args.live:
+            print(f"✅ 検査通過。投稿するには --live を付けてください")
+            print(f"   @{username} ← {args.text}")
+        else:
+            print(f"✅ 返信しました: {result.reply_id}")
+        return 0
+
+    if args.search:
+        from .threads.search import ThreadsSearch
+
+        search = ThreadsSearch(config)
+        hits = search.search(args.search, limit=args.limit)
+        if not hits:
+            print("見つかりませんでした。")
+            print("threads_keyword_search の権限が要ります（未付与だと HTTP 500）。")
+            return 1
+        for h in hits:
+            print(f"  {h.post_id}  @{h.username}")
+            print(f"    {h.permalink}")
+            print(f"    {h.text[:80]}")
+        return 0
+
     limit = int(config.engagement.get("max_per_day", 3))
     today = log.replied_today()
     recent = log.recent_usernames(days=int(config.engagement.get("same_account_cooldown_days", 7)))
@@ -823,6 +863,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_engage.add_argument("--text", default="", help="--mark に添える返信本文")
     p_engage.add_argument("--history", action="store_true",
                           help="これまでの返信を表示する")
+    p_engage.add_argument("--search", metavar="KEYWORD",
+                          help="公式APIで公開投稿を検索する（post_id が取れる）")
+    p_engage.add_argument("--limit", type=int, default=10,
+                          help="--search で取る件数")
+    p_engage.add_argument("--reply-to", nargs=2, metavar=("USERNAME", "POST_ID"),
+                          help="返信する。--text と併せて使う")
+    p_engage.add_argument("--shortcode", default="",
+                          help="--reply-to に添える短縮ID（重複防止の記録用）")
+    p_engage.add_argument("--live", action="store_true",
+                          help="実際に投稿する（既定は検査だけ）")
 
     sub.add_parser("selftest", help="認証情報なしで生成〜検証の経路をテスト")
 

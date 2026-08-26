@@ -6,11 +6,15 @@ description: 他人の投稿への返信案を作る（投稿は人が確認し�
 
 ## 1. 候補を読む
 
+**公式検索で引く。** ここでしか `post_id` が取れず、
+post_id が無いと API から返信できない。
+
+    .venv/bin/python -m src.main engage --search コスメ --limit 10
+
+反応数まで見たいときは、スクレイプした候補と併せて読む。
+公式検索はいいね数・返信数を返さないため。
+
     ls -t research/replies/ | head -3
-
-いちばん新しいファイルを読む。無い、または古すぎるなら集め直す。
-
-    .venv/bin/python scripts/collect_candidates.py --limit 12
 
 すでに返信した相手は避ける。
 
@@ -73,10 +77,20 @@ URL・NG表現・長さ・テンプレ度を見る。落ちたら書き直す。
 
 ## 7. 出す
 
-候補ごとに、パーマリンクと返信案を並べて表示する。
-**あなたがリンクを開いて、自分で返信する。**
+候補ごとに、返信案を並べて表示する。**あなたが見てから投稿する。**
 
-返信したら記録する。同じ相手に張り付かないため。
+    # 検査だけ（投稿しない）
+    .venv/bin/python -m src.main engage \
+      --reply-to <username> <post_id> --text "返信文"
+
+    # 確認したら投稿
+    .venv/bin/python -m src.main engage \
+      --reply-to <username> <post_id> --text "返信文" \
+      --shortcode <短縮ID> --live
+
+post_id が取れていない候補（スクレイプだけで見つけたもの）は
+API から返信できないので、パーマリンクを開いて手で返す。
+その場合は記録だけ残す。
 
     .venv/bin/python -m src.main engage --mark <username> <shortcode>
 
