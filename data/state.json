@@ -12,6 +12,7 @@
       "cm_night"
     ],
     "casual_brand": [
+      "brand",
       "brand"
     ],
     "closing": [
@@ -104,10 +105,9 @@
     "late": 0,
     "midmorning": 2,
     "morning": 7,
-    "predinner": 1
+    "predinner": 2
   },
   "template_history": [
-    "topic",
     "howto",
     "checklist",
     "topic",
@@ -126,6 +126,7 @@
     "question",
     "question",
     "checklist",
+    "casual",
     "casual"
   ],
   "threads_token": {
