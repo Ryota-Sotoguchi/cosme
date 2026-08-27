@@ -39,7 +39,8 @@
       "cta_price",
       "cta_save",
       "cta_size",
-      "cta_later"
+      "cta_later",
+      "cta_decide"
     ],
     "disclaimer": [
       "dc_point",
@@ -73,7 +74,8 @@
       "rl_fit"
     ],
     "recommend_opening": [
-      "ro_forwho"
+      "ro_forwho",
+      "ro_decide"
     ],
     "thread_bridge": [
       "br_found"
@@ -107,13 +109,12 @@
   "rotation_cursor": {
     "afternoon": 2,
     "evening": 2,
-    "late": 0,
+    "late": 1,
     "midmorning": 2,
     "morning": 7,
     "predinner": 2
   },
   "template_history": [
-    "checklist",
     "topic",
     "objective",
     "howto",
@@ -132,7 +133,8 @@
     "checklist",
     "casual",
     "casual",
-    "band_focus"
+    "band_focus",
+    "objective"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
