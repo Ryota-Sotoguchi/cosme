@@ -55,7 +55,8 @@
       "ro_forwho"
     ],
     "question": [
-      "q_bath_time"
+      "q_bath_time",
+      "q_morning_night"
     ],
     "thread_bridge": [
       "br_found"
@@ -91,11 +92,10 @@
     "evening": 1,
     "late": 0,
     "midmorning": 1,
-    "morning": 6,
+    "morning": 7,
     "predinner": 1
   },
   "template_history": [
-    "casual",
     "band_focus",
     "casual",
     "topic",
@@ -114,7 +114,8 @@
     "casual",
     "topic_thread",
     "topic",
-    "topic"
+    "topic",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
