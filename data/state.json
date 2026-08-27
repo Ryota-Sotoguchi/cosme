@@ -11,6 +11,9 @@
       "cm_lighting",
       "cm_night"
     ],
+    "casual_brand": [
+      "brand"
+    ],
     "closing": [
       "cl_compare",
       "cl_candidate",
@@ -96,7 +99,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 1,
+    "afternoon": 2,
     "evening": 1,
     "late": 0,
     "midmorning": 2,
@@ -104,7 +107,6 @@
     "predinner": 1
   },
   "template_history": [
-    "topic",
     "topic",
     "howto",
     "checklist",
@@ -123,7 +125,8 @@
     "topic",
     "question",
     "question",
-    "checklist"
+    "checklist",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
