@@ -140,6 +140,41 @@ class Pipeline:
         return True
 
     # ------------------------------------------------------------------
+
+    def _brand_hint(self, post_type: str) -> str:
+        """過去に投稿した商品から、つぶやきを1本作る。作れなければ空。
+
+        ## なぜ過去の商品を使うのか
+
+        新しく候補を取ると、その商品が30日クールダウンに入る。
+        つぶやき1本のために在庫を焼くのは割に合わない。
+        すでに投稿済みの商品なら、もう焼けているので追加の損が無い。
+
+        「この前見たやつ、詰め替えあったんだ」という距離感にもなる。
+
+        ## 書けるのは商品名から確かめられる事実だけ
+
+        使っていないので、評価も感想も書けない。
+        ブランド名が取れないときは黙る（「メール便」を出さない）。
+        """
+        if post_type != "casual":
+            return ""
+
+        from .content.brand_murmurs import murmur_for
+
+        recent = self.history.recent(30)
+        # 直近ほど新しいので、後ろから見る
+        cursor = len(self.history.recent_texts(10_000))
+        for record in reversed(recent):
+            if not record.item_name:
+                continue
+            item = RakutenItem.from_history_name(record.item_name)
+            hint = murmur_for(item, cursor=cursor)
+            if hint:
+                logger.info("実在商品からつぶやきを作りました: %s", hint)
+                return hint
+        return ""
+
     def _blocked(self) -> tuple[set[str], set[str]]:
         days = int(self.config.dedup.get("item_cooldown_days", 30))
         return self.history.recent_item_codes(days), self.history.recent_url_hashes(days)
@@ -297,7 +332,7 @@ class Pipeline:
             logger.info(
                 "リンクを付けられないスロットなので、商品を消費せずリンクなし投稿にします"
             )
-            return self._run_no_link(recent_texts)
+            return self._run_no_link(recent_texts, slot=slot_name)
 
         # --- リンクなし投稿は商品取得が不要 ---
         if needed == 0:
@@ -308,7 +343,7 @@ class Pipeline:
         except NoDataError as exc:
             # 楽天側が一時的に返さない・全部除外された、等。枠は埋める。
             logger.warning("候補商品が取れないため、リンクなし投稿に切り替えます（%s）", exc)
-            return self._run_no_link(recent_texts)
+            return self._run_no_link(recent_texts, slot=slot_name)
         if needed > 1:
             scored = self._same_category_first(scored, needed)
         max_skips = int(self.config.compliance.get("max_item_skips", 12))
@@ -331,6 +366,7 @@ class Pipeline:
                         selection,
                         with_affiliate_link=with_link,
                         exclude_templates=tried_templates,
+                        slot=slot_name,
                     )
                 except ValueError as exc:
                     logger.warning("生成できませんでした: %s", exc)
@@ -367,17 +403,20 @@ class Pipeline:
         logger.warning(
             "商品投稿を作れなかったため、リンクなし投稿に切り替えます（%s）", detail
         )
-        return self._run_no_link(recent_texts)
+        return self._run_no_link(recent_texts, slot=slot_name)
 
     # ------------------------------------------------------------------
     def _run_no_link(
-        self, recent_texts: list[str], post_type: str = "no_link"
+        self, recent_texts: list[str], post_type: str = "no_link", slot: str = ""
     ) -> PipelineResult:
         max_regen = int(self.config.compliance.get("max_regenerations", 4))
         last_check: CheckResult | None = None
 
         for attempt in range(1, max_regen + 1):
-            draft = self.builder.build(post_type, [], with_affiliate_link=False)
+            draft = self.builder.build(
+                post_type, [], with_affiliate_link=False, slot=slot,
+                brand_hint=self._brand_hint(post_type),
+            )
             check = self.checker.check(draft, recent_texts=recent_texts)
             last_check = check
             if check.passed:

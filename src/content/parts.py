@@ -39,6 +39,35 @@ class Part:
     # 連投にする場合の各本文。空なら単発。
     # text には全体を連結したものを入れておく（コンプライアンス検査用）。
     segments: tuple[str, ...] = ()
+    # 出してよい時間帯。空なら「いつでも」。
+    # 「朝の支度、あと五分だけ時間がほしい」が22:30に出ると、
+    # 時間と内容が食い違って人が書いていない感じになる。
+    #
+    # **大半は空のままにすること。** 全部にタグを付けると、
+    # 枠ごとに選べるパーツが減って同じ投稿が戻ってくる。
+    time_bands: tuple[str, ...] = ()
+
+
+# 時間帯。スロットの時刻から決まる。
+MORNING, NOON, EVENING, NIGHT = "朝", "昼", "夕", "夜"
+
+# config.toml の [[schedule]] と対応させること。
+# 枠を足したらここにも足す（漏れると time_band が空になり、制限が効かない）。
+_SLOT_BANDS: dict[str, str] = {
+    "morning": MORNING,      # 07:30
+    "midmorning": MORNING,   # 09:30
+    "noon": NOON,            # 12:15
+    "afternoon": NOON,       # 14:30
+    "predinner": EVENING,    # 16:30
+    "evening": EVENING,      # 18:00
+    "night": NIGHT,          # 20:30
+    "late": NIGHT,           # 22:30
+}
+
+
+def time_band_for(slot: str) -> str:
+    """スロット名から時間帯を引く。知らない枠なら空（制限しない）。"""
+    return _SLOT_BANDS.get(slot, "")
 
 
 def thread_part(part_id: str, *segments: str) -> Part:
@@ -328,13 +357,13 @@ THREAD_BRIDGES: tuple[Part, ...] = (
 CASUAL_MURMURS: tuple[Part, ...] = (
     Part("cm_humid", '今日の湿気、髪が言うこと聞かない〜'),
     Part("cm_pouch", 'ポーチが重い。中身、そんなに要る？って毎回思っちゃう😌'),
-    Part("cm_morning", '朝の支度、あと五分だけ時間がほしい🥲'),
-    Part("cm_conveni", 'ちょっと寄るだけのつもりが、気づいたら時間溶けてた…'),
+    Part("cm_morning", '朝の支度、あと五分だけ時間がほしい🥲', time_bands=(MORNING,)),
+    Part("cm_conveni", 'ちょっと寄るだけのつもりが、気づいたら時間溶けてた…', time_bands=(EVENING,)),
     Part("cm_sunscreen", '日焼け止めの塗り直し、タイミングいつも逃しちゃう😢'),
     Part("cm_mirror", '家の鏡と店の鏡で、印象が違いすぎるのなんなんだろう〜'),
     Part("cm_lighting", '照明で見え方が変わるの、ほんとにずるい〜'),
     Part("cm_bag", 'カバンの底に、いつのか分からないリップが必ずいるんだよね☺️'),
-    Part("cm_night", '寝る前のスキンケア、眠い日は一段階減っちゃう🥺'),
+    Part("cm_night", '寝る前のスキンケア、眠い日は一段階減っちゃう🥺', time_bands=(NIGHT,)),
     Part("cm_weather", '急に涼しくなると、あー季節変わったなあって思う😌'),
     Part("cm_hairtie", 'ヘアゴム、どこに消えちゃうの…'),
     Part("cm_cart", 'コスメのカートの中身、一晩寝かせると半分になる！'),
@@ -343,7 +372,7 @@ CASUAL_MURMURS: tuple[Part, ...] = (
     Part("cm_package", 'パケが好きって理由で気になっちゃうの、わりとある☺️'),
     Part("cm_finish", '化粧水を使い切ったときの空き容器、ちょっと誇らしくない？🤍'),
     Part("cm_restock", 'シャンプー、切らしてから気づくタイプだから毎回慌ててる😌'),
-    Part("cm_train", '電車の窓に映った自分に、つい前髪直されちゃう🤍'),
+    Part("cm_train", '電車の窓に映った自分に、つい前髪直されちゃう🤍', time_bands=(EVENING,)),
     Part("cm_weekend", '週末に何もしない日つくると、次の週が軽いんだよね👀'),
     Part("cm_coffee", 'コーヒー飲みながらスマホでコスメ見てる時間、けっこう好きなんだよね💭'),
     Part("cm_rain", '雨の日は、そもそも出かけたくない！'),
@@ -355,17 +384,17 @@ CASUAL_MURMURS: tuple[Part, ...] = (
     Part("cm_season", '衣替えのタイミングで、いろいろ見直したくなっちゃう💭'),
     Part("cm_photo", '写真で見ると、自分の顔が知らない人みたいなときあるんだよね😌'),
     Part("cm_hurry", 'バタバタしてる日ほど、探し物が見つからない…'),
-    Part("cm_late", '夜更かしした翌朝の後悔、毎回わりと新鮮なんだよなあ😌'),
+    Part("cm_late", '夜更かしした翌朝の後悔、毎回わりと新鮮なんだよなあ😌', time_bands=(MORNING,)),
     Part("cm_list", 'メモに書いた時点で、ちょっと満足しちゃう😌'),
     Part("cm_gift", '自分用に買うのと、あげるために選ぶのは、頭の使い方がちがう！'),
     Part("cm_smell", '香りの好みって、その日の気分でけっこう変わっちゃう👀'),
     Part("cm_hand", '手を洗う回数が多い季節、手先だけ先に冬になっちゃう😌'),
     Part("cm_bangs", '前髪、切るかどうかで一週間くらい悩んでる…'),
-    Part("cm_shopping", '何も買わずに帰る日の、あの謎の達成感なんなんだろう🤍'),
+    Part("cm_shopping", '何も買わずに帰る日の、あの謎の達成感なんなんだろう🤍', time_bands=(EVENING,)),
     Part("cm_scroll", '気になってるコスメ、気づいたら同じページ三回開いてる…'),
     Part("cm_desk", '机の上にコスメが増えていくの、なんでなんだろう。'),
     Part("cm_mood", '気分が上がらない日は、リップの色だけ変えてみる👀'),
-    Part("cm_endofday", '今日もおつかれさまでした🌙'),
+    Part("cm_endofday", '今日もおつかれさまでした🌙', time_bands=(NIGHT,)),
     # --- ここから下は、リンクの無い投稿でだけ使える語彙を入れたもの ---
     # 景表法・ステマ規制は「事業者が自己の供給する商品について行う表示」が
     # 対象なので、商品を売っていない投稿には効かない。
@@ -384,30 +413,30 @@ CASUAL_MURMURS: tuple[Part, ...] = (
     # それまでのつぶやきは、短いなりに毎回きれいに落ちがついていた。
     # 人がふだん書くのは落ちのない独り言のほうが多い。
     # 絵文字を付けない投稿も混ぜる（毎回付いていると機械に見える）。
-    Part("cm_half_thought", 'まつげのカール、朝と夜で別人すぎん…？'),
+    Part("cm_half_thought", 'まつげのカール、朝と夜で別人すぎん…？', time_bands=(MORNING,)),
     Part("cm_refill_bag", '正直、詰め替えの袋あけるの下手すぎる🫠'),
     Part("cm_two_bottles", 'なんで同じ化粧水が二本あるんだろう'),
     Part("cm_almost_empty", '残りわずかなやつ、なぜか最後まで使い切れないんだよなあ'),
-    Part("cm_sunday", '日曜の夜のスキンケア、いちばん雑になっちゃう😮‍💨'),
+    Part("cm_sunday", '日曜の夜のスキンケア、いちばん雑になっちゃう😮‍💨', time_bands=(NIGHT,)),
     Part("cm_new_pouch", 'ポーチ変えたら、何がどこにあるか分からなくなった…'),
     Part("cm_lid", 'フタが固いだけで、使う気が半分になっちゃう'),
     Part("cm_forgot_name", '前に良かったやつ、名前が思い出せない😭'),
     Part("cm_too_many_tabs", '比べてるうちに、最初に見たやつが良く見えてくるんだよね'),
     Part("cm_sample_box", 'サンプル、とっておくだけで使わないまま増えてく🫠'),
-    Part("cm_face_wash_lazy", '眠い日の洗顔、たぶん十秒で終わってると思う'),
+    Part("cm_face_wash_lazy", '眠い日の洗顔、たぶん十秒で終わってると思う', time_bands=(NIGHT,)),
     Part("cm_bought_same", 'また同じような色を買っちゃった気がする…'),
     Part("cm_shelf_life", '開けた日メモしとこうって毎回思って、毎回忘れちゃう😢'),
     Part("cm_humid_again", '湿気、髪だけじゃなくて気分にも来るんだよなあ'),
-    Part("cm_no_makeup_day", 'メイクしない日の顔、意外と嫌いじゃないかも'),
+    Part("cm_no_makeup_day", 'メイクしない日の顔、意外と嫌いじゃないかも', time_bands=(MORNING,)),
     Part("cm_price_up", 'ちょっと値上がりしてた。まあ、そうだよね'),
     Part("cm_borrow", '友達のポーチの中身、つい見ちゃう'),
     Part("cm_hair_tie_again", 'ヘアゴム、また見つからない…なんで？'),
-    Part("cm_bath_time", '湯船に入ると、そのあとのケアが雑になっちゃう不思議'),
+    Part("cm_bath_time", '湯船に入ると、そのあとのケアが雑になっちゃう不思議', time_bands=(NIGHT,)),
     Part("cm_cold_hands", '手が冷たい日って、クリームの伸びが違うよね'),
-    Part("cm_before_bed", '寝る前にスマホでコスメ見るの、そろそろやめたい😭'),
+    Part("cm_before_bed", '寝る前にスマホでコスメ見るの、そろそろやめたい😭', time_bands=(NIGHT,)),
     Part("cm_wrong_shade", '色、店で見たときと違う。まあ使うけど'),
     Part("cm_bought_nothing", '結局なにも買わずにアプリ閉じちゃった'),
-    Part("cm_morning_rush", '朝、鏡の前にいる時間だけ増えていく…'),
+    Part("cm_morning_rush", '朝、鏡の前にいる時間だけ増えていく…', time_bands=(MORNING,)),
     Part("cm_old_lipstick", '奥から出てきたリップ、いつのだろう'),
     Part("cm_travel_pack", '旅行の荷造り、コスメだけで時間かかっちゃう'),
     Part("cm_pump_stuck", 'ポンプが最後まで出てくれない。まだ入ってるのに'),
@@ -415,12 +444,12 @@ CASUAL_MURMURS: tuple[Part, ...] = (
     Part("cm_recommend_hard", '人におすすめするの、意外とむずかしいよね'),
     Part("cm_screenshot", 'スクショだけ溜まっていく…見返してないのに'),
     Part("cm_same_routine", '結局、何年も同じ順番でやってるんだよね'),
-    Part("cm_night_owl", '夜更かしした日の肌、自分でも分かっちゃう😌'),
+    Part("cm_night_owl", '夜更かしした日の肌、自分でも分かっちゃう😌', time_bands=(MORNING,)),
     Part("cm_empty_bottle", '空き容器、捨てるまでにワンテンポあるの分かる？'),
     Part("cm_finally_used", 'ずっと置いてたやつ、やっと開けた！'),
-    Part("cm_hair_day", '今日は髪の調子がいい。理由は分からない🙃'),
+    Part("cm_hair_day", '今日は髪の調子がいい。理由は分からない🙃', time_bands=(MORNING,)),
     Part("cm_too_much", '出しすぎた。いつも出しすぎちゃう😮‍💨'),
-    Part("cm_mirror_light", '洗面所の電気、もう少し明るくしてほしいなあ'),
+    Part("cm_mirror_light", '洗面所の電気、もう少し明るくしてほしいなあ', time_bands=(NIGHT,)),
 )
 
 # ======================================================================

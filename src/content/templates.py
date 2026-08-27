@@ -66,6 +66,7 @@ class Picker(Protocol):
         postage_free: bool = False,
         many_reviews: bool = False,
         cheap: bool = False,
+        time_band: str = "",
     ) -> Part: ...
 
 
@@ -80,16 +81,27 @@ class RenderContext:
     affiliate_url: str | None
     # 事実の言い回しを回すためのカウンタ。同じ形が続かないようにする。
     fact_style: int = 0
+    # 投稿する時間帯（朝/昼/夕/夜）。空なら制限しない。
+    time_band: str = ""
+    # 実在商品から作ったつぶやき。空なら定型プールを使う。
+    brand_hint: str = ""
 
     @property
     def item(self) -> RakutenItem:
         return self.items[0]
 
-    def flags(self) -> dict[str, bool]:
+    def flags(self) -> dict[str, object]:
+        """pick に渡す絞り込み条件。
+
+        time_band もここに入れる。**渡し忘れると絞り込みが黙って効かない。**
+        実際、render_casual が渡していなかったせいで、
+        「朝の支度」が22:30に出ていた。
+        """
         return {
             "postage_free": self.postage_free,
             "many_reviews": self.many_reviews,
             "cheap": self.cheap,
+            "time_band": self.time_band,
         }
 
 
@@ -407,7 +419,7 @@ def render_howto(ctx: RenderContext) -> Rendered:
     コスパの考え方に限る。
     """
     r = Rendered(blocks=[])
-    post = ctx.pick("howto", HOWTO_POSTS)
+    post = ctx.pick("howto", HOWTO_POSTS, **ctx.flags())
     r.part_ids["howto"] = post.id
     r.blocks.append(Block(post.text, 0))
     # 手順番号など、本文に含まれる数値は商品データ由来ではないので許可する
@@ -422,7 +434,17 @@ def render_casual(ctx: RenderContext) -> Rendered:
     商品も買い物ノウハウも出さず、生活の断片だけを置く。
     """
     r = Rendered(blocks=[])
-    murmur = ctx.pick("casual", CASUAL_MURMURS)
+
+    # 実在の商品から作れたなら、そちらを優先する。
+    # 定型文には固有名詞が1件も無く、それが機械っぽさの正体だった。
+    # 素材が無い日は従来のプールに戻す（投稿を飛ばさない）。
+    if ctx.brand_hint:
+        r.part_ids["casual_brand"] = "brand"
+        r.blocks.append(Block(ctx.brand_hint, 0))
+        r.allowed_numbers |= set(F.extract_numbers(ctx.brand_hint))
+        return r
+
+    murmur = ctx.pick("casual", CASUAL_MURMURS, **ctx.flags())
     r.part_ids["casual"] = murmur.id
     r.blocks.append(Block(murmur.text, 0))
     r.allowed_numbers |= set(F.extract_numbers(murmur.text))
@@ -438,7 +460,7 @@ def render_question(ctx: RenderContext) -> Rendered:
     答えを自分で書かない。書くと問いかけではなく助言になる。
     """
     r = Rendered(blocks=[])
-    question = ctx.pick("question", QUESTION_POSTS)
+    question = ctx.pick("question", QUESTION_POSTS, **ctx.flags())
     r.part_ids["question"] = question.id
     r.blocks.append(Block(question.text, 0))
     r.allowed_numbers |= set(F.extract_numbers(question.text))
@@ -447,7 +469,7 @@ def render_question(ctx: RenderContext) -> Rendered:
 
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
-    topic = ctx.pick("topic", NO_LINK_TOPICS)
+    topic = ctx.pick("topic", NO_LINK_TOPICS, **ctx.flags())
     r.part_ids["topic"] = topic.id
     r.blocks.append(Block(topic.text, 0))
     # トピック文に数値が含まれる場合に備えて許可リストへ入れる
@@ -465,7 +487,7 @@ def render_topic_thread(ctx: RenderContext) -> Rendered:
     リンクが無いぶん Threads の表示回数も落とされない。
     """
     r = Rendered(blocks=[])
-    topic = ctx.pick("topic_thread", THREAD_TOPICS)
+    topic = ctx.pick("topic_thread", THREAD_TOPICS, **ctx.flags())
     r.part_ids["topic_thread"] = topic.id
 
     segments = list(topic.segments) or [topic.text]

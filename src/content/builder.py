@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from ..rakuten.models import RakutenItem
 from ..storage.state import State
 from . import facts as F
-from .parts import Part
+from .parts import Part, time_band_for
 from .templates import Block, RenderContext, Template, templates_for
 
 logger = logging.getLogger(__name__)
@@ -75,6 +75,7 @@ class ContentBuilder:
         postage_free: bool = False,
         many_reviews: bool = False,
         cheap: bool = False,
+        time_band: str = "",
     ) -> Part:
         """条件を満たすパーツから、直近使っていないものを決定的に選ぶ。"""
         eligible = [
@@ -83,6 +84,8 @@ class ContentBuilder:
             if (not part.requires_postage_free or postage_free)
             and (not part.requires_many_reviews or many_reviews)
             and (not part.requires_cheap or cheap)
+            # time_bands が空なら「いつでも」。指定があれば一致する枠だけ。
+            and (not part.time_bands or not time_band or time_band in part.time_bands)
         ]
         if not eligible:
             eligible = list(pool)
@@ -163,8 +166,14 @@ class ContentBuilder:
         template_id: str | None = None,
         with_affiliate_link: bool = True,
         exclude_templates: set[str] | None = None,
+        slot: str = "",
+        brand_hint: str = "",
     ) -> Draft:
-        """投稿文を1つ生成する。"""
+        """投稿文を1つ生成する。
+
+        slot を渡すと、その時間帯に合わない文を候補から外す。
+        「朝の支度」が22:30に出るような食い違いを防ぐ。
+        """
         candidates = self.available_templates(post_type, exclude=exclude_templates)
         if not candidates:
             raise ValueError(f"post_type '{post_type}' に使えるテンプレートがありません")
@@ -197,6 +206,8 @@ class ContentBuilder:
             affiliate_url=affiliate_url,
             # 直近の使用履歴の長さでずらす。乱数を使わず決定的に回す。
             fact_style=len(self.state.recent_part_ids("closing", limit=10_000)),
+            time_band=time_band_for(slot),
+            brand_hint=brand_hint,
         )
 
         rendered = template.render(ctx)

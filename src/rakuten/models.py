@@ -134,6 +134,48 @@ def _first_image(value: Any) -> str | None:
     return url.split("?")[0]
 
 
+
+# ブランド名の取り出し。**表示用**で、重複防止の brand_key とは別物。
+#
+#   【ファンケル 公式】        → ファンケル
+#   【アテニア 公式】          → アテニア
+#   【公式】オルナオーガニック  → オルナオーガニック
+_BRAND_IN_BRACKETS = re.compile(r"【\s*([^【】]{2,20}?)\s*公式\s*】")
+_BRAND_AFTER_OFFICIAL = re.compile(r"【\s*公式\s*】\s*([^\s\[【】/]{2,20})")
+
+# 【】の外にブランド名が出ている商品向け。
+# **推測で増やさない。** 実データで確認できたものだけ入れる。
+KNOWN_BRANDS: tuple[str, ...] = (
+    "資生堂", "キールズ", "アテニア", "ファンケル", "オルビス", "無印良品",
+    "ちふれ", "セザンヌ", "キャンメイク", "excel", "ケイト", "マキアージュ",
+    "アクアレーベル", "エリクシール", "ハトムギ", "ニベア", "メラノCC",
+    "パンテーン", "ラックス", "いち髪", "ボタニスト", "ミノン", "キュレル",
+)
+
+# ブランド名として出してはいけないもの。
+# 【】の中には配送・クーポン・ショップ名も入るので、機械的に弾く。
+_NOT_A_BRAND = (
+    "メール便", "送料無料", "送料", "クーポン", "ポイント", "最大", "限定",
+    "セール", "楽天", "ランキング", "認定ショップ", "正規品", "国内正規",
+    "あす楽", "即納", "在庫", "新発売", "予約", "OFF", "％", "%",
+)
+
+
+def _is_plausible_brand(name: str) -> bool:
+    """ブランド名として出してよいか。
+
+    迷ったら出さない。間違ったブランド名を投稿するより、
+    ブランドに触れないほうが害が小さい。
+    """
+    if not name or len(name) > 20:
+        return False
+    if any(word in name for word in _NOT_A_BRAND):
+        return False
+    if any(ch.isdigit() for ch in name):
+        return False
+    return True
+
+
 @dataclass(frozen=True)
 class RakutenItem:
     """楽天市場の商品1件。APIから取れた事実だけを保持する。"""
@@ -252,6 +294,55 @@ class RakutenItem:
         """ブランド偏りを抑制するための推定キー。厳密である必要はない。"""
         tokens = [t for t in _BRAND_SPLIT.split(self.clean_name) if t]
         return tokens[0].lower() if tokens else self.clean_name[:8].lower()
+
+    @classmethod
+    def from_history_name(cls, item_name: str) -> "RakutenItem":
+        """商品名だけから最小限のインスタンスを作る。
+
+        履歴に残っているのは商品名だけなので、ブランド名の取り出しと
+        商品名の判定にだけ使う。価格やレビューは持たない。
+        """
+        return cls(
+            item_name=item_name, item_code="", item_price=0, item_url="",
+            shop_code="", shop_name="", genre_id="", affiliate_url=None,
+            review_count=None, review_average=None, postage_flag=None,
+            availability=1, affiliate_rate=None, point_rate=None,
+            image_url=None, catchcopy=None, tax_flag=None,
+            credit_card_flag=None, raw={"itemName": item_name},
+        )
+
+    @property
+    def brand_name(self) -> str | None:
+        """表示に使えるブランド名。取れなければ None。
+
+        **`brand_key` とは別物。** あちらは重複防止のキーで、
+        clean_name の先頭トークンを取っているだけ。実データではこうなる。
+
+            'メール便'           ← 配送方法
+            'モイストリファイン'  ← 商品名（ブランドは「ファンケル」）
+
+        投稿に出すなら、間違ったブランド名を出すより
+        **何も出さないほうがいい**ので、確信が持てるときだけ返す。
+
+        楽天の商品名では、ブランドは【】の中に「公式」と併記されることが多い。
+
+            【ファンケル 公式】        → ファンケル
+            【公式】オルナオーガニック  → オルナオーガニック
+        """
+        raw = self.item_name or ""
+
+        for pattern in (_BRAND_IN_BRACKETS, _BRAND_AFTER_OFFICIAL):
+            m = pattern.search(raw)
+            if m:
+                name = m.group(1).strip(" 　/・")
+                if _is_plausible_brand(name):
+                    return name
+
+        # 【】の外に出ている既知ブランド
+        for known in KNOWN_BRANDS:
+            if known in raw:
+                return known
+        return None
 
     @property
     def affiliate_url_hash(self) -> str | None:
