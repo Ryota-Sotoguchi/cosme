@@ -67,6 +67,7 @@ class Picker(Protocol):
         many_reviews: bool = False,
         cheap: bool = False,
         time_band: str = "",
+        day_tags: tuple[str, ...] = (),
     ) -> Part: ...
 
 
@@ -85,6 +86,8 @@ class RenderContext:
     time_band: str = ""
     # 実在商品から作ったつぶやき。空なら定型プールを使う。
     brand_hint: str = ""
+    # 今日に付くタグ（月曜/月末/乾燥の時期…）。空なら制限しない。
+    day_tags: tuple[str, ...] = ()
 
     @property
     def item(self) -> RakutenItem:
@@ -102,6 +105,7 @@ class RenderContext:
             "many_reviews": self.many_reviews,
             "cheap": self.cheap,
             "time_band": self.time_band,
+            "day_tags": self.day_tags,
         }
 
 

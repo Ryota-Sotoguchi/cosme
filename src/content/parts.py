@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 
 
 @dataclass(frozen=True)
@@ -46,6 +47,11 @@ class Part:
     # **大半は空のままにすること。** 全部にタグを付けると、
     # 枠ごとに選べるパーツが減って同じ投稿が戻ってくる。
     time_bands: tuple[str, ...] = ()
+    # 出してよい日。空なら「いつでも」。
+    # 人が投稿するのは「今日これがあった」からで、
+    # 曜日や季節に紐づく話はその日にだけ出す。
+    # time_bands と同じく、**大半は空のままにすること。**
+    day_tags: tuple[str, ...] = ()
 
 
 # 時間帯。スロットの時刻から決まる。
@@ -68,6 +74,56 @@ _SLOT_BANDS: dict[str, str] = {
 def time_band_for(slot: str) -> str:
     """スロット名から時間帯を引く。知らない枠なら空（制限しない）。"""
     return _SLOT_BANDS.get(slot, "")
+
+
+# ======================================================================
+# 日付のタグ
+#
+# 人が投稿するのは「今日これがあった」から。
+# いまの投稿には occasion（投稿する理由）が無く、
+# 曜日への言及は85件中2件しかなかった。
+#
+# タグは重なってよい（金曜かつ月末、など）。
+# ======================================================================
+MONDAY, FRIDAY, WEEKEND = "月曜", "金曜", "週末"
+BEFORE_HOLIDAY = "連休前"
+MONTH_END = "月末"
+SEASON_TURN = "季節の変わり目"
+DRY_SEASON, HUMID_SEASON = "乾燥の時期", "湿気の時期"
+
+
+def day_tags_for(today: "date") -> tuple[str, ...]:
+    """その日に付くタグを全部返す。
+
+    曜日・月末・季節を重ねて返すので、
+    「金曜かつ月末」の日には両方のつぶやきが候補になる。
+    """
+    tags: list[str] = []
+    weekday = today.weekday()  # 月=0
+
+    if weekday == 0:
+        tags.append(MONDAY)
+    elif weekday == 4:
+        tags.append(FRIDAY)
+    if weekday >= 5:
+        tags.append(WEEKEND)
+
+    # 金曜と、土曜（日曜も休みなら連休）の前日
+    if weekday in (4, 5):
+        tags.append(BEFORE_HOLIDAY)
+
+    if today.day >= 25:
+        tags.append(MONTH_END)
+
+    month = today.month
+    if month in (3, 6, 9, 12):
+        tags.append(SEASON_TURN)
+    if month in (11, 12, 1, 2, 3):
+        tags.append(DRY_SEASON)
+    if month in (6, 7, 8):
+        tags.append(HUMID_SEASON)
+
+    return tuple(tags)
 
 
 def thread_part(part_id: str, *segments: str) -> Part:
@@ -450,6 +506,80 @@ CASUAL_MURMURS: tuple[Part, ...] = (
     Part("cm_hair_day", '今日は髪の調子がいい。理由は分からない🙃', time_bands=(MORNING,)),
     Part("cm_too_much", '出しすぎた。いつも出しすぎちゃう😮‍💨'),
     Part("cm_mirror_light", '洗面所の電気、もう少し明るくしてほしいなあ', time_bands=(NIGHT,)),
+    # --- カレンダーに紐づくもの ---
+    #
+    # 人が投稿するのは「今日これがあった」から。
+    # 曜日への言及は85件中2件しかなく、投稿する理由が無かった。
+    Part("cm_mon_mirror", '鏡見る時間、月曜が一番短い気がする', day_tags=(MONDAY,), time_bands=(MORNING,)),
+    Part("cm_mon_heavy", '月曜の朝がいちばん重い。今週もがんばろ', day_tags=(MONDAY,), time_bands=(MORNING,)),
+    Part("cm_mon_skip", '月曜って、スキンケアの手数が勝手に減っちゃう', day_tags=(MONDAY,)),
+    Part("cm_fri_care", '金曜の夜だけスキンケア丁寧になるの、なんなんだろ', day_tags=(FRIDAY,), time_bands=(NIGHT,)),
+    Part("cm_fri_free", '金曜の夜って、それだけでうれしい', day_tags=(FRIDAY,), time_bands=(NIGHT,)),
+    Part("cm_fri_cart", '金曜になるとカートの中身が増えてる', day_tags=(FRIDAY,)),
+    Part("cm_weekend_slow", 'ゆっくり支度できる日、それだけで気分がちがう', day_tags=(WEEKEND,), time_bands=(MORNING,)),
+    Part("cm_weekend_pouch", '週末にポーチの中身出すか、と毎回思って出さない', day_tags=(WEEKEND,)),
+    Part("cm_weekend_nomakeup", '今日はメイクしない日にした', day_tags=(WEEKEND,)),
+    Part("cm_holiday_soon", '連休、何も予定ないけどうれしい', day_tags=(BEFORE_HOLIDAY,)),
+    Part("cm_holiday_stock", '連休前って、なぜか買い足したくなっちゃう', day_tags=(BEFORE_HOLIDAY,)),
+    Part("cm_month_end", '月末はカートに入れて見てるだけになっちゃう', day_tags=(MONTH_END,)),
+    Part("cm_month_end_wait", '月末に見つけると、来月まで覚えていられるか不安なんだよね', day_tags=(MONTH_END,)),
+    Part("cm_cal_season", '季節の変わり目、いつも同じところでつまずいちゃう', day_tags=(SEASON_TURN,)),
+    Part("cm_season_swap", 'そろそろ入れ替えかな、と思いながらまだやってない', day_tags=(SEASON_TURN,)),
+    Part("cm_dry_air", '空気が乾いてきた。手からくるんだよね', day_tags=(DRY_SEASON,)),
+    Part("cm_dry_face", 'この時期、朝起きたときの肌がいちばん頼りない', day_tags=(DRY_SEASON,), time_bands=(MORNING,)),
+    Part("cm_dry_lip", 'リップ、この時期だけ持ち歩く数が増えちゃう', day_tags=(DRY_SEASON,)),
+    Part("cm_humid_hair", '湿気で髪が言うこと聞かない季節がきた', day_tags=(HUMID_SEASON,)),
+    Part("cm_humid_makeup", 'この時期のメイク、朝と夕方で別物になっちゃう', day_tags=(HUMID_SEASON,)),
+
+    # --- 中の人の設定に紐づくもの（persona.py）---
+    #
+    # 一人称は「わたし」で統一。設定と矛盾しないこと。
+    Part("cm_p_mirror_dark", 'うちの洗面所、本当に暗いんだよね。色が全然分からない'),
+    Part("cm_p_dryer_old", 'ドライヤー古いから、乾かすのに時間かかっちゃう'),
+    Part("cm_p_dryer_buy", 'ドライヤー買い替えたいけど、高いのでずっと迷ってる'),
+    Part("cm_p_alone", '一人暮らしだと、詰め替えが減らなくて逆に困る'),
+    Part("cm_p_dry_skin", '乾燥しやすいから、この時期はとにかく量がいる'),
+    Part("cm_p_slow_decide", 'わたし、決めるのに何日もかかるタイプ'),
+    Part("cm_p_slow_again", '一週間見てて、まだ決まってない'),
+    Part("cm_p_morning_weak", '朝が弱いので、支度はいつもぎりぎり', time_bands=(MORNING,)),
+    Part("cm_p_bathroom", 'お風呂場の棚、そんなに広くないから置ける数が決まってる'),
+    Part("cm_p_lighting_buy", '洗面所が暗いせいで、色ものは結局お店で見ることになっちゃう'),
+
+    # --- 短い。10字以下 ---
+    #
+    # 実際のタイムラインには「眠い」だけの投稿がある。
+    # いまは13〜52字に揃っていて、揃っていること自体が機械的だった。
+    Part("cm_s_sleepy", '眠い', time_bands=(NIGHT,)),
+    Part("cm_s_done", '今日はもう無理'),
+    Part("cm_s_cold", '手が冷たい', day_tags=(DRY_SEASON,)),
+    Part("cm_s_hair", '髪がまとまらない'),
+    Part("cm_s_again", 'また買いそびれた'),
+    Part("cm_s_ok", '今日はいい感じ', time_bands=(MORNING,)),
+    Part("cm_s_tired", 'つかれた', time_bands=(NIGHT,)),
+    Part("cm_s_hot", '暑い', day_tags=(HUMID_SEASON,)),
+    Part("cm_s_finally", 'やっと届いた'),
+    Part("cm_s_empty", '切らした'),
+
+    # --- 長い。80〜140字 ---
+    #
+    # 決めきれない独り言。短い投稿ばかりだと、
+    # それはそれで揃って見える。
+    Part("cm_l_undecided", '化粧水が切れそうなのに、次どうするか決めてない。\n\n同じの買うのがいちばんラクなんだけど、せっかくなら変えてみたい気もして、もう一週間くらい同じことを考えてる。\n\n結局同じの買う気がする'),
+    Part("cm_l_pouch", 'ポーチの中身を全部出したら、使ってないものが半分あった。\n\n捨てるほどでもないし、でも使わないし、みたいなものばかりで、結局ほとんど戻した。\n\n来月もたぶん同じことをする'),
+    Part("cm_l_compare", '同じような商品を並べて比べてたら、どれがどれだか分からなくなってきた。\n\nメモに書き出したら急に決まったので、頭の中だけで比べるのは向いてないみたい'),
+    Part("cm_l_night", '寝る前にコスメを見る時間、いちばん楽しいけどいちばん危ない。\n\n夜に見て良さそうと思ったものを、朝もう一回見ると案外そうでもなかったりする。\n\n一晩おく、を守りたい', time_bands=(NIGHT,)),
+    Part("cm_l_refill", '詰め替えがあるかどうかで、二回目からの値段が変わる。\n\nそれは分かってるのに、買うときは本体の値段しか見ていない。\n\n毎回あとで気づく'),
+    Part("cm_l_season", '季節の変わり目に、使ってるものを見直そうと毎回思う。\n\nでも実際に見直すのは、切らしたときか、明らかに合わなくなったときだけ。\n\n計画的にやれたことがない', day_tags=(SEASON_TURN,)),
+    Part("cm_l_store", 'お店で見た色と、家で見た色がちがう。\n\nうちの洗面所が暗いのがいけないんだけど、かといってお店の照明が明るすぎる気もしていて、どっちを信じればいいのか分からない'),
+    Part("cm_l_wishlist", 'ほしいものリストを見返したら、なんでこれ入れたんだろうというものが並んでた。\n\n入れた時点では本気だったはずなのに。\n\n半分くらい消して、少しすっきりした'),
+    Part("cm_l_morning", '朝の支度、毎回同じ順番でやってるのに、なぜか毎回ぎりぎりになる。\n\n一個ずつは短いはずなんだけど、合計すると思ってるより長いんだと思う', time_bands=(MORNING,)),
+    Part("cm_l_price", '値段を見て一回閉じて、また開いて、また閉じる。\n\nこれを何回かやってから買うか決めるんだけど、その間に売り切れたことも何回かある。\n\n学習しない'),
+    Part("cm_l_dryer", 'ドライヤーが古くて、乾かすのに時間がかかる。\n\n買い替えたい気持ちはずっとあるんだけど、いいやつは高いし、安いのを買って結局同じことになるのも嫌で、もう半年くらい決められずにいる'),
+    Part("cm_l_alone", '一人暮らしだと、詰め替えがなかなか減らない。\n\n大容量のほうが安いのは分かってるのに、使い切る前に飽きたらどうしようと思って、結局いつも小さいほうを選んでる'),
+    Part("cm_l_color", '色ものを買うとき、画面と実物がちがうのは分かってる。\n\nそれでも夜にスマホで見て、これいいかもと思ってしまう。\n\n朝もう一回見ると、だいたい気持ちが落ち着いてる', time_bands=(NIGHT,)),
+    Part("cm_l_shelf", 'お風呂場の棚に置ける数が決まっているので、新しいものを買うと何かを出さないといけない。\n\n出すものを決めるほうが、買うものを決めるより時間かかっちゃう'),
+    Part("cm_l_habit", '毎日やってることなのに、いつからこの順番になったのか思い出せない。\n\n誰かに教わったわけでもなく、なんとなく今の形に落ち着いた。\n\nたぶん変えたほうがいいところもある'),
+    Part("cm_l_dry_winter", 'この時期は、朝起きたときの肌がいちばん頼りない。\n\n寝る前にちゃんとやっても、朝には元通りみたいな日がある。\n\n加湿器を出すかどうか、毎年同じところで悩んでる', day_tags=(DRY_SEASON,)),
 )
 
 # ======================================================================

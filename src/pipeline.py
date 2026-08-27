@@ -367,6 +367,7 @@ class Pipeline:
                         with_affiliate_link=with_link,
                         exclude_templates=tried_templates,
                         slot=slot_name,
+                        today=datetime.now(JST).date(),
                     )
                 except ValueError as exc:
                     logger.warning("生成できませんでした: %s", exc)
@@ -416,6 +417,7 @@ class Pipeline:
             draft = self.builder.build(
                 post_type, [], with_affiliate_link=False, slot=slot,
                 brand_hint=self._brand_hint(post_type),
+                today=datetime.now(JST).date(),
             )
             check = self.checker.check(draft, recent_texts=recent_texts)
             last_check = check

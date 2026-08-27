@@ -93,14 +93,14 @@ class State:
         history: dict[str, list[str]] = self._data.get("part_history", {})
         return list(history.get(group, []))[-limit:]
 
-    def record_part_ids(self, used: dict[str, str], keep: int = 100) -> None:
+    def record_part_ids(self, used: dict[str, str], keep: int = 200) -> None:
         """使用した文章パーツを記録する。連続使用回避に使う。
 
         keep は**いちばん大きいプールの件数より大きく**しておくこと。
         ここが小さいと、避けたくても履歴が残っていないので避けられない。
-        いま最大は NO_LINK_TOPICS の76件。
+        いま最大は CASUAL_MURMURS の135件。
 
-        グループごとに100件、IDは十数バイトなので、
+        グループごとに200件、IDは十数バイトなので、
         state.json が大きくなりすぎることはない。
         """
         history: dict[str, list[str]] = self._data.setdefault("part_history", {})

@@ -196,3 +196,127 @@ def test_falls_back_when_no_material():
     draft = builder.build("casual", [], template_id="casual", brand_hint="")
     assert draft.text.strip()
     assert draft.part_ids.get("casual"), "定型プールに戻っていない"
+
+
+# ======================================================================
+# カレンダー
+# ======================================================================
+from datetime import date  # noqa: E402
+
+from src.content.parts import day_tags_for  # noqa: E402
+from src.content.persona import contradicts  # noqa: E402
+
+
+def test_day_tags_stack():
+    """タグは重なること。金曜かつ月末なら両方付く。"""
+    tags = day_tags_for(date(2026, 8, 28))  # 金曜・月末・夏
+    assert "金曜" in tags
+    assert "月末" in tags
+
+
+@pytest.mark.parametrize("day,expected", [
+    (date(2026, 8, 31), "月曜"),
+    (date(2026, 8, 28), "金曜"),
+    (date(2026, 8, 29), "週末"),
+])
+def test_weekday_tags(day, expected):
+    assert expected in day_tags_for(day)
+
+
+@pytest.mark.parametrize("day,forbidden", [
+    (date(2026, 8, 31), ("金曜の夜", "連休")),   # 月曜
+    (date(2026, 8, 28), ("月曜",)),              # 金曜
+    (date(2026, 8, 29), ("月曜",)),              # 土曜
+])
+def test_posts_match_the_calendar(day, forbidden):
+    """曜日と内容が食い違わないこと。
+
+    「月曜の朝がいちばん重い」が金曜に出るのは、人間なら起きない。
+    """
+    builder = _builder()
+    for _ in range(15):
+        draft = builder.build("casual", [], template_id="casual",
+                              slot="morning", today=day)
+        builder.state.record_part_ids(draft.part_ids)
+        for word in forbidden:
+            assert word not in draft.text, (
+                f"{day}({day_tags_for(day)}) に「{word}」が出た:\n  {draft.text}"
+            )
+
+
+def test_day_tags_reach_the_picker():
+    """flags() に day_tags が入っていること。
+
+    前回 time_band を flags() に入れ忘れて、絞り込みが
+    一度も効いていなかった。同じことを繰り返さないための直接検査。
+    """
+    from src.content.templates import RenderContext
+
+    ctx = RenderContext(pick=None, items=[], category="", postage_free=False,
+                        many_reviews=False, cheap=False, affiliate_url=None,
+                        day_tags=("月曜",))
+    assert ctx.flags().get("day_tags") == ("月曜",)
+
+
+def test_most_murmurs_have_no_day_tag():
+    """大半は日付を指定しないこと。候補が枯れる。"""
+    tagged = [p for p in CASUAL_MURMURS if p.day_tags]
+    assert len(tagged) / len(CASUAL_MURMURS) <= 0.35
+
+
+# ======================================================================
+# 中の人の設定
+# ======================================================================
+@pytest.mark.parametrize("pool_name", ["CASUAL_MURMURS", "QUESTION_POSTS",
+                                       "NO_LINK_TOPICS", "HOWTO_POSTS",
+                                       "THREAD_TOPICS"])
+def test_no_post_contradicts_the_persona(pool_name):
+    """設定と食い違う投稿が無いこと。
+
+    「一人暮らし」と書いた翌日に「家族で使う」と書くと、
+    読んでいる側は気づく。
+    """
+    from src.content import parts as P
+
+    for part in getattr(P, pool_name):
+        hits = contradicts(part.text)
+        assert not hits, f"{pool_name}.{part.id}: {hits}\n  {part.text}"
+
+
+def test_benefit_tips_respect_the_persona():
+    """箇条書きの中身も設定に従うこと。
+
+    実際に「家族で使うなら容量」が入っていた。
+    """
+    from src.content.benefits import BENEFITS
+
+    for benefit in BENEFITS:
+        for tip in benefit.tips:
+            assert not contradicts(tip), f"{benefit.id}: {tip}"
+
+
+# ======================================================================
+# 長さのばらつき
+# ======================================================================
+def test_lengths_are_not_uniform():
+    """長さが揃っていないこと。
+
+    もとは13〜52字に収まっていて、60字以上がゼロだった。
+    実際のタイムラインには「眠い」だけの投稿も長めの独り言もある。
+    **揃っていること自体が機械的**に見える。
+    """
+    lengths = [len(p.text) for p in CASUAL_MURMURS]
+    total = len(lengths)
+    short = sum(1 for n in lengths if n <= 10)
+    long = sum(1 for n in lengths if n >= 80)
+
+    assert short / total >= 0.05, f"10字以下が {short}件しかない"
+    assert long / total >= 0.03, f"80字以上が {long}件しかない"
+    assert max(lengths) >= 80, "長い投稿が1つも無い"
+    assert min(lengths) <= 6, "短い投稿が1つも無い"
+
+
+def test_long_murmurs_stay_readable():
+    """長くても読める範囲に収めること。上限は外さない。"""
+    for part in CASUAL_MURMURS:
+        assert len(part.text) <= 160, f"{part.id} が長すぎる（{len(part.text)}字）"

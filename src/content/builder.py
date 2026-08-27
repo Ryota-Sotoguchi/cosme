@@ -9,15 +9,18 @@ from __future__ import annotations
 
 import hashlib
 import logging
+from datetime import date, datetime, timedelta, timezone
 from dataclasses import dataclass, field
 
 from ..rakuten.models import RakutenItem
 from ..storage.state import State
 from . import facts as F
-from .parts import Part, time_band_for
+from .parts import Part, day_tags_for, time_band_for
 from .templates import Block, RenderContext, Template, templates_for
 
 logger = logging.getLogger(__name__)
+
+JST = timezone(timedelta(hours=9))
 
 # 「レビューが多い」と表現してよい閾値
 MANY_REVIEWS_THRESHOLD = 300
@@ -76,6 +79,7 @@ class ContentBuilder:
         many_reviews: bool = False,
         cheap: bool = False,
         time_band: str = "",
+        day_tags: tuple[str, ...] = (),
     ) -> Part:
         """条件を満たすパーツから、直近使っていないものを決定的に選ぶ。"""
         eligible = [
@@ -86,6 +90,9 @@ class ContentBuilder:
             and (not part.requires_cheap or cheap)
             # time_bands が空なら「いつでも」。指定があれば一致する枠だけ。
             and (not part.time_bands or not time_band or time_band in part.time_bands)
+            # day_tags も同じ。今日のタグと1つでも重なれば候補になる。
+            and (not part.day_tags or not day_tags
+                 or any(t in day_tags for t in part.day_tags))
         ]
         if not eligible:
             eligible = list(pool)
@@ -102,6 +109,23 @@ class ContentBuilder:
 
         # 決定的だが偏らない選択: 直近履歴の長さでカーソルを進める
         cursor = len(self.state.recent_part_ids(group, limit=10_000))
+
+        # 今日・今の時間に特に合うものを、ときどき優先する。
+        #
+        # 候補に入れるだけでは埋もれる。月曜のつぶやきは3件しかなく、
+        # 無タグが118件あるので、確率は3/121にしかならない。
+        # それでは「今日は月曜」という感じが一度も出ない。
+        #
+        # かといって毎回優先すると、月曜のたびに同じ3件が回って
+        # 週ごとの繰り返しが見えてしまう。3回に1回にとどめる。
+        # 日付固有（月曜・月末・乾燥の時期）を先に見る。
+        # 時間帯タグは数が多いので、混ぜると日付側が埋もれる。
+        dated = [p for p in candidates if p.day_tags]
+        timed = [p for p in candidates if p.time_bands and not p.day_tags]
+        if dated and cursor % 3 == 0:
+            candidates = dated
+        elif timed and cursor % 3 == 1:
+            candidates = timed
         chosen = candidates[cursor % len(candidates)]
         self._used_this_draft[group] = chosen.id
         return chosen
@@ -168,6 +192,7 @@ class ContentBuilder:
         exclude_templates: set[str] | None = None,
         slot: str = "",
         brand_hint: str = "",
+        today: date | None = None,
     ) -> Draft:
         """投稿文を1つ生成する。
 
@@ -208,6 +233,7 @@ class ContentBuilder:
             fact_style=len(self.state.recent_part_ids("closing", limit=10_000)),
             time_band=time_band_for(slot),
             brand_hint=brand_hint,
+            day_tags=day_tags_for(today or datetime.now(JST).date()),
         )
 
         rendered = template.render(ctx)
