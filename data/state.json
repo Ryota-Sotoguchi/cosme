@@ -56,7 +56,8 @@
     ],
     "question": [
       "q_bath_time",
-      "q_morning_night"
+      "q_morning_night",
+      "q_how_many"
     ],
     "thread_bridge": [
       "br_found"
@@ -91,12 +92,11 @@
     "afternoon": 1,
     "evening": 1,
     "late": 0,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 7,
     "predinner": 1
   },
   "template_history": [
-    "band_focus",
     "casual",
     "topic",
     "topic",
@@ -115,6 +115,7 @@
     "topic_thread",
     "topic",
     "topic",
+    "question",
     "question"
   ],
   "threads_token": {
