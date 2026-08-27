@@ -29,7 +29,8 @@
       "cta_reviews",
       "cta_detail",
       "cta_price",
-      "cta_save"
+      "cta_save",
+      "cta_size"
     ],
     "disclaimer": [
       "dc_point",
@@ -58,6 +59,12 @@
       "q_bath_time",
       "q_morning_night",
       "q_how_many"
+    ],
+    "recommend_closing": [
+      "rl_fit"
+    ],
+    "recommend_opening": [
+      "ro_forwho"
     ],
     "thread_bridge": [
       "br_found"
@@ -97,7 +104,6 @@
     "predinner": 1
   },
   "template_history": [
-    "casual",
     "topic",
     "topic",
     "howto",
@@ -116,7 +122,8 @@
     "topic",
     "topic",
     "question",
-    "question"
+    "question",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
