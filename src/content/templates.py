@@ -16,7 +16,7 @@ from typing import Callable, Protocol
 
 from ..rakuten.models import RakutenItem
 from . import facts as F
-from .benefits import benefit_by_cursor, benefit_for, tips_block
+from .benefits import benefit_by_cursor, benefit_for, pain_hook, tips_block
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -205,6 +205,22 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
     「どう思う？」と問いかけると、薦めたいのか意見がほしいのか
     分からなくなるため。
     """
+    # 剤形が分かるなら、悩みから入る。
+    #
+    # 「スキンケア探してる人、これ見てみてほしい」は誰の何の話か
+    # 分からないまま流れる。読む人が「え、それわたしだ」と思う状況を
+    # 先に置くと、そこで指が止まる。
+    #
+    # 5回に4回は悩み型。残りは従来の型で、フックの形も散らす。
+    if ctx.affiliate_url and ctx.items:
+        benefit = benefit_for(ctx.item.display_name(60))
+        cursor = _variation_cursor(ctx)
+        if benefit is not None and cursor % 5 != 4:
+            hook = pain_hook(benefit, cursor=cursor)
+            if hook:
+                rendered.part_ids["pain_hook"] = benefit.id
+                return hook
+
     pool = RECOMMEND_OPENINGS if ctx.affiliate_url else PRODUCT_OPENINGS
     group = "recommend_opening" if ctx.affiliate_url else "opening"
     part = ctx.pick(group, pool, **ctx.flags())
@@ -403,12 +419,15 @@ def render_thread(ctx: RenderContext) -> Rendered:
     最後にリンクを置く形にしていた。
     """
     r = Rendered(blocks=[])
-    hooks = THREAD_HOOKS.get(ctx.category) or THREAD_HOOKS["コスメ"]
-    hook = ctx.pick("thread_hook", hooks, **ctx.flags())
-    r.part_ids["thread_hook"] = hook.id
+
+    # 悩みから入れるならそちらを使う。
+    # THREAD_HOOKS はジャンル単位（スキンケア/ヘアケア）でしか分けられず、
+    # 「スキンケア、増やすほどいいわけじゃない」のように
+    # その商品と関係のない話になりがちだった。
+    lead = _lead_opening(ctx, r)
 
     _split_for_thread(ctx, r, [
-        hook.text,
+        lead,
         _tips_stage(ctx),
     ])
     return r
