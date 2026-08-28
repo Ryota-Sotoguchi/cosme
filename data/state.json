@@ -4,6 +4,9 @@
   ],
   "operation_started_on": "2026-08-20",
   "part_history": {
+    "appeal": [
+      "surprise"
+    ],
     "casual": [
       "cm_humid",
       "cm_morning",
@@ -48,7 +51,8 @@
       "cta_save",
       "cta_size",
       "cta_later",
-      "cta_decide"
+      "cta_decide",
+      "cta_leave"
     ],
     "disclaimer": [
       "dc_point",
@@ -123,7 +127,6 @@
     "predinner": 2
   },
   "template_history": [
-    "topic",
     "objective",
     "howto",
     "topic",
@@ -142,7 +145,8 @@
     "casual",
     "casual",
     "band_focus",
-    "objective"
+    "objective",
+    "short"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
