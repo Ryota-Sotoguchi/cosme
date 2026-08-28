@@ -85,7 +85,8 @@
       "q_bath_time",
       "q_morning_night",
       "q_how_many",
-      "q_price_line"
+      "q_price_line",
+      "q_review"
     ],
     "recommend_closing": [
       "rl_fit"
@@ -125,14 +126,13 @@
   },
   "rotation_cursor": {
     "afternoon": 3,
-    "evening": 2,
+    "evening": 3,
     "late": 1,
     "midmorning": 3,
     "morning": 0,
     "predinner": 3
   },
   "template_history": [
-    "howto",
     "topic",
     "topic",
     "howto",
@@ -151,6 +151,7 @@
     "band_focus",
     "objective",
     "short",
+    "question",
     "question"
   ],
   "threads_token": {
