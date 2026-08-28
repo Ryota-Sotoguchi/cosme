@@ -120,7 +120,8 @@
       "nl_uv",
       "nl_minimal",
       "nl_expiry",
-      "nl_bundle_postage"
+      "nl_bundle_postage",
+      "nl_category_budget"
     ],
     "topic_thread": [
       "tt_cheap_vs_value"
@@ -129,13 +130,12 @@
   "rotation_cursor": {
     "afternoon": 3,
     "evening": 3,
-    "late": 1,
+    "late": 2,
     "midmorning": 3,
     "morning": 0,
     "predinner": 3
   },
   "template_history": [
-    "topic",
     "howto",
     "casual",
     "band_focus",
@@ -154,7 +154,8 @@
     "short",
     "question",
     "question",
-    "thread"
+    "thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
