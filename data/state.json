@@ -28,6 +28,10 @@
       "brand",
       "brand",
       "brand",
+      "brand",
+      "brand",
+      "brand",
+      "brand",
       "brand"
     ],
     "closing": [
@@ -119,7 +123,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 2,
+    "afternoon": 3,
     "evening": 2,
     "late": 1,
     "midmorning": 3,
