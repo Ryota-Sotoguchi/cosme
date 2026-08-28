@@ -16,7 +16,8 @@ from typing import Callable, Protocol
 
 from ..rakuten.models import RakutenItem
 from . import facts as F
-from .benefits import benefit_by_cursor, benefit_for, pain_hook, tips_block
+from .appeals import build_appeal
+from .benefits import TIPS_HEADINGS, benefit_by_cursor, benefit_for, tips_block
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -88,6 +89,8 @@ class RenderContext:
     brand_hint: str = ""
     # 今日に付くタグ（月曜/月末/乾燥の時期…）。空なら制限しない。
     day_tags: tuple[str, ...] = ()
+    # 直近に使った訴求軸。同じ軸が続かないように避ける。
+    recent_appeals: tuple[str, ...] = ()
 
     @property
     def item(self) -> RakutenItem:
@@ -160,6 +163,17 @@ def _variation_cursor(ctx: RenderContext) -> int:
     return ctx.fact_style
 
 
+def _tips_stage_unless_duplicated(ctx: RenderContext, lead: str) -> str:
+    """訴求文がすでに箇条書きを持っているなら、tips 段は出さない。
+
+    「省力化」「チェック・診断」「ランキング」の軸は本文に箇条書きを含む。
+    そこへ tips 段を重ねると、同じ項目が二度並ぶ。
+    """
+    if "・" in lead or "1. " in lead:
+        return ""
+    return _tips_stage(ctx)
+
+
 def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
     """箇条書きのノウハウ段。
 
@@ -175,9 +189,39 @@ def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
         # （「…[ ヘアパック ヘアマスク 美髪 …]」）、そのまま判定すると
         # 別の剤形として誤判定する。販促文を落とした表示名で判定する。
         benefit = benefit_for(ctx.item.display_name(60))
+
     if benefit is None:
-        benefit = benefit_by_cursor(ctx.fact_style)
+        # 剤形が判定できない商品（ブラシ・ポーチ）。
+        #
+        # **無関係な剤形にフォールバックしない。**
+        # 以前は benefit_by_cursor で適当な剤形を引いていたため、
+        # メイクブラシの投稿に「体を洗うものなので香りの強さが…」と
+        # 出ていた。読む人には意味が通らないし、
+        # その剤形に許された効能を別の商品に付けることになる。
+        return _generic_tips(ctx, heading)
+
     return tips_block(benefit, heading, cursor=_variation_cursor(ctx))
+
+
+# 剤形が分からない商品向け。効能に触れず、買い方の話だけにする。
+GENERIC_TIPS: tuple[str, ...] = (
+    "レビューの件数",
+    "レビューの新しさ",
+    "送料込みでいくらか",
+    "何が何個入っているか",
+    "ケースや付属品があるか",
+    "同じ店に他のサイズがあるか",
+)
+
+
+def _generic_tips(ctx: RenderContext, heading: str | None = None) -> str:
+    """剤形に依存しない、買い方だけのノウハウ段。"""
+    cursor = _variation_cursor(ctx)
+    # 見出しはベタ書きせず、剤形ありと同じプールから取る（benefits.py）
+    title = heading if heading is not None else TIPS_HEADINGS[cursor % len(TIPS_HEADINGS)]
+    picked = [GENERIC_TIPS[(cursor + i) % len(GENERIC_TIPS)] for i in range(3)]
+    lines = "\n".join(f"・{tip}" for tip in picked)
+    return f"{title}\n\n{lines}"
 
 
 def _concern_stage(ctx: RenderContext) -> str:
@@ -205,21 +249,26 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
     「どう思う？」と問いかけると、薦めたいのか意見がほしいのか
     分からなくなるため。
     """
-    # 剤形が分かるなら、悩みから入る。
+    # 人がクリックする理由は一つではない。
     #
-    # 「スキンケア探してる人、これ見てみてほしい」は誰の何の話か
-    # 分からないまま流れる。読む人が「え、それわたしだ」と思う状況を
-    # 先に置くと、そこで指が止まる。
+    #   自分に関係がある / 知らないと損する / 答えを知りたい
+    #   予想と違う / 比較の手間が減る / 得しそう / 続きが気になる
     #
-    # 5回に4回は悩み型。残りは従来の型で、フックの形も散らす。
+    # 悩み型だけに寄せると、結局また同じ形になる。
+    # 16の訴求軸から、直近使ったものを避けて選ぶ（appeals.py）。
     if ctx.affiliate_url and ctx.items:
         benefit = benefit_for(ctx.item.display_name(60))
         cursor = _variation_cursor(ctx)
-        if benefit is not None and cursor % 5 != 4:
-            hook = pain_hook(benefit, cursor=cursor)
-            if hook:
-                rendered.part_ids["pain_hook"] = benefit.id
-                return hook
+        built = build_appeal(
+            ctx.item, benefit, ctx.category,
+            cursor=cursor,
+            avoid=set(ctx.recent_appeals),
+        )
+        if built is not None:
+            text, appeal_id, allowed = built
+            rendered.part_ids["appeal"] = appeal_id
+            rendered.allowed_numbers |= allowed
+            return text
 
     pool = RECOMMEND_OPENINGS if ctx.affiliate_url else PRODUCT_OPENINGS
     group = "recommend_opening" if ctx.affiliate_url else "opening"
@@ -297,7 +346,10 @@ def render_objective(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     opening_text = _lead_opening(ctx, r)
 
-    _split_for_thread(ctx, r, [opening_text, _tips_stage(ctx)])
+    _split_for_thread(ctx, r, [
+        opening_text,
+        _tips_stage_unless_duplicated(ctx, opening_text),
+    ])
     return r
 
 def render_short(ctx: RenderContext) -> Rendered:
@@ -338,9 +390,12 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
     読み手が自分ごとにできる入り口。
     """
     r = Rendered(blocks=[])
+    # 訴求軸を通す。concern（「〜な人が多い」）は一般論で、
+    # 自分ごとにならずクリックの理由にならない。
+    lead = _lead_opening(ctx, r)
     _split_for_thread(ctx, r, [
-        _concern_stage(ctx),
-        _tips_stage(ctx),
+        lead,
+        _tips_stage_unless_duplicated(ctx, lead),
     ])
     return r
 
@@ -428,7 +483,7 @@ def render_thread(ctx: RenderContext) -> Rendered:
 
     _split_for_thread(ctx, r, [
         lead,
-        _tips_stage(ctx),
+        _tips_stage_unless_duplicated(ctx, lead),
     ])
     return r
 

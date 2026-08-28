@@ -138,31 +138,105 @@ def test_specific_forms_win_over_generic_cream(name, expected):
 # ======================================================================
 # 実際の投稿
 # ======================================================================
-def test_link_posts_mostly_lead_with_a_pain():
-    """リンク投稿の大半が悩みから始まること。"""
+def test_link_posts_use_varied_appeals():
+    """リンク投稿の書き出しが、複数の訴求軸に散っていること。
+
+    悩み型だけに寄せると、結局また同じ形になる。
+    人がクリックする理由は一つではない。
+    """
     builder = _builder()
     names = ["化粧水 200mL", "シャンプー 詰め替え", "ヘアオイル", "クレンジングジェル",
              "ハンドクリーム", "日焼け止め SPF50", "トリートメント", "リップクリーム",
              "ボディクリーム", "美容液 30mL"]
-    used = 0
+    used: list[str] = []
     for tid in ("objective", "thread", "short"):
         for i, name in enumerate(names):
             item = make_item(item_code=f"{tid}:{i}", item_name=name, shop_code=f"s{i}")
             draft = builder.build("product", [item], template_id=tid)
             builder.state.record_part_ids(draft.part_ids)
-            if "pain_hook" in draft.part_ids:
-                used += 1
-    total = len(names) * 3
-    assert used / total >= 0.55, f"悩み型が {used}/{total} 本しかない"
+            if "appeal" in draft.part_ids:
+                used.append(draft.part_ids["appeal"])
+
+    assert len(used) >= len(names) * 2, f"訴求型が {len(used)} 本しか出ていない"
+    assert len(set(used)) >= 6, f"軸が {len(set(used))} 種類しか使われていない: {set(used)}"
 
 
-def test_some_posts_still_use_the_other_shape():
-    """全部を悩み型にしないこと。それはそれで型になる。"""
+def test_no_single_appeal_dominates():
+    """ひとつの軸に偏らないこと。
+
+    材料の揃いやすい軸ばかりが出ると、それはそれで型になる。
+    """
+    from collections import Counter
+
     builder = _builder()
-    shapes = set()
-    for i in range(20):
+    used = []
+    for i in range(30):
         item = make_item(item_code=f"v:{i}", item_name="化粧水 200mL", shop_code=f"s{i}")
         draft = builder.build("product", [item], template_id="objective")
         builder.state.record_part_ids(draft.part_ids)
-        shapes.add("pain" if "pain_hook" in draft.part_ids else "other")
-    assert shapes == {"pain", "other"}, f"型が {shapes} しか出ていない"
+        if "appeal" in draft.part_ids:
+            used.append(draft.part_ids["appeal"])
+
+    counts = Counter(used)
+    top, n = counts.most_common(1)[0]
+    assert n / len(used) <= 0.45, f"「{top}」が {n}/{len(used)} 本を占めている"
+
+
+# ======================================================================
+# 剤形が分からない商品
+# ======================================================================
+def test_unknown_form_does_not_borrow_another_forms_claim():
+    """剤形が判定できない商品に、無関係な効能を付けないこと。
+
+    以前は benefit_by_cursor で適当な剤形を引いていたため、
+    メイクブラシの投稿に「体を洗うものなので香りの強さが…」と出ていた。
+    読む人に意味が通らないうえ、その剤形に許された効能を
+    別の商品に付けることになる。
+    """
+    from src.content.benefits import BENEFITS, benefit_for
+
+    builder = _builder()
+    item = make_item(item_name="【11種類】メイクブラシ アイライナーブラシ セット")
+    assert benefit_for(item.display_name(60)) is None, "この商品は剤形不明であること"
+
+    draft = builder.build("product", [item], template_id="objective")
+    body = "\n".join(draft.segments)
+    for benefit in BENEFITS:
+        assert benefit.line not in body, (
+            f"剤形不明なのに {benefit.id} の効能が出ている:\n{body}"
+        )
+
+
+def test_unknown_form_still_gets_a_tips_block():
+    """効能に触れないだけで、箇条書き自体は出すこと。空にしない。"""
+    from src.content.templates import GENERIC_TIPS
+
+    builder = _builder()
+    item = make_item(item_name="メイクブラシ セット")
+    draft = builder.build("product", [item], template_id="objective")
+    body = "\n".join(draft.segments)
+    assert any(tip in body for tip in GENERIC_TIPS), body
+
+
+# ======================================================================
+# 箇条書きの重複
+# ======================================================================
+def test_bullets_are_not_listed_twice():
+    """訴求文が箇条書きを持つとき、tips 段を重ねないこと。
+
+    「省力化」「チェック・診断」「ランキング」の軸は本文に箇条書きを含む。
+    そこへ tips 段を重ねると、同じ項目が二度並ぶ。
+    """
+    builder = _builder()
+    for i in range(25):
+        item = make_item(item_code=f"d:{i}", item_name="化粧水 200mL",
+                         shop_code=f"s{i}", item_price=1500)
+        draft = builder.build("product", [item], template_id="objective")
+        builder.state.record_part_ids(draft.part_ids)
+        for segment in draft.segments:
+            lines = [ln for ln in segment.split("\n") if ln.startswith("・")]
+            assert len(lines) == len(set(lines)), f"同じ項目が並んでいる:\n{segment}"
+        # 前振り全体でも重複しない
+        bullets = [ln for seg in draft.segments[:-1]
+                   for ln in seg.split("\n") if ln.startswith("・")]
+        assert len(bullets) == len(set(bullets)), f"箇条書きが重複:\n{draft.text}"

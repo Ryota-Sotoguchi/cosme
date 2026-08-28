@@ -234,6 +234,9 @@ class ContentBuilder:
             time_band=time_band_for(slot),
             brand_hint=brand_hint,
             day_tags=day_tags_for(today or datetime.now(JST).date()),
+            # 直近5本で使った訴求軸は避ける。
+            # 避けないと、材料の揃いやすい軸ばかりが出る。
+            recent_appeals=tuple(self.state.recent_part_ids("appeal", limit=5)),
         )
 
         rendered = template.render(ctx)
