@@ -41,6 +41,10 @@
       "brand",
       "brand",
       "brand",
+      "brand",
+      "brand",
+      "brand",
+      "brand",
       "brand"
     ],
     "closing": [
@@ -143,7 +147,7 @@
     "late": 2,
     "midmorning": 4,
     "morning": 1,
-    "predinner": 3
+    "predinner": 4
   },
   "template_history": [
     "band_focus",
