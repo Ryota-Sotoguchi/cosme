@@ -129,7 +129,8 @@
       "nl_minimal",
       "nl_expiry",
       "nl_bundle_postage",
-      "nl_category_budget"
+      "nl_category_budget",
+      "nl_hair_tools"
     ],
     "topic_thread": [
       "tt_cheap_vs_value"
@@ -144,7 +145,6 @@
     "predinner": 3
   },
   "template_history": [
-    "howto",
     "casual",
     "band_focus",
     "question",
@@ -163,6 +163,7 @@
     "question",
     "question",
     "thread",
+    "topic",
     "topic"
   ],
   "threads_token": {
