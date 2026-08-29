@@ -37,6 +37,10 @@
       "brand",
       "brand",
       "brand",
+      "brand",
+      "brand",
+      "brand",
+      "brand",
       "brand"
     ],
     "closing": [
@@ -135,7 +139,7 @@
     "afternoon": 3,
     "evening": 3,
     "late": 2,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 1,
     "predinner": 3
   },
