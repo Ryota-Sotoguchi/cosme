@@ -135,7 +135,8 @@
       "nl_expiry",
       "nl_bundle_postage",
       "nl_category_budget",
-      "nl_hair_tools"
+      "nl_hair_tools",
+      "nl_price_history"
     ],
     "topic_thread": [
       "tt_cheap_vs_value"
@@ -143,14 +144,13 @@
   },
   "rotation_cursor": {
     "afternoon": 4,
-    "evening": 3,
+    "evening": 4,
     "late": 2,
     "midmorning": 4,
     "morning": 1,
     "predinner": 4
   },
   "template_history": [
-    "band_focus",
     "question",
     "casual",
     "topic_thread",
@@ -169,7 +169,8 @@
     "thread",
     "topic",
     "topic",
-    "question"
+    "question",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
