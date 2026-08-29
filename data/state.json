@@ -6,7 +6,8 @@
   "part_history": {
     "appeal": [
       "surprise",
-      "self_relevant"
+      "self_relevant",
+      "checklist"
     ],
     "casual": [
       "cm_humid",
@@ -70,7 +71,8 @@
       "cta_later",
       "cta_decide",
       "cta_leave",
-      "cta_check"
+      "cta_check",
+      "cta_reviews_many"
     ],
     "disclaimer": [
       "dc_point",
@@ -151,7 +153,6 @@
     "predinner": 4
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "topic",
@@ -170,7 +171,8 @@
     "topic",
     "topic",
     "question",
-    "topic"
+    "topic",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
