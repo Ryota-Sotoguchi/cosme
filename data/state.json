@@ -143,7 +143,9 @@
       "nl_hair_tools",
       "nl_price_history",
       "nl_gift",
-      "nl_organize"
+      "nl_organize",
+      "nl_lowest_price",
+      "nl_swatch"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -157,10 +159,9 @@
     "late": 3,
     "midmorning": 5,
     "morning": 2,
-    "predinner": 4
+    "predinner": 5
   },
   "template_history": [
-    "question",
     "checklist",
     "casual",
     "casual",
@@ -179,7 +180,8 @@
     "topic_thread",
     "topic",
     "checklist",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
