@@ -139,7 +139,8 @@
       "nl_category_budget",
       "nl_hair_tools",
       "nl_price_history",
-      "nl_gift"
+      "nl_gift",
+      "nl_organize"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -150,12 +151,11 @@
     "afternoon": 4,
     "evening": 4,
     "late": 3,
-    "midmorning": 4,
+    "midmorning": 5,
     "morning": 2,
     "predinner": 4
   },
   "template_history": [
-    "topic",
     "topic",
     "question",
     "question",
@@ -174,7 +174,8 @@
     "topic",
     "band_focus",
     "topic",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
