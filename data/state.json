@@ -142,7 +142,8 @@
       "nl_gift"
     ],
     "topic_thread": [
-      "tt_cheap_vs_value"
+      "tt_cheap_vs_value",
+      "tt_cheapest_trap"
     ]
   },
   "rotation_cursor": {
@@ -150,11 +151,10 @@
     "evening": 4,
     "late": 3,
     "midmorning": 4,
-    "morning": 1,
+    "morning": 2,
     "predinner": 4
   },
   "template_history": [
-    "topic_thread",
     "topic",
     "topic",
     "question",
@@ -173,7 +173,8 @@
     "question",
     "topic",
     "band_focus",
-    "topic"
+    "topic",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
