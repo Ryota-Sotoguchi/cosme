@@ -47,6 +47,10 @@
       "brand",
       "brand",
       "brand",
+      "brand",
+      "brand",
+      "brand",
+      "brand",
       "brand"
     ],
     "closing": [
@@ -155,7 +159,7 @@
   },
   "rotation_cursor": {
     "afternoon": 5,
-    "evening": 4,
+    "evening": 5,
     "late": 3,
     "midmorning": 5,
     "morning": 2,
