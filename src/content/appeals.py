@@ -62,6 +62,8 @@ class AppealContext:
     cursor: int
     # 数値を本文に出したときは、ここに入れてデータ整合性チェックを通す
     allowed_numbers: set[str]
+    # 実際に使った人の声（使用感だけ）。無ければ空。
+    voices: tuple[str, ...] = ()
 
     def pick(self, options: tuple[str, ...]) -> str:
         return options[self.cursor % len(options)]
@@ -69,6 +71,11 @@ class AppealContext:
     @property
     def pain(self) -> str:
         return self.benefit.pain if self.benefit else ""
+
+    @property
+    def voice(self) -> str:
+        from .voices import voice_phrase
+        return voice_phrase(self.voices, cursor=self.cursor)
 
     @property
     def future(self) -> str:
@@ -356,6 +363,39 @@ def _future_effortless(c: AppealContext) -> str | None:
     ))
 
 
+# ======================================================================
+# 18. 使った人の声
+# ======================================================================
+def _voices(c: AppealContext) -> str | None:
+    """実際に使った人が何を言っているか。
+
+    **使用感だけ。** 効能に触れたレビューは voices.py の時点で
+    集計から外してある。薬機法で、体験談を効能効果の証明に
+    使うことはできないため。
+
+    本文は転載せず、語の出現傾向だけを出す。
+    """
+    if not c.voice:
+        return None
+    return c.pick((
+        f"レビューで多かったのは{c.voice}",
+        f"使った人が言ってるのは{c.voice}のあたり",
+        f"{c.voice}。レビューでよく出てくる言葉",
+    ))
+
+
+# ======================================================================
+# 19. 悩み × 使った人の声
+# ======================================================================
+def _pain_with_voices(c: AppealContext) -> str | None:
+    if not (c.pain and c.voice):
+        return None
+    return c.pick((
+        f"{c.pain}人へ。\n\nレビューで多かったのは{c.voice}",
+        f"{c.pain}。\n\n使った人は{c.voice}って言ってる",
+    ))
+
+
 APPEALS: tuple[Appeal, ...] = (
     Appeal("self_relevant", "自分ごと化", _self_relevant),
     Appeal("loss_aversion", "損失回避", _loss_aversion),
@@ -374,6 +414,8 @@ APPEALS: tuple[Appeal, ...] = (
     Appeal("negative", "ネガティブ訴求", _negative),
     Appeal("future", "未来イメージ", _future),
     Appeal("future_effortless", "未来×手間", _future_effortless),
+    Appeal("voices", "使った人の声", _voices),
+    Appeal("pain_voices", "悩み×声", _pain_with_voices),
 )
 
 
@@ -384,6 +426,7 @@ def build_appeal(
     *,
     cursor: int,
     avoid: set[str] | None = None,
+    voices: tuple[str, ...] = (),
 ) -> tuple[str, str, set[str]] | None:
     """訴求文をひとつ作る。(本文, 訴求ID, 許可する数値) を返す。
 
@@ -392,11 +435,22 @@ def build_appeal(
     """
     avoid = avoid or set()
     order = [APPEALS[(cursor + i) % len(APPEALS)] for i in range(len(APPEALS))]
+
+    # 実際に使った人の声があるなら、それを先に見る。
+    #
+    # 声は全商品では取れない（レビューが少ない・使用感に触れていない）。
+    # 取れた商品は少数なので、後回しにすると一度も出ない。
+    # 実測で、声の軸は19軸中17番目にあり一度も選ばれていなかった。
+    #
+    # ただし毎回ではなく3回に2回。声だけになると、それも型になる。
+    if voices and cursor % 3 != 2:
+        voiced = [a for a in order if a.id in ("pain_voices", "voices")]
+        order = voiced + [a for a in order if a not in voiced]
     for appeal in order:
         if appeal.id in avoid:
             continue
         ctx = AppealContext(item=item, benefit=benefit, category=category,
-                            cursor=cursor, allowed_numbers=set())
+                            cursor=cursor, allowed_numbers=set(), voices=voices)
         text = appeal.build(ctx)
         if text:
             return text, appeal.id, ctx.allowed_numbers

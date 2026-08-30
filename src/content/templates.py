@@ -91,6 +91,8 @@ class RenderContext:
     day_tags: tuple[str, ...] = ()
     # 直近に使った訴求軸。同じ軸が続かないように避ける。
     recent_appeals: tuple[str, ...] = ()
+    # 実際に使った人の声（使用感だけ）。商品ごとに違う。
+    voices: tuple[str, ...] = ()
 
     @property
     def item(self) -> RakutenItem:
@@ -263,6 +265,7 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
             ctx.item, benefit, ctx.category,
             cursor=cursor,
             avoid=set(ctx.recent_appeals),
+            voices=ctx.voices,
         )
         if built is not None:
             text, appeal_id, allowed = built

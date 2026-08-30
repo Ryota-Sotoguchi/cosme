@@ -12,10 +12,13 @@ import logging
 from datetime import date, datetime, timedelta, timezone
 from dataclasses import dataclass, field
 
+from pathlib import Path
+
 from ..rakuten.models import RakutenItem
 from ..storage.state import State
 from . import facts as F
 from .parts import Part, day_tags_for, time_band_for
+from .voices import load_voices
 from .templates import Block, RenderContext, Template, templates_for
 
 logger = logging.getLogger(__name__)
@@ -64,10 +67,13 @@ class Draft:
 
 
 class ContentBuilder:
-    def __init__(self, state: State, *, max_length: int = 500) -> None:
+    def __init__(self, state: State, *, max_length: int = 500,
+                 voices_path: "Path | None" = None) -> None:
         self.state = state
         self.max_length = max_length
         self._used_this_draft: dict[str, str] = {}
+        self.voices_path = voices_path or Path("data/voices.json")
+        self._voice_store: dict[str, tuple[str, ...]] | None = None
 
     # ------------------------------------------------------------------
     def _pick(
@@ -129,6 +135,18 @@ class ContentBuilder:
         chosen = candidates[cursor % len(candidates)]
         self._used_this_draft[group] = chosen.id
         return chosen
+
+    def _voices_for(self, item: RakutenItem | None) -> tuple[str, ...]:
+        """その商品について、実際に使った人が言っている使用感。
+
+        collect_reviews.py がためた結果を読む。
+        無ければ空を返す。**声が無くても投稿は成立する。**
+        """
+        if item is None or not item.item_code:
+            return ()
+        if self._voice_store is None:
+            self._voice_store = load_voices(self.voices_path)
+        return self._voice_store.get(item.item_code, ())
 
     # ------------------------------------------------------------------
     def _assemble(self, blocks: list[Block], affiliate_url: str | None) -> str:
@@ -237,6 +255,7 @@ class ContentBuilder:
             # 直近5本で使った訴求軸は避ける。
             # 避けないと、材料の揃いやすい軸ばかりが出る。
             recent_appeals=tuple(self.state.recent_part_ids("appeal", limit=5)),
+            voices=self._voices_for(primary),
         )
 
         rendered = template.render(ctx)
