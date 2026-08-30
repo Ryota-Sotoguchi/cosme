@@ -147,11 +147,12 @@
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
-      "tt_cheapest_trap"
+      "tt_cheapest_trap",
+      "tt_too_many"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 4,
+    "afternoon": 5,
     "evening": 4,
     "late": 3,
     "midmorning": 5,
@@ -159,7 +160,6 @@
     "predinner": 4
   },
   "template_history": [
-    "question",
     "question",
     "checklist",
     "casual",
@@ -178,7 +178,8 @@
     "topic",
     "topic_thread",
     "topic",
-    "checklist"
+    "checklist",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
