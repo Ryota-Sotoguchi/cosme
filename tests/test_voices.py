@@ -86,13 +86,13 @@ def test_efficacy_reviews_produce_nothing(body):
 # ======================================================================
 def test_single_mention_is_not_counted():
     """1件しか言っていないものは「多かった」と書けない。"""
-    summary = extract_voices("x:1", ["しっとりする"])
+    summary = extract_voices("x:1", ["しっとり"])
     assert not summary.counts
 
 
 def test_two_mentions_are_enough():
     summary = extract_voices("x:1", ["しっとりする", "しっとりして良い"])
-    assert dict(summary.counts).get("しっとりする") == 2
+    assert dict(summary.counts).get("しっとり") == 2
 
 
 # ======================================================================
@@ -113,7 +113,7 @@ def test_phrase_has_no_counts():
     こちらの集計方法に依存する数字なので、
     「10人が言った」とは書けない。
     """
-    summary = extract_voices("x:1", ["しっとりする"] * 9)
+    summary = extract_voices("x:1", ["しっとり"] * 9)
     phrase = summary.phrase()
     assert not any(c.isdigit() for c in phrase), phrase
 
@@ -182,3 +182,91 @@ def test_generated_voice_appeals_pass_compliance():
                 assert text
                 assert not scan(text, has_link=True), f"{appeal.id}:\n  {text}"
                 assert not any(c.isdigit() for c in text), text
+
+
+# ======================================================================
+# 出典を投稿に出さないこと
+# ======================================================================
+# 「レビューで多かったのは」と毎回言うと、投稿が調査報告に見える。
+# 出典は投稿の中身ではないので出さない（根拠は data/voices.json に残る）。
+SOURCE_WORDS = ("レビュー", "口コミ", "クチコミ", "評価では", "使った人",
+                "みんな", "声が多い", "という声", "調べた", "集計")
+
+
+def test_posts_never_name_the_source():
+    """投稿に出典を書かないこと。"""
+    from src.content.appeals import APPEALS, AppealContext
+    from src.content.benefits import BENEFITS
+    from tests.conftest import make_item
+
+    voiced = [a for a in APPEALS if a.id in ("voices", "pain_voices")]
+    for appeal in voiced:
+        for benefit in BENEFITS:
+            for cursor in range(6):
+                ctx = AppealContext(
+                    item=make_item(), benefit=benefit, category="スキンケア",
+                    cursor=cursor, allowed_numbers=set(),
+                    voices=tuple(TEXTURE_WORDS),
+                )
+                text = appeal.build(ctx)
+                assert text
+                hits = [w for w in SOURCE_WORDS if w in text]
+                assert not hits, f"{appeal.id} が出典を書いている {hits}:\n  {text}"
+
+
+# ======================================================================
+# 出典を消しても、自分の体験にはしないこと
+# ======================================================================
+# 出典を消したうえで「さっぱりした」と書くと、こちらが使った話に読める。
+# このアカウントは商品を使っていない。
+#
+# 体験ではなく **商品の性質** として書く。
+#
+#   ×  さっぱりして良かった   使った話になる
+#   ○  さっぱりのタイプ       商品の性質。誰の体験でもない
+#   ○  さっぱりらしい         伝聞。自分の話ではない
+OWN_EXPERIENCE = ("してみた", "してみて", "した感じ", "でした", "だった",
+                  "良かった", "よかった", "気に入", "使ってる", "使った")
+
+
+def test_posts_do_not_read_as_our_own_experience():
+    from src.content.appeals import APPEALS, AppealContext
+    from src.content.benefits import BENEFITS
+    from tests.conftest import make_item
+
+    voiced = [a for a in APPEALS if a.id in ("voices", "pain_voices")]
+    for appeal in voiced:
+        for benefit in BENEFITS:
+            for cursor in range(6):
+                ctx = AppealContext(
+                    item=make_item(), benefit=benefit, category="スキンケア",
+                    cursor=cursor, allowed_numbers=set(),
+                    voices=tuple(TEXTURE_WORDS),
+                )
+                text = appeal.build(ctx)
+                hits = [w for w in OWN_EXPERIENCE if w in text]
+                assert not hits, (
+                    f"{appeal.id} が自分の体験に読める {hits}:\n  {text}"
+                )
+
+
+def test_voice_phrase_stays_single():
+    """1語だけにすること。
+
+    2語並べると「さっぱり、伸びがいいのタイプ」のように繋ぎが崩れる。
+    地の文に溶かす前提なので、列挙にしない。
+    """
+    words = ("さっぱり", "伸びがいい", "香りがいい")
+    for cursor in range(3):
+        phrase = voice_phrase(words, cursor=cursor)
+        assert "、" not in phrase, f"複数語が並んでいる: {phrase}"
+        assert phrase in words
+
+
+def test_labels_connect_to_a_noun():
+    """ラベルが連体形であること。
+
+    「さっぱりする」だと「さっぱりするのタイプ」になって崩れる。
+    """
+    for label in TEXTURE_WORDS:
+        assert not label.endswith("する"), f"{label} が連体形になっていない"

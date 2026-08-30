@@ -35,12 +35,14 @@ from pathlib import Path
 #
 # key   … 投稿に出す言い方
 # value … レビュー本文で探す表記ゆれ
+# ラベルは **連体形**（「〜な」「〜の」で名詞に繋がる形）にする。
+# 「さっぱりする」だと「さっぱりするで伸びがいい」のように繋がらない。
 TEXTURE_WORDS: dict[str, tuple[str, ...]] = {
     "伸びがいい": ("伸びが良", "伸びがい", "のびが良", "のびがい", "伸びやすい"),
     "べたつかない": ("べたつかな", "ベタつかな", "べたべたしな", "ベタベタしな",
                   "さらっと", "サラッと", "さらさら"),
-    "しっとりする": ("しっとり",),
-    "さっぱりする": ("さっぱり", "サッパリ"),
+    "しっとり": ("しっとり",),
+    "さっぱり": ("さっぱり", "サッパリ"),
     "とろみがある": ("とろみ", "とろっと"),
     "軽いつけ心地": ("軽いつけ", "軽い付け", "重くない", "軽くて"),
     "香りがいい": ("香りが良", "香りがい", "いい香り", "良い香り"),
@@ -48,7 +50,7 @@ TEXTURE_WORDS: dict[str, tuple[str, ...]] = {
     "泡立ちがいい": ("泡立ちが良", "泡立ちがい", "よく泡立"),
     "少量で足りる": ("少量で", "ちょっとで", "少しで足"),
     "落としやすい": ("落としやす", "落ちやす", "するっと落"),
-    "使いやすい容器": ("使いやす", "出しやす", "ポンプが", "詰め替えやす"),
+    "容器が使いやすい": ("使いやす", "出しやす", "ポンプが", "詰め替えやす"),
     "刺激が少ない": ("刺激が少な", "ひりひりしな", "痛くな"),
 }
 
@@ -143,8 +145,12 @@ def load_voices(path: "Path") -> dict[str, tuple[str, ...]]:
     }
 
 
-def voice_phrase(voices: tuple[str, ...], *, cursor: int = 0, limit: int = 2) -> str:
-    """投稿に出す一文。
+def voice_phrase(voices: tuple[str, ...], *, cursor: int = 0, limit: int = 1) -> str:
+    """投稿に出す言い方。
+
+    **1語だけにする。** 2語並べると「さっぱり、伸びがいいのタイプ」の
+    ように繋ぎが不自然になる。地の文に溶かす前提なので、
+    列挙ではなく一つの性質として置く。
 
     件数は出さない。こちらの集計方法に依存する数字なので、
     「何人が言った」とは書けない。
@@ -152,5 +158,9 @@ def voice_phrase(voices: tuple[str, ...], *, cursor: int = 0, limit: int = 2) ->
     if not voices:
         return ""
     start = cursor % len(voices)
-    picked = [voices[(start + i) % len(voices)] for i in range(min(limit, len(voices)))]
-    return "「" + "」「".join(dict.fromkeys(picked)) + "」"
+    picked = list(dict.fromkeys(
+        voices[(start + i) % len(voices)] for i in range(min(limit, len(voices)))
+    ))
+    # 鉤括弧で括ると「引用してます」という顔になる。
+    # 出典を出さない方針なので、地の文に混ぜる。
+    return "、".join(picked)
