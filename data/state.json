@@ -8,7 +8,8 @@
       "surprise",
       "self_relevant",
       "checklist",
-      "negative"
+      "negative",
+      "ranking"
     ],
     "casual": [
       "cm_humid",
@@ -78,7 +79,8 @@
       "cta_leave",
       "cta_check",
       "cta_reviews_many",
-      "cta_compare"
+      "cta_compare",
+      "cta_look"
     ],
     "disclaimer": [
       "dc_point",
@@ -166,7 +168,6 @@
     "predinner": 5
   },
   "template_history": [
-    "checklist",
     "casual",
     "casual",
     "band_focus",
@@ -185,7 +186,8 @@
     "topic",
     "checklist",
     "topic_thread",
-    "topic"
+    "topic",
+    "objective"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
