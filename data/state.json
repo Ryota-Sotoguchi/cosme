@@ -80,12 +80,14 @@
       "cta_check",
       "cta_reviews_many",
       "cta_compare",
-      "cta_look"
+      "cta_look",
+      "cta_price"
     ],
     "disclaimer": [
       "dc_point",
       "dc_change",
-      "dc_time"
+      "dc_time",
+      "dc_check"
     ],
     "fact_intro": [
       "fi_plain",
@@ -120,6 +122,12 @@
     "recommend_opening": [
       "ro_forwho",
       "ro_decide"
+    ],
+    "roundup_closing": [
+      "rc_undecided"
+    ],
+    "roundup_review_heavy": [
+      "ru_rev_1"
     ],
     "thread_bridge": [
       "br_found"
@@ -162,13 +170,12 @@
   "rotation_cursor": {
     "afternoon": 5,
     "evening": 5,
-    "late": 3,
+    "late": 4,
     "midmorning": 5,
     "morning": 2,
     "predinner": 5
   },
   "template_history": [
-    "casual",
     "casual",
     "band_focus",
     "objective",
@@ -187,7 +194,8 @@
     "checklist",
     "topic_thread",
     "topic",
-    "objective"
+    "objective",
+    "review_heavy"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
