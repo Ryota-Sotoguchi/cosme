@@ -598,12 +598,45 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
 # ======================================================================
 # つぶやき投稿
 # ======================================================================
-def test_casual_posts_appear_in_rotation(config, tmp_path):
-    """役に立つ話だけにならないよう、つぶやきが混ざること。"""
+def test_casual_posts_dominate_the_rotation(config, tmp_path):
+    """つぶやきが主役であること。
+
+    2026-08-31 に実績で組み替えた。
+
+      型            表示中央値  反応率
+      casual            320     0.23%   ← 表示がいちばん伸びる
+      thread_topic      190     0.93%   ← 反応率がいちばん高い
+      question          114     0.81%
+      no_link           132     0.19%   ← いちばん多く出していたのに割に合わない
+      howto              62     0.00%   ← 表示も反応も最下位
+
+    no_link と howto を削って、上の3つに寄せた。
+    """
     pipeline = make_pipeline(config, tmp_path)
-    seen = [pipeline.resolve_post_type("morning") for _ in range(7)]
+    seen = [pipeline.resolve_post_type("morning") for _ in range(8)]
     assert "casual" in seen
-    assert "no_link" in seen
+    assert "thread_topic" in seen
+    assert "question" in seen
+    assert seen.count("casual") >= 3, f"つぶやきが少ない: {seen}"
+
+
+def test_low_performing_types_are_rare(config):
+    """割に合わない型を出しすぎないこと。
+
+    no_link は22件出して表示中央値132・反応率0.19%だった。
+    howto は4件で表示62・反応ゼロ。
+    """
+    from collections import Counter
+
+    total = Counter()
+    for options in config.rotation.values():
+        total.update(options)
+    no_link_types = sum(total[t] for t in
+                        ("casual", "question", "thread_topic", "no_link", "howto"))
+    weak = total["no_link"] + total["howto"]
+    assert weak / no_link_types <= 0.15, (
+        f"割に合わない型が {weak}/{no_link_types} 枠を占めている"
+    )
 
 
 def test_casual_post_has_no_product_and_no_link(config, tmp_path):
@@ -750,3 +783,109 @@ def test_link_posts_hide_volume_numbers(config, tmp_path):
     assert "300" not in draft.segments[-1]
     assert "mL" not in draft.segments[-1]
     assert "サロンプレミアム" in draft.segments[-1]
+
+
+def _seed_brand_murmur_source(pipeline):
+    """商品由来のつぶやきを作れる投稿を1件、履歴に置く。"""
+    pipeline.history.append(
+        PostRecord(
+            posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+            slot="noon", post_type="product", template_id="objective",
+            status="success", has_affiliate_link=True,
+            text="#PR 過去の商品投稿",
+            item_name="【公式】テストブランド ヘアトリートメント 180g 【 無添加 詰め替え 大容量 】",
+        )
+    )
+    pipeline.history._records = None
+
+
+def test_brand_murmur_falls_back_when_it_keeps_failing(config, tmp_path):
+    """商品由来のつぶやきが弾かれたら、通常のつぶやきに戻ること。
+
+    2026-08-31 に発覚した実害。_brand_hint が毎回まったく同じ1本を返し、
+    再生成4回すべてが類似度1.00で弾かれ、リンクなし枠が丸ごと落ちていた。
+    プレビューでは10枠中4枠が「生成できませんでした」になっていた。
+    """
+    pipeline = make_pipeline(config, tmp_path)
+    _seed_brand_murmur_source(pipeline)
+
+    # 商品由来のつぶやきをそのまま履歴に入れて、必ず類似で弾かれる状態にする
+    hint = pipeline._brand_hint("casual", 0)
+    assert hint, "商品由来のつぶやきが作れていない（テストの前提が壊れている）"
+    pipeline.history.append(
+        PostRecord(
+            posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+            slot="evening", post_type="casual", template_id="casual",
+            status="success", text=hint, has_affiliate_link=False,
+        )
+    )
+    pipeline.history._records = None
+
+    result = pipeline.run("evening")
+    assert result.check.passed, "商品由来が弾かれた時点で枠ごと落ちている"
+    assert result.draft.text.strip() != hint
+
+
+def test_brand_hint_advances_with_each_attempt(config, tmp_path):
+    """再試行のたびに別の文になること（同じなら再生成の意味が無い）。"""
+    pipeline = make_pipeline(config, tmp_path)
+    _seed_brand_murmur_source(pipeline)
+    seen = [pipeline._brand_hint("casual", i) for i in range(3)]
+    used = [h for h in seen if h]
+    assert len(used) == len(set(used)), f"同じつぶやきを繰り返している: {seen}"
+    # 出し尽くしたら空を返し、通常のつぶやきに譲ること
+    assert pipeline._brand_hint("casual", 50) == ""
+
+
+def test_similarity_window_covers_two_weeks(config):
+    """類似度の射程が「日数」として2週間を下回らないこと。
+
+    similarity_window は件数指定なので、枠を増やすと射程の日数が縮む。
+    実際 60件は1日5本の頃は12日ぶんだったが、10本にした時点で6日ぶんになり、
+    14日通しで9件の完全重複が出た。枠数と対応づけて見張る。
+    """
+    window = int(config.dedup["similarity_window"])
+    per_day = len(config.schedule)
+    assert window >= per_day * 14, (
+        f"{window}件では1日{per_day}本で {window / per_day:.0f}日ぶんしかない"
+    )
+
+
+def test_no_link_falls_back_to_another_type(config):
+    """在庫が尽きた型は、別の型に逃がされること。"""
+    from src.pipeline import Pipeline
+
+    order = Pipeline._no_link_fallbacks("thread_topic")
+    assert order[0] == "thread_topic", "まず本来の型を試すこと"
+    assert set(order) == {"casual", "no_link", "question", "thread_topic", "howto"}
+    assert len(order) == len(set(order))
+    # 反応ゼロだった型を逃がし先として増やさない
+    assert order[-1] == "howto"
+    assert order[1] == "casual", "在庫が最も厚い型に逃がすこと"
+
+
+def test_exhausted_pool_never_loses_the_slot(config, tmp_path):
+    """在庫を全部使った状態でも、枠を落とさず何か出すこと。
+
+    thread_topic は18本しか無い。1日10枠 × 14日で使い切る。
+    ここが落ちると、その時間の投稿が丸ごと消える。
+    """
+    from src.content.parts import THREAD_TOPICS
+
+    pipeline = make_pipeline(config, tmp_path)
+    # スレッド用の話題を全部「投稿済み」にする
+    for i, part in enumerate(THREAD_TOPICS):
+        pipeline.history.append(
+            PostRecord(
+                posted_at=datetime.now(JST).isoformat(timespec="seconds"),
+                slot="late", post_type="thread_topic", template_id="thread",
+                status="success", text=part.text, has_affiliate_link=False,
+            )
+        )
+    pipeline.history._records = None
+
+    result = pipeline._run_no_link(
+        pipeline.history.recent_texts(500), post_type="thread_topic", slot="evening"
+    )
+    assert result.check.passed
+    assert result.draft.text.strip()

@@ -197,7 +197,13 @@ item_cooldown_days = 30
 # 同一ショップの再登場を避ける日数
 shop_cooldown_days = 3
 # 直近何件の本文と類似度比較するか
-similarity_window = 60
+#
+# 「件数」なので、1日の投稿数を増やすと射程の日数が縮む。
+# 60件は1日5本の頃は12日ぶんだったが、10本にした時点で6日ぶんになり、
+# 実際に7日あけて同じつぶやきが再登場した（14日通しで9件）。
+# 10本/日 × 14日 = 140。2週間は同じ文を出さない。
+# test_similarity_window_covers_two_weeks が枠数との対応を見張る。
+similarity_window = 140
 # 類似度がこれを超えたら不合格（0.0-1.0）
 max_similarity = 0.72
 # 同一テンプレートの連続使用禁止回数
@@ -218,6 +224,13 @@ allow_affiliate = false
 slot = "midmorning"
 time_jst = "09:30"
 cron_utc = "30 0 * * *"
+post_type = "rotation"
+allow_affiliate = false
+
+[[schedule]]
+slot = "latemorning"
+time_jst = "11:00"
+cron_utc = "0 2 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
@@ -252,6 +265,13 @@ post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
+slot = "earlynight"
+time_jst = "19:00"
+cron_utc = "0 10 * * *"
+post_type = "rotation"
+allow_affiliate = false
+
+[[schedule]]
 slot = "night"
 time_jst = "20:30"
 cron_utc = "30 11 * * *"
@@ -278,12 +298,23 @@ allow_affiliate = true
 # 人がふだんThreadsに書くのは結論のない一行や答えのない疑問なので、
 # casual と question を主役にして、整った型は少数派にする。
 [rotation]
+# 2026-08-31: 実績で組み替えた。
+#
+#   型            件数  表示中央値  反応率
+#   casual          6      320     0.23%   ← 表示がいちばん伸びる
+#   thread_topic    3      190     0.93%   ← 反応率がいちばん高い
+#   question        6      114     0.81%
+#   no_link        22      132     0.19%   ← いちばん多く出していたのに割に合わない
+#   howto           4       62     0.00%   ← 表示も反応も最下位
+#
+# no_link と howto を削って、casual / thread_topic / question に寄せた。
+# howto は完全には消さない（箇条書きが効く商品もあるので、朝に1枠だけ残す）。
 morning = [
     "casual",
     "thread_topic",
     "question",
-    "no_link",
     "casual",
+    "thread_topic",
     "howto",
     "question",
     "casual",
@@ -292,26 +323,35 @@ midmorning = [
     "casual",
     "question",
     "casual",
-    "casual",
-    "no_link",
+    "thread_topic",
     "casual",
     "question",
+    "casual",
 ]
-afternoon = [
+latemorning = [
+    "casual",
+    "thread_topic",
     "question",
     "casual",
     "casual",
     "question",
     "thread_topic",
-    "casual",
+]
+afternoon = [
     "question",
+    "casual",
+    "casual",
+    "thread_topic",
+    "question",
+    "casual",
+    "no_link",
 ]
 predinner = [
     "casual",
     "casual",
     "question",
+    "thread_topic",
     "casual",
-    "no_link",
     "question",
     "casual",
 ]
@@ -319,10 +359,19 @@ evening = [
     "thread_topic",
     "casual",
     "question",
+    "casual",
+    "thread_topic",
+    "casual",
     "no_link",
+]
+earlynight = [
     "casual",
-    "howto",
+    "question",
+    "thread_topic",
     "casual",
+    "casual",
+    "thread_topic",
+    "question",
 ]
 late = [
     "product",        # 商品紹介
@@ -345,9 +394,9 @@ enabled = true
 # 積み上がって1日18件投稿し、MetaにAPIアクセスをブロックされた。
 # 種別も実行トリガーも問わず、ここで頭打ちにする。
 #
-# 通常投稿の枠を増やしたので 7 → 10 に上げた。**上限自体は外さない。**
+# 通常投稿の枠を増やしたので 7 → 10 → 12 に上げた。**上限自体は外さない。**
 # ここが無いと、手動実行が積み上がったときに同じ事故が起きる。
-max_posts_per_day = 10
+max_posts_per_day = 12
 # 運用開始からの日数 -> その日に許可するアフィリエイトリンク投稿の最大本数
 # キーは「この日数まで」
 stages = [

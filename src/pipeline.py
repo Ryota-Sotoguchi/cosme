@@ -141,7 +141,7 @@ class Pipeline:
 
     # ------------------------------------------------------------------
 
-    def _brand_hint(self, post_type: str) -> str:
+    def _brand_hint(self, post_type: str, attempt: int = 0) -> str:
         """過去に投稿した商品から、つぶやきを1本作る。作れなければ空。
 
         ## なぜ過去の商品を使うのか
@@ -156,6 +156,16 @@ class Pipeline:
 
         使っていないので、評価も感想も書けない。
         ブランド名が取れないときは黙る（「メール便」を出さない）。
+
+        ## attempt
+
+        類似で弾かれたときは、別の商品から作り直す。
+
+        ここが固定だと再生成が意味を持たない。実際、同じ1本を4回出して
+        4回とも類似度1.00で弾かれ、枠ごと落ちていた（プレビューで発覚）。
+        作れる文を全部並べておいて、attempt で先へ進める。
+
+        尽きたら空を返す。呼び出し側が通常のつぶやきに戻す。
         """
         if post_type != "casual":
             return ""
@@ -165,15 +175,26 @@ class Pipeline:
         recent = self.history.recent(30)
         # 直近ほど新しいので、後ろから見る
         cursor = len(self.history.recent_texts(10_000))
-        for record in reversed(recent):
-            if not record.item_name:
-                continue
-            item = RakutenItem.from_history_name(record.item_name)
-            hint = murmur_for(item, cursor=cursor)
-            if hint:
-                logger.info("実在商品からつぶやきを作りました: %s", hint)
-                return hint
-        return ""
+        items = [
+            RakutenItem.from_history_name(r.item_name)
+            for r in reversed(recent) if r.item_name
+        ]
+        # 商品が1つしか無い日もあるので、言い回しの違いも候補に数える
+        # （同じ商品でも「詰め替えあるんだ」「無添加って書いてある」は別物）
+        hints: list[str] = []
+        seen: set[str] = set()
+        for offset in range(4):
+            for item in items:
+                hint = murmur_for(item, cursor=cursor + offset)
+                if hint and hint not in seen:
+                    seen.add(hint)
+                    hints.append(hint)
+
+        if attempt >= len(hints):
+            # 商品由来のつぶやきは出し尽くした。通常のつぶやきに戻す。
+            return ""
+        logger.info("実在商品からつぶやきを作りました: %s", hints[attempt])
+        return hints[attempt]
 
     def _blocked(self) -> tuple[set[str], set[str]]:
         days = int(self.config.dedup.get("item_cooldown_days", 30))
@@ -410,21 +431,54 @@ class Pipeline:
     def _run_no_link(
         self, recent_texts: list[str], post_type: str = "no_link", slot: str = ""
     ) -> PipelineResult:
+        """リンクなし投稿を作る。型の在庫が尽きたら別の型に逃がす。
+
+        ## なぜ型を乗り換えるのか
+
+        thread_topic は18本しか無い。1日10枠で回すと14日で使い切る。
+        similarity_window を2週間ぶんに広げたので、使い切った型は
+        再生成を何度やっても類似で弾かれ続け、枠が丸ごと落ちる
+        （14日通しで5枠が消えた）。
+
+        1商品の問題で全体を止めないのと同じ理由で、
+        1つの型の在庫切れで枠を落とさない。つぶやきは141本あるので、
+        最後はそこへ落ちれば必ず何か出せる。
+        """
         max_regen = int(self.config.compliance.get("max_regenerations", 4))
         last_check: CheckResult | None = None
 
-        for attempt in range(1, max_regen + 1):
-            draft = self.builder.build(
-                post_type, [], with_affiliate_link=False, slot=slot,
-                brand_hint=self._brand_hint(post_type),
-                today=datetime.now(JST).date(),
-            )
-            check = self.checker.check(draft, recent_texts=recent_texts)
-            last_check = check
-            if check.passed:
-                return PipelineResult(draft=draft, check=check, attempts=attempt, skipped_items=0)
-            # トピックを次のものに進めるため、パーツ履歴を記録してから再試行する
-            self.builder.state.record_part_ids(draft.part_ids)
+        for candidate in self._no_link_fallbacks(post_type):
+            for attempt in range(1, max_regen + 1):
+                draft = self.builder.build(
+                    candidate, [], with_affiliate_link=False, slot=slot,
+                    brand_hint=self._brand_hint(candidate, attempt - 1),
+                    today=datetime.now(JST).date(),
+                )
+                check = self.checker.check(draft, recent_texts=recent_texts)
+                last_check = check
+                if check.passed:
+                    if candidate != post_type:
+                        logger.info(
+                            "%s の在庫が尽きたので %s に切り替えました", post_type, candidate
+                        )
+                    return PipelineResult(
+                        draft=draft, check=check, attempts=attempt, skipped_items=0
+                    )
+                # トピックを次のものに進めるため、パーツ履歴を記録してから再試行する
+                self.builder.state.record_part_ids(draft.part_ids)
 
         detail = last_check.summary() if last_check else "候補なし"
         raise ComplianceSkip(f"リンクなし投稿を生成できませんでした（{detail}）")
+
+    @staticmethod
+    def _no_link_fallbacks(post_type: str) -> list[str]:
+        """試す順番。在庫が厚く、反応も悪くないものから。
+
+          つぶやき141本 / トピック76本 / 質問25本 / スレッド18本 / ハウツー15本
+
+        howto を最後に置いているのは在庫が最少というだけでなく、
+        実績が4件で表示中央値62・反応ゼロだったから。
+        逃がし先として増やしていい型ではない。
+        """
+        order = ["casual", "no_link", "question", "thread_topic", "howto"]
+        return [post_type, *[t for t in order if t != post_type]]

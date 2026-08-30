@@ -48,8 +48,8 @@ def test_unknown_cron_raises_config_error(config):
         config.slot_for_cron("59 23 * * *")
 
 
-def test_eight_posts_per_day(config):
-    assert len(config.schedule) == 8
+def test_ten_posts_per_day(config):
+    assert len(config.schedule) == 10
 
 
 def test_most_slots_are_link_free(config):

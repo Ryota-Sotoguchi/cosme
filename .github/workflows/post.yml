@@ -4,10 +4,12 @@ name: post
 # timezone フィールドに依存せず、意味が一意に決まる方を選んだ。
 #   07:30 JST = 22:30 UTC (前日)  … morning     リンクなし
 #   09:30 JST = 00:30 UTC         … midmorning  リンクなし
+#   11:00 JST = 02:00 UTC         … latemorning リンクなし
 #   12:15 JST = 03:15 UTC         … noon        商品紹介【PR】
 #   14:30 JST = 05:30 UTC         … afternoon   リンクなし
 #   16:30 JST = 07:30 UTC         … predinner   リンクなし
 #   18:00 JST = 09:00 UTC         … evening     リンクなし
+#   19:00 JST = 10:00 UTC         … earlynight  リンクなし
 #   20:30 JST = 11:30 UTC         … night       商品紹介【PR】
 #   22:30 JST = 13:30 UTC         … late        ローテーション
 #
@@ -21,10 +23,12 @@ on:
   schedule:
     - cron: '30 22 * * *'
     - cron: '30 0 * * *'
+    - cron: '0 2 * * *'
     - cron: '15 3 * * *'
     - cron: '30 5 * * *'
     - cron: '30 7 * * *'
     - cron: '0 9 * * *'
+    - cron: '0 10 * * *'
     - cron: '30 11 * * *'
     - cron: '30 13 * * *'
   workflow_dispatch:
@@ -33,7 +37,8 @@ on:
         description: '投稿スロット'
         required: true
         type: choice
-        options: [morning, midmorning, noon, afternoon, predinner, evening, night, late]
+        options: [morning, midmorning, latemorning, noon, afternoon,
+                  predinner, evening, earlynight, night, late]
         default: morning
       dry_run:
         description: 'DRY_RUN（Threadsへは投稿しない）'

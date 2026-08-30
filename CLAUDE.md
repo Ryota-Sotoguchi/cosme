@@ -4,10 +4,8 @@
 
 ## このプロジェクトは何か
 
-楽天市場の商品を、価格・レビュー・送料などの**客観情報だけ**で紹介する
+楽天市場の商品を紹介し、アフェリエイトとして継続的な収益化をすることが目的。
 Threads アカウント「コスメ買い物メモ｜コスパ美容」の自動運用システム。
-
-GitHub Actions が 1日5回、Python プログラムを実行して投稿する。
 
 ## 最優先の前提
 
@@ -68,7 +66,7 @@ python -m src.main post --slot noon --dry-run
 ### 7. push 前に必ずテストする
 
 ```bash
-python -m pytest tests/ -q     # 145件
+python -m pytest tests/ -q     # 520件
 python -m src.main selftest    # 認証情報なしで生成〜検証の経路を確認
 ```
 
@@ -100,6 +98,8 @@ main.py → pipeline.py が全体を統括
 | `config.toml` の `[[schedule]]` | `.github/workflows/post.yml` の cron と**両方**直す。`test_schedule.py` が突き合わせる |
 | `rakuten/client.py` | 2026年の刷新で `accessKey` 必須・`Origin` 必須・ドメイン変更。記憶で書き換えない |
 | `storage/history.py` | `append()` の URL 秘匿化を外さない |
+| `config.toml` の `similarity_window` | **件数指定**なので、枠を増やすと射程の日数が縮む。`test_similarity_window_covers_two_weeks` が枠数 × 14日を要求する |
+| リンクなし投稿の型を増やす／減らす | `Pipeline._no_link_fallbacks()` の順番も見る。在庫が尽きた型はここを辿って別の型に逃げる |
 
 ## 公式仕様（記憶で判断せず、変更時は再確認すること）
 
