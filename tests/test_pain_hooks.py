@@ -240,3 +240,105 @@ def test_bullets_are_not_listed_twice():
         bullets = [ln for seg in draft.segments[:-1]
                    for ln in seg.split("\n") if ln.startswith("・")]
         assert len(bullets) == len(set(bullets)), f"箇条書きが重複:\n{draft.text}"
+
+
+# ======================================================================
+# 「使うとどうなるか」（future）
+# ======================================================================
+# 56項目は「化粧品で言ってよい効能のリスト」であり、
+# つまり**唯一許された「いい未来」**でもある。
+# それを辞書の文のまま使っていたので、何も伝わっていなかった。
+#
+#   role    毛髪にはり、こしを与えるもの      ← 定義
+#   future  ぺたんこの髪に、はりとこしが出る   ← 変化
+#
+# ただし範囲を超えると薬機法違反になる。ここで機械的に止める。
+
+# 56項目の外。持続性・治療・体質変化の主張。
+BEYOND_56 = (
+    # 持続性（56項目に時間の保証は無い）
+    "翌朝まで", "一日中", "朝まで", "何時間", "持続し", "キープし続け",
+    # 治療・改善
+    "治る", "治す", "改善", "解消", "なくなる", "消える", "無くなる",
+    "生まれ変わ", "再生",
+    # 体質・構造の変化
+    "肌質が変わ", "体質が変わ", "細胞", "真皮", "角質層を超え",
+    # 範囲外の部位・症状
+    "シミ", "シワ", "たるみ", "ニキビ", "毛穴", "くすみ", "肌荒れ",
+    # 程度の誇張
+    "劇的", "圧倒的", "別人", "見違え",
+)
+
+
+def test_futures_stay_within_the_permitted_claims():
+    """future が56項目を超えないこと。
+
+    ここを超えると薬機法違反になる。**この検査は緩めないこと。**
+    """
+    for benefit in BENEFITS:
+        hits = [w for w in BEYOND_56 if w in benefit.future]
+        assert not hits, (
+            f"{benefit.id} の future が56項目の外: {hits}\n"
+            f"  {benefit.future}\n"
+            f"  （この剤形で言えるのは「{benefit.role}」まで）"
+        )
+
+
+def test_every_form_has_a_future():
+    for benefit in BENEFITS:
+        assert benefit.future, f"{benefit.id} に future が無い"
+
+
+def test_futures_describe_a_change_not_a_definition():
+    """定義ではなく変化として書くこと。
+
+    「うるおいを与えるもの」は辞書の文で、何も伝わらない。
+    「乾いた肌に、うるおいが戻る」は変化なので伝わる。
+    """
+    for benefit in BENEFITS:
+        assert not benefit.future.endswith("もの"), (
+            f"{benefit.id} が定義のまま: {benefit.future}"
+        )
+        assert benefit.future != benefit.role
+
+
+def test_futures_pass_compliance():
+    for benefit in BENEFITS:
+        hits = scan(benefit.future, has_link=True)
+        assert not hits, f"{benefit.id}: {[h.label for h in hits]}\n  {benefit.future}"
+
+
+def test_generated_appeals_never_exceed_the_permitted_claims():
+    """組み上がった訴求文でも範囲を超えないこと。
+
+    future と pain を組み合わせたときに、思わぬ言い回しが
+    生まれていないかを見る。
+    """
+    from src.content.appeals import APPEALS, AppealContext
+
+    for benefit in BENEFITS:
+        for appeal in APPEALS:
+            for cursor in range(6):
+                ctx = AppealContext(
+                    item=make_item(item_price=1500), benefit=benefit,
+                    category="スキンケア", cursor=cursor, allowed_numbers=set(),
+                )
+                text = appeal.build(ctx)
+                if not text:
+                    continue
+                hits = [w for w in BEYOND_56 if w in text]
+                assert not hits, f"{appeal.id}/{benefit.id}: {hits}\n  {text}"
+                assert not scan(text, has_link=True), f"{appeal.id}/{benefit.id}:\n  {text}"
+
+
+def test_future_appeal_is_actually_used():
+    """未来の軸が実際に出ること。持っているだけでは意味がない。"""
+    builder = _builder()
+    used = []
+    for i in range(30):
+        item = make_item(item_code=f"fu:{i}", item_name="化粧水 200mL",
+                         shop_code=f"s{i}", item_price=1500)
+        draft = builder.build("product", [item], template_id="objective")
+        builder.state.record_part_ids(draft.part_ids)
+        used.append(draft.part_ids.get("appeal", ""))
+    assert "future" in used or "future_effortless" in used, f"未来の軸が出ていない: {set(used)}"

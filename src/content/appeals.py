@@ -71,6 +71,10 @@ class AppealContext:
         return self.benefit.pain if self.benefit else ""
 
     @property
+    def future(self) -> str:
+        return self.benefit.future if self.benefit else ""
+
+    @property
     def tips(self) -> tuple[str, ...]:
         return self.benefit.tips if self.benefit else ()
 
@@ -86,6 +90,13 @@ class AppealContext:
 def _self_relevant(c: AppealContext) -> str | None:
     if not c.pain:
         return None
+    if c.future:
+        return c.pick((
+            f"{c.pain}人、これ見てみてほしい",
+            f"{c.pain}人へ。{c.future}",
+            f"{c.pain}。同じ人、いる？",
+            f"{c.pain}人。求めてるの、{c.future}じゃない？",
+        ))
     return c.pick((
         f"{c.pain}人、これ見てみてほしい",
         f"{c.pain}人向け。条件だけ置いておきます",
@@ -116,6 +127,12 @@ def _answer(c: AppealContext) -> str | None:
     tip = c.tip()
     if not tip:
         return None
+    if c.future:
+        return c.pick((
+            f"結局{c.category}ってどれ選べばいいの、の答え。\n\n「{tip}」で決めていい",
+            f"{c.future}のが目的なら、見るのは「{tip}」",
+            f"{c.category}で迷ってる人へ。見るのは「{tip}」だけでいい",
+        ))
     return c.pick((
         f"結局{c.category}ってどれ選べばいいの、の答え。\n\n「{tip}」で決めていい",
         f"{c.category}、条件から絞るとこうなる。\n\nまず「{tip}」",
@@ -202,6 +219,12 @@ def _conditional(c: AppealContext) -> str | None:
     tip = c.tip()
     if not tip:
         return None
+    if c.future:
+        return c.pick((
+            f"全員向けではないけど、「{tip}」を重視するなら候補",
+            f"{c.future}ことを求めてるなら向く。そうじゃないなら別のがいい",
+            f"{c.category}、「{tip}」で選ぶ人向け",
+        ))
     return c.pick((
         f"全員向けではないけど、「{tip}」を重視するなら候補",
         f"「{tip}」を求める人には向くと思う。そうじゃないなら別のがいい",
@@ -296,13 +319,40 @@ def _negative(c: AppealContext) -> str | None:
 # 16. 未来イメージ
 # ======================================================================
 def _future(c: AppealContext) -> str | None:
+    """使ったあとどうなるかを出す。
+
+    56項目は「化粧品で言ってよい効能のリスト」であり、
+    つまり**唯一許された「いい未来」**でもある。
+    それを辞書の文のまま使っていたので、何も伝わっていなかった。
+    """
+    if not c.future:
+        return None
+    if c.pain:
+        return c.pick((
+            f"{c.pain}人へ。\n\n{c.future}",
+            f"{c.pain}。\n\nそれが、{c.future}",
+            f"{c.future}。\n\n{c.pain}人は、これでいいと思う",
+        ))
+    return c.pick((
+        f"{c.future}。それだけでいい人向け",
+        f"求めてるのは、たぶんこれ。\n\n{c.future}",
+    ))
+
+
+# ======================================================================
+# 17. 未来 × 手間
+# ======================================================================
+def _future_effortless(c: AppealContext) -> str | None:
+    """未来と、そこに至る手間の少なさを一緒に出す。"""
+    if not c.future:
+        return None
     tip = c.tip()
     if not tip:
         return None
     return c.pick((
-        f"「{tip}」の手間を減らしたいなら、これ",
-        f"こういう場面で使いやすいと思う。\n\n「{tip}」",
-        f"{c.category}を{tip}で選びたい人向け",
+        f"{c.future}。\n\n見るのは「{tip}」だけでいい",
+        f"やることは一つ。それで{c.future}",
+        f"{c.future}。\n\nそのために見るのは「{tip}」",
     ))
 
 
@@ -323,6 +373,7 @@ APPEALS: tuple[Appeal, ...] = (
     Appeal("timing", "タイミング", _timing),
     Appeal("negative", "ネガティブ訴求", _negative),
     Appeal("future", "未来イメージ", _future),
+    Appeal("future_effortless", "未来×手間", _future_effortless),
 )
 
 
