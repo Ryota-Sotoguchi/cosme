@@ -7,7 +7,8 @@
     "appeal": [
       "surprise",
       "self_relevant",
-      "checklist"
+      "checklist",
+      "negative"
     ],
     "casual": [
       "cm_humid",
@@ -72,7 +73,8 @@
       "cta_decide",
       "cta_leave",
       "cta_check",
-      "cta_reviews_many"
+      "cta_reviews_many",
+      "cta_compare"
     ],
     "disclaimer": [
       "dc_point",
@@ -106,7 +108,8 @@
       "q_season"
     ],
     "recommend_closing": [
-      "rl_fit"
+      "rl_fit",
+      "rl_check"
     ],
     "recommend_opening": [
       "ro_forwho",
@@ -156,7 +159,6 @@
     "predinner": 4
   },
   "template_history": [
-    "topic",
     "question",
     "question",
     "checklist",
@@ -175,7 +177,8 @@
     "band_focus",
     "topic",
     "topic_thread",
-    "topic"
+    "topic",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-22T18:33:50.370781+00:00",
