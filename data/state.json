@@ -16,7 +16,8 @@
       "cm_morning",
       "cm_sunscreen",
       "cm_lighting",
-      "cm_night"
+      "cm_night",
+      "cm_hairtie"
     ],
     "casual_brand": [
       "brand",
@@ -173,12 +174,12 @@
     "afternoon": 5,
     "evening": 5,
     "late": 4,
+    "latemorning": 1,
     "midmorning": 6,
     "morning": 3,
     "predinner": 5
   },
   "template_history": [
-    "objective",
     "short",
     "question",
     "question",
@@ -197,7 +198,8 @@
     "objective",
     "review_heavy",
     "question",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
