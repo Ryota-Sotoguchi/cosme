@@ -18,7 +18,8 @@
       "cm_lighting",
       "cm_night",
       "cm_hairtie",
-      "cm_humid_makeup"
+      "cm_humid_makeup",
+      "cm_face_wash_lazy"
     ],
     "casual_brand": [
       "brand",
@@ -175,7 +176,7 @@
   },
   "rotation_cursor": {
     "afternoon": 6,
-    "evening": 5,
+    "evening": 6,
     "late": 4,
     "latemorning": 1,
     "midmorning": 6,
@@ -183,7 +184,6 @@
     "predinner": 6
   },
   "template_history": [
-    "thread",
     "topic",
     "topic",
     "question",
@@ -202,7 +202,8 @@
     "casual",
     "topic",
     "casual",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
