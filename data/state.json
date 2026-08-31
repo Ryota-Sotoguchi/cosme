@@ -19,7 +19,8 @@
       "cm_night",
       "cm_hairtie",
       "cm_humid_makeup",
-      "cm_face_wash_lazy"
+      "cm_face_wash_lazy",
+      "cm_package"
     ],
     "casual_brand": [
       "brand",
@@ -176,6 +177,7 @@
   },
   "rotation_cursor": {
     "afternoon": 6,
+    "earlynight": 1,
     "evening": 6,
     "late": 4,
     "latemorning": 1,
@@ -184,7 +186,6 @@
     "predinner": 6
   },
   "template_history": [
-    "topic",
     "topic",
     "question",
     "topic",
@@ -203,6 +204,7 @@
     "topic",
     "casual",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
