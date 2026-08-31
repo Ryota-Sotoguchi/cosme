@@ -117,7 +117,8 @@
       "q_review",
       "q_season",
       "q_shampoo_freq",
-      "q_fail"
+      "q_fail",
+      "q_hair_dry"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -179,10 +180,9 @@
     "latemorning": 1,
     "midmorning": 6,
     "morning": 3,
-    "predinner": 5
+    "predinner": 6
   },
   "template_history": [
-    "question",
     "thread",
     "topic",
     "topic",
@@ -201,7 +201,8 @@
     "question",
     "casual",
     "topic",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
