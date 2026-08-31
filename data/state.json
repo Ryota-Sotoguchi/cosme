@@ -87,13 +87,15 @@
       "cta_compare",
       "cta_look",
       "cta_price",
-      "cta_save"
+      "cta_save",
+      "cta_reviews"
     ],
     "disclaimer": [
       "dc_point",
       "dc_change",
       "dc_time",
-      "dc_check"
+      "dc_check",
+      "dc_point"
     ],
     "fact_intro": [
       "fi_plain",
@@ -133,7 +135,11 @@
       "ro_decide"
     ],
     "roundup_closing": [
-      "rc_undecided"
+      "rc_undecided",
+      "rc_which"
+    ],
+    "roundup_postage_free": [
+      "ru_pos_1"
     ],
     "roundup_review_heavy": [
       "ru_rev_1"
@@ -181,14 +187,13 @@
     "afternoon": 6,
     "earlynight": 1,
     "evening": 6,
-    "late": 4,
+    "late": 5,
     "latemorning": 1,
     "midmorning": 6,
     "morning": 3,
     "predinner": 6
   },
   "template_history": [
-    "question",
     "topic",
     "band_focus",
     "topic",
@@ -207,7 +212,8 @@
     "question",
     "casual",
     "casual",
-    "band_focus"
+    "band_focus",
+    "postage_free"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
