@@ -162,7 +162,8 @@
       "nl_gift",
       "nl_organize",
       "nl_lowest_price",
-      "nl_swatch"
+      "nl_swatch",
+      "nl_two_step"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -180,7 +181,6 @@
     "predinner": 5
   },
   "template_history": [
-    "short",
     "question",
     "question",
     "thread",
@@ -199,7 +199,8 @@
     "review_heavy",
     "question",
     "question",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
