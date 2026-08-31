@@ -113,7 +113,8 @@
       "q_how_many",
       "q_price_line",
       "q_review",
-      "q_season"
+      "q_season",
+      "q_shampoo_freq"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -172,11 +173,10 @@
     "evening": 5,
     "late": 4,
     "midmorning": 5,
-    "morning": 2,
+    "morning": 3,
     "predinner": 5
   },
   "template_history": [
-    "casual",
     "band_focus",
     "objective",
     "short",
@@ -195,7 +195,8 @@
     "topic_thread",
     "topic",
     "objective",
-    "review_heavy"
+    "review_heavy",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
