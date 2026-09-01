@@ -22,7 +22,8 @@
       "cm_humid_makeup",
       "cm_face_wash_lazy",
       "cm_package",
-      "cm_cal_season"
+      "cm_cal_season",
+      "cm_morning_rush"
     ],
     "casual_brand": [
       "brand",
@@ -190,12 +191,11 @@
     "evening": 6,
     "late": 5,
     "latemorning": 1,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 4,
     "predinner": 6
   },
   "template_history": [
-    "band_focus",
     "topic",
     "topic_thread",
     "topic",
@@ -214,6 +214,7 @@
     "casual",
     "band_focus",
     "postage_free",
+    "casual",
     "casual"
   ],
   "threads_token": {
