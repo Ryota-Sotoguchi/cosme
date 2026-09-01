@@ -10,7 +10,8 @@
       "checklist",
       "negative",
       "ranking",
-      "contrast"
+      "contrast",
+      "loss_aversion"
     ],
     "casual": [
       "cm_humid",
@@ -91,7 +92,8 @@
       "cta_look",
       "cta_price",
       "cta_save",
-      "cta_reviews"
+      "cta_reviews",
+      "cta_later"
     ],
     "disclaimer": [
       "dc_point",
@@ -201,7 +203,6 @@
     "predinner": 0
   },
   "template_history": [
-    "topic",
     "objective",
     "review_heavy",
     "question",
@@ -220,7 +221,8 @@
     "topic",
     "topic",
     "casual",
-    "topic"
+    "topic",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
