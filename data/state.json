@@ -182,7 +182,8 @@
     "topic_thread": [
       "tt_cheap_vs_value",
       "tt_cheapest_trap",
-      "tt_too_many"
+      "tt_too_many",
+      "tt_stock"
     ]
   },
   "rotation_cursor": {
@@ -190,13 +191,12 @@
     "earlynight": 1,
     "evening": 6,
     "late": 5,
-    "latemorning": 1,
+    "latemorning": 2,
     "midmorning": 0,
     "morning": 4,
     "predinner": 6
   },
   "template_history": [
-    "topic",
     "topic_thread",
     "topic",
     "checklist",
@@ -215,7 +215,8 @@
     "band_focus",
     "postage_free",
     "casual",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
