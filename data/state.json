@@ -21,7 +21,8 @@
       "cm_hairtie",
       "cm_humid_makeup",
       "cm_face_wash_lazy",
-      "cm_package"
+      "cm_package",
+      "cm_cal_season"
     ],
     "casual_brand": [
       "brand",
@@ -190,11 +191,10 @@
     "late": 5,
     "latemorning": 1,
     "midmorning": 6,
-    "morning": 3,
+    "morning": 4,
     "predinner": 6
   },
   "template_history": [
-    "topic",
     "band_focus",
     "topic",
     "topic_thread",
@@ -213,7 +213,8 @@
     "casual",
     "casual",
     "band_focus",
-    "postage_free"
+    "postage_free",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
