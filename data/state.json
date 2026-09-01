@@ -23,7 +23,8 @@
       "cm_face_wash_lazy",
       "cm_package",
       "cm_cal_season",
-      "cm_morning_rush"
+      "cm_morning_rush",
+      "cm_weekend"
     ],
     "casual_brand": [
       "brand",
@@ -196,10 +197,9 @@
     "latemorning": 2,
     "midmorning": 0,
     "morning": 4,
-    "predinner": 6
+    "predinner": 0
   },
   "template_history": [
-    "checklist",
     "topic_thread",
     "topic",
     "objective",
@@ -218,7 +218,8 @@
     "casual",
     "topic_thread",
     "topic",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
