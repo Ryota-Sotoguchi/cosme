@@ -178,7 +178,8 @@
       "nl_lowest_price",
       "nl_swatch",
       "nl_two_step",
-      "nl_morning_night"
+      "nl_morning_night",
+      "nl_first_impression"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -188,7 +189,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 6,
+    "afternoon": 0,
     "earlynight": 1,
     "evening": 6,
     "late": 5,
@@ -198,7 +199,6 @@
     "predinner": 6
   },
   "template_history": [
-    "topic",
     "checklist",
     "topic_thread",
     "topic",
@@ -217,6 +217,7 @@
     "casual",
     "casual",
     "topic_thread",
+    "topic",
     "topic"
   ],
   "threads_token": {
