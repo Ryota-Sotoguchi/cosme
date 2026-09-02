@@ -198,13 +198,14 @@
       "tt_cheapest_trap",
       "tt_too_many",
       "tt_stock",
-      "tt_color"
+      "tt_color",
+      "tt_size"
     ]
   },
   "rotation_cursor": {
     "afternoon": 1,
     "earlynight": 1,
-    "evening": 0,
+    "evening": 1,
     "late": 6,
     "latemorning": 3,
     "midmorning": 1,
@@ -212,7 +213,6 @@
     "predinner": 1
   },
   "template_history": [
-    "question",
     "casual",
     "casual",
     "band_focus",
@@ -231,7 +231,8 @@
     "question",
     "checklist",
     "question",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
