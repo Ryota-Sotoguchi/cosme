@@ -692,10 +692,30 @@ def cmd_replies(config: Config, args: argparse.Namespace) -> int:
     既定は下書き表示のみ。--live のときだけ実際に返信する。
     """
     state = State(config.state_path)
+    history = History(config.history_path)
     responder = ReplyResponder(config, state)
 
+    # 人の返信が付いている投稿を履歴から拾う。
+    #
+    # 直近15投稿だけを見ていたときは、8/20・8/26・9/1 に付いた返信を
+    # 取りこぼしていた（1日10本だと15投稿は1日半ぶんしかない）。
+    # 成績は毎日 insights で取っているので、そこから絞れば
+    # API を余分に叩かずに古い投稿まで届く。
+    candidates = [
+        r.thread_post_id
+        for r in history.successful()
+        if r.thread_post_id and r.human_replies > 0
+    ]
+    # 成績がまだ入っていない直近の投稿も見る（返信は投稿直後に付く）
     try:
-        planned = responder.run(dry_run=not args.live)
+        for post_id in responder.recent_post_ids():
+            if post_id not in candidates:
+                candidates.append(post_id)
+    except (AuthError, PostRejectedError, TransientError) as exc:
+        logger.warning("直近の投稿一覧を取得できませんでした: %s", exc)
+
+    try:
+        planned = responder.run(dry_run=not args.live, post_ids=candidates)
     except MissingSecretError as exc:
         logger.error("%s", exc)
         return EXIT_CONFIG
@@ -711,13 +731,27 @@ def cmd_replies(config: Config, args: argparse.Namespace) -> int:
         state.save()
         return EXIT_OK
 
+    # 投稿IDからパーマリンクを引けるようにしておく。
+    # 定型文の返信は会話として不自然なので、返すのは人。
+    # そのとき「どの投稿か」を探す手間が最大の障害になる。
+    permalinks = {
+        r.thread_post_id: r.permalink
+        for r in history.successful()
+        if r.thread_post_id and r.permalink
+    }
+
     print(f"\n=== 未返信のコメント {len(planned)}件 ===")
     for entry in planned:
         mark = "✅ 返信済み" if entry["posted"] else "（下書き）"
         print(f"\n  @{entry['username']}: {entry['comment']}")
         print(f"    → {entry['reply']}  {mark}")
+        link = permalinks.get(entry["post_id"])
+        if link:
+            print(f"    {link}")
     if not args.live:
-        print("\n  実際に返信するには --live を付けてください")
+        print("\n  下書きは定型文です。会話として不自然なので、"
+              "上のリンクを開いて手で返すことを勧めます。")
+        print("  そのまま投稿する場合は --live を付けてください")
     print()
     state.save()
     return EXIT_OK

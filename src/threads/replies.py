@@ -182,13 +182,27 @@ class ReplyResponder:
             return None
 
     # ------------------------------------------------------------------
-    def run(self, *, dry_run: bool = True) -> list[dict[str, Any]]:
-        """未返信のコメントに返す。dry_run のときは投稿しない。"""
+    def run(
+        self, *, dry_run: bool = True, post_ids: list[str] | None = None
+    ) -> list[dict[str, Any]]:
+        """未返信のコメントに返す。dry_run のときは投稿しない。
+
+        post_ids を渡すと、そこだけを見る。
+
+        直近15投稿しか見ていなかったため、**古い投稿に付いた返信を
+        取りこぼしていた**。1日10本のペースだと15投稿は1日半しか遡れず、
+        実際に人からの返信7件のうち6件が範囲外だった
+        （8/20・8/26・9/1 の投稿）。反応がいちばん薄いアカウントで
+        唯一届いた声を落としていたことになる。
+
+        呼び出し側は、成績から「人の返信が付いている投稿」を渡す
+        （履歴に反応が記録されているので、API を余分に叩かずに絞れる）。
+        """
         answered = self._answered()
         planned: list[dict[str, Any]] = []
         cursor = len(answered)
 
-        for post_id in self.recent_post_ids():
+        for post_id in (post_ids if post_ids is not None else self.recent_post_ids()):
             if len(planned) >= self.max_per_run:
                 break
             for reply in self.replies_on(post_id):
