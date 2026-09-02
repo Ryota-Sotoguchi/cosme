@@ -33,19 +33,35 @@ class PostInsight:
     replies: int | None = None
     reposts: int | None = None
     shares: int | None = None
+    quotes: int | None = None
+    # 自分の連投による返信数。API は返さないので別途埋める。
+    replies_self: int | None = None
 
     def as_dict(self) -> dict[str, int | None]:
-        return {
+        values: dict[str, int | None] = {
             "views": self.views,
             "likes": self.likes,
             "replies": self.replies,
             "reposts": self.reposts,
             "shares": self.shares,
+            "quotes": self.quotes,
         }
+        if self.replies_self is not None:
+            values["replies_self"] = self.replies_self
+        return values
 
     @property
     def engagements(self) -> int:
         return sum(v or 0 for v in (self.likes, self.replies, self.reposts, self.shares))
+
+    @property
+    def human_replies(self) -> int:
+        """人からの返信数。自分の連投を引いた数。
+
+        replies_self が分からない場合は 0 を仮定する（過大評価しない側には
+        倒せないが、少なくとも「連投した本数」が分かる投稿では正しくなる）。
+        """
+        return max(0, (self.replies or 0) - (self.replies_self or 0))
 
 
 class ThreadsInsights:
@@ -114,6 +130,40 @@ class ThreadsInsights:
             replies=values.get("replies"),
             reposts=values.get("reposts"),
             shares=values.get("shares"),
+            quotes=values.get("quotes"),
+        )
+
+    def human_reply_count(self, post_id: str, own_username: str) -> int | None:
+        """その投稿に付いた「人からの」トップレベル返信の数。
+
+        連投した本数が履歴に無い古い投稿のために用意している。
+        新しい投稿は extra["segments"] から引き算できるので、ここは呼ばない
+        （投稿1件につきAPI1回なので、毎回全件に投げるとレート上限に近づく）。
+
+        取れなければ None。運用は止めない。
+        """
+        try:
+            response = self.http.get(
+                f"{self.api_base}/{post_id}/replies",
+                params={"fields": "id,username", "access_token": self._token},
+            )
+            payload = response.json()
+        except (TransientError, AuthError, PostRejectedError) as exc:
+            logger.warning("投稿 %s の返信を取得できませんでした: %s", post_id, exc)
+            return None
+
+        if "error" in payload:
+            logger.info(
+                "投稿 %s の返信はまだ取得できません: %s",
+                post_id,
+                str(payload["error"].get("message"))[:120],
+            )
+            return None
+
+        return sum(
+            1
+            for entry in payload.get("data", [])
+            if str(entry.get("username") or "") != own_username
         )
 
     def for_account(self) -> dict[str, int]:

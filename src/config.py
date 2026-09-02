@@ -186,6 +186,16 @@ class Config:
         return self.raw.get("ramp_up", {"enabled": False})
 
     @property
+    def experiment(self) -> dict[str, Any]:
+        """A/B の設定。無ければ従来動作。"""
+        return self.raw.get("experiment", {})
+
+    @property
+    def schedule_settings(self) -> dict[str, Any]:
+        """スケジュール全体の設定。[[schedule]] の各枠とは別物。"""
+        return self.raw.get("schedule_settings", {})
+
+    @property
     def genres(self) -> list[dict[str, Any]]:
         return self.selection.get("genres", [])
 
@@ -229,6 +239,11 @@ class Config:
     def engagement(self) -> dict:
         """他人の投稿への返信の設定。無ければ既定値。"""
         return self.raw.get("engagement", {})
+
+    @property
+    def revenue_path(self) -> Path:
+        """楽天アフィリエイトの日次実績。手で取り込む（公開APIが無い）。"""
+        return self.data_dir / "revenue.jsonl"
 
     @property
     def engagements_path(self) -> Path:

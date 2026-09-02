@@ -42,6 +42,7 @@ from .logging_setup import setup_logging
 from .pipeline import Pipeline
 from .rakuten.client import RakutenClient
 from .storage.history import History, PostRecord
+from .storage.revenue import Revenue, RevenueDay
 from .storage.state import State
 from .threads.client import ThreadsClient
 from .threads.insights import ThreadsInsights
@@ -103,6 +104,13 @@ def _record(
             "item_codes": [i.item_code for i in draft.items] if draft else [],
             # 手動実行か定期実行か。ランプアップの枠計算で使う。
             "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual"),
+            # 連投した本数。**自己リプライを反応数から差し引くのに要る。**
+            # Threads の insights.replies は自分の連投も1件として数えるので、
+            # これが無いと「返信が付いた投稿」を取り違える（実際に取り違えて
+            # config の枠配分を組み替えていた）。
+            "segments": len(draft.segments) if draft else 1,
+            # リンクをどこに置いたか。A/B の識別子。
+            "link_position": (draft.link_position if draft else ""),
         },
     )
     history.append(record)
@@ -126,12 +134,56 @@ def _print_draft(draft, header: str = "生成された投稿") -> None:
 
 
 # ======================================================================
+def _schedule_drift_minutes(config: Config, slot_name: str, now: datetime) -> float:
+    """設定された投稿時刻から、実際の実行が何分ずれているか。
+
+    GitHub Actions の定期実行は混雑時に大きく遅れる。実測（2026-08-20〜09-03）
+    では72件すべてが設定時刻とずれており、中央値43分・最大11時間半だった。
+    8/27以降は4〜11時間の遅延が続き、朝の投稿が12:28に、夜の投稿が翌06:30に
+    出ていた。そのとき表示回数1の投稿が3本出ている。
+
+    前後どちらのずれも同じ大きさとして返す（0〜720分）。
+    """
+    try:
+        slot = config.slot(slot_name)
+    except Exception:
+        return 0.0
+    hour, minute = (int(x) for x in slot.time_jst.split(":"))
+    target = now.astimezone(JST).replace(
+        hour=hour, minute=minute, second=0, microsecond=0
+    )
+    drift = abs((now.astimezone(JST) - target).total_seconds()) / 60
+    # 日付をまたいだ場合は近いほうを採る（22:30枠が翌00:30に走る等）
+    return min(drift, 1440 - drift)
+
+
 def cmd_post(config: Config, args: argparse.Namespace) -> int:
     history = History(config.history_path)
     state = State(config.state_path)
     state.operation_start_date()  # 初回に運用開始日を記録
 
     pipeline = Pipeline(config, history=history, state=state)
+
+    # 定期実行が大きく遅れていたら、その枠は捨てる。
+    #
+    # 時間帯を設計していても、実行が数時間ずれると設計が成立しない。
+    # 深夜3時に「朝の支度」の話が出るくらいなら、出さないほうがいい。
+    # 手動実行（workflow_dispatch / ローカル）には掛けない。
+    limit = float(config.schedule_settings.get("max_drift_minutes", 0) or 0)
+    is_scheduled = os.environ.get("GITHUB_EVENT_NAME") == "schedule"
+    if limit > 0 and is_scheduled:
+        drift = _schedule_drift_minutes(config, args.slot, datetime.now(JST))
+        if drift > limit:
+            logger.warning(
+                "定期実行が %.0f 分ずれています（上限 %.0f 分）。この枠は見送ります。",
+                drift, limit,
+            )
+            _record(history, slot=args.slot, status="skipped",
+                    error_type="ScheduleDrift",
+                    error_message=f"設定時刻から{drift:.0f}分ずれているため見送りました")
+            state.save()
+            return EXIT_OK
+        logger.info("定期実行のずれ %.0f 分（上限 %.0f 分）", drift, limit)
 
     # 1日の総投稿数の上限。ここを超えると Meta にブロックされうる。
     if pipeline.daily_cap_reached():
@@ -380,6 +432,7 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
     見られているかが分からないと、改善が勘になる。
     """
     history = History(config.history_path)
+    state = State(config.state_path)
     insights = ThreadsInsights(config)
 
     account = insights.for_account()
@@ -389,15 +442,38 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
             print(f"  {key:16s} {value:,}")
 
     targets = [r for r in history.successful() if r.thread_post_id]
+    own = state.get("threads_username") or ""
     updated = 0
+    backfilled = 0
     for record in targets:
         result = insights.for_post(record.thread_post_id)
         if result is None:
             continue
+
+        # 自分の連投は insights.replies に混ざっている。差し引ける形にする。
+        #
+        # 新しい投稿は履歴に連投本数が入っているので API を叩かない。
+        # 入っていない古い投稿だけ、返信の投稿者を照合して埋める
+        # （返信が0件の投稿は照合するまでもないので飛ばす）。
+        segments = record.extra.get("segments")
+        if isinstance(segments, int) and segments > 0:
+            result.replies_self = segments - 1
+        elif record.insights.get("replies_self") is not None:
+            result.replies_self = int(record.insights["replies_self"])
+        elif (result.replies or 0) == 0:
+            result.replies_self = 0
+        elif own:
+            humans = insights.human_reply_count(record.thread_post_id, own)
+            if humans is not None:
+                result.replies_self = max(0, (result.replies or 0) - humans)
+                backfilled += 1
+
         if history.update_insights(record.thread_post_id, result.as_dict()):
             updated += 1
 
     print(f"\n成績を更新: {updated}/{len(targets)} 件")
+    if backfilled:
+        print(f"  自己リプライを照合して補正: {backfilled} 件")
 
     rows = [
         r for r in history.successful() if r.insights.get("views") is not None
@@ -405,15 +481,12 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
     if rows:
         print("\n=== 投稿別（表示回数の多い順）===")
         rows.sort(key=lambda r: r.insights.get("views") or 0, reverse=True)
-        print(f"  {'表示':>7} {'反応':>5}  {'種別':<12} {'テンプレ':<12} {'リンク':<5} 冒頭")
+        # 「反応」は人の反応だけを数える。自分の連投は除く。
+        print(f"  {'表示':>7} {'人反応':>6}  {'種別':<12} {'テンプレ':<12} {'リンク':<5} 冒頭")
         for r in rows[:20]:
-            i = r.insights
-            reactions = sum(
-                (i.get(k) or 0) for k in ("likes", "replies", "reposts", "shares")
-            )
             head = (r.text or "").replace("\n", " ")[:26]
             print(
-                f"  {(i.get('views') or 0):>7,} {reactions:>5}  "
+                f"  {r.views:>7,} {r.human_engagements:>6}  "
                 f"{r.post_type:<12} {r.template_id:<12} "
                 f"{'あり' if r.has_affiliate_link else 'なし':<5} {head}"
             )
@@ -428,7 +501,187 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
         ):
             print(f"  {kind:<12} 平均 {sum(values)//len(values):>6,}  ({len(values)}件)")
     print()
+    state.save()
     return EXIT_OK
+
+
+# ======================================================================
+def cmd_revenue(config: Config, args: argparse.Namespace) -> int:
+    """楽天アフィリエイトの日次実績を取り込む。
+
+    楽天にはレポートの公開APIが無いので、ここは手作業の入口。
+
+        python -m src.main revenue --csv ~/Downloads/report.csv
+        python -m src.main revenue --date 2026-09-03 --clicks 5 --orders 1 --reward 48
+        python -m src.main revenue              # いま入っている分を表示
+    """
+    revenue = Revenue(config.revenue_path)
+
+    if args.csv:
+        path = Path(args.csv)
+        if not path.is_file():
+            logger.error("CSVが見つかりません: %s", path)
+            return EXIT_CONFIG
+        entries = Revenue.parse_csv(path)
+        if not entries:
+            logger.error(
+                "CSVから実績を読めませんでした。日付の列が必要です。"
+                " 手入力なら --date/--clicks/--orders/--reward を使ってください。"
+            )
+            return EXIT_CONFIG
+        count = revenue.put_many(entries)
+        print(f"\n{count}日分を取り込みました → {config.revenue_path}")
+    elif args.date:
+        entry = RevenueDay(
+            date=args.date,
+            clicks=args.clicks,
+            orders=args.orders,
+            reward=args.reward,
+        )
+        revenue.put(entry)
+        print(f"\n{entry.date} を記録しました → {config.revenue_path}")
+
+    rows = revenue.load()
+    if not rows:
+        print("\nまだ実績が入っていません。")
+        print("  楽天アフィリエイトの管理画面 → レポート → CSVをダウンロードして")
+        print("  python -m src.main revenue --csv <ファイル> で取り込んでください。\n")
+        return EXIT_OK
+
+    print(f"\n=== 日次実績（{len(rows)}日分）===")
+    print(f"  {'日付':<12}{'クリック':>8}{'成果':>6}{'報酬':>8}")
+    for key in sorted(rows)[-14:]:
+        r = rows[key]
+        print(f"  {r.date:<12}{r.clicks:>8,}{r.orders:>6,}{r.reward:>7,}円")
+    total = revenue.totals()
+    print(f"  {'合計':<12}{total.clicks:>8,}{total.orders:>6,}{total.reward:>7,}円")
+    if total.clicks:
+        print(f"\n  EPC {total.reward / total.clicks:>6.1f}円/クリック", end="")
+        print(f"   CVR {total.orders / total.clicks * 100:>5.1f}%")
+    print()
+    return EXIT_OK
+
+
+def cmd_report(config: Config, args: argparse.Namespace) -> int:
+    """収益から見た成績表。
+
+    「いいねが多い投稿」ではなく「収益を生む投稿」を見るための表。
+    表示と反応は Threads から、クリックと報酬は楽天のレポートから来る。
+
+    クリックは日次でしか取れないので、**リンク投稿がその日1本だけ**の日
+    しか投稿に割り当てない。2本以上あった日は帰属不能として除く。
+    """
+    history = History(config.history_path)
+    revenue = Revenue(config.revenue_path)
+    posts = [r for r in history.successful() if r.insights.get("views") is not None]
+    if not posts:
+        print("\n成績のある投稿がありません。先に insights を実行してください。\n")
+        return EXIT_OK
+
+    # --- 全体 ---
+    views = sum(r.views for r in posts)
+    human = sum(r.human_engagements for r in posts)
+    self_replies = sum(r.self_replies for r in posts)
+    link_posts = [r for r in posts if r.has_affiliate_link]
+    link_views = sum(r.views for r in link_posts)
+    total = revenue.totals()
+
+    print(f"\n=== 全体（{len(posts)}投稿）===")
+    print(f"  総表示           {views:>10,}")
+    print(f"  人からの反応      {human:>10,}   （自分の連投 {self_replies:,} 件は除外）")
+    print(f"  リンク投稿の表示  {link_views:>10,}   （{len(link_posts)}投稿）")
+    if total.clicks or total.reward:
+        print(f"  クリック         {total.clicks:>10,}")
+        print(f"  成果報酬         {total.reward:>9,}円")
+        if link_views:
+            print(f"  CTR              {total.clicks / link_views * 100:>10.3f}%  （リンク投稿の表示比）")
+            print(f"  EPM              {total.reward / views * 1000:>10.2f}円  （総表示1,000あたり）")
+        if total.clicks:
+            print(f"  EPC              {total.reward / total.clicks:>10.1f}円  （1クリックあたり）")
+    else:
+        print("  クリック・報酬は未取り込み（revenue コマンドで入れてください）")
+
+    # --- 投稿単位に割り当てられる日だけ抜く ---
+    per_day: dict[str, list] = {}
+    for record in link_posts:
+        dt = record.posted_datetime
+        if dt is None:
+            continue
+        per_day.setdefault(dt.astimezone(JST).date().isoformat(), []).append(record)
+
+    attributable = []
+    for day, records in sorted(per_day.items()):
+        if len(records) != 1:
+            continue
+        entry = revenue.get(day)
+        if entry is None:
+            continue
+        attributable.append((records[0], entry))
+
+    if attributable:
+        print(f"\n=== リンク投稿の実績（帰属できた {len(attributable)}日分）===")
+        print(f"  {'日付':<12}{'表示':>7}{'クリック':>8}{'CTR':>8}{'報酬':>7}  形式 / テンプレ")
+        for record, entry in attributable:
+            ctr = entry.clicks / record.views * 100 if record.views else 0.0
+            position = record.extra.get("link_position") or "-"
+            print(
+                f"  {entry.date:<12}{record.views:>7,}{entry.clicks:>8,}{ctr:>7.2f}%"
+                f"{entry.reward:>6,}円  {position} / {record.template_id}"
+            )
+
+        # --- A/B: リンクの置き場所ごと ---
+        groups: dict[str, list] = {}
+        for record, entry in attributable:
+            groups.setdefault(record.extra.get("link_position") or "-", []).append((record, entry))
+        if len(groups) > 1:
+            print("\n=== A/B: リンクの置き場所 ===")
+            print(f"  {'形式':<10}{'投稿':>5}{'表示':>8}{'クリック':>8}{'CTR':>8}{'報酬':>8}")
+            for name, rows in sorted(groups.items()):
+                v = sum(r.views for r, _ in rows)
+                c = sum(e.clicks for _, e in rows)
+                w = sum(e.reward for _, e in rows)
+                ctr = c / v * 100 if v else 0.0
+                print(f"  {name:<10}{len(rows):>5}{v:>8,}{c:>8,}{ctr:>7.2f}%{w:>7,}円")
+    else:
+        print("\n  リンク投稿に日次実績を割り当てられていません。")
+        print("  （リンク投稿が1日1本の日 かつ その日の実績が入っている日だけ集計します）")
+
+    # --- 型ごと ---
+    by_type: dict[str, list] = {}
+    for record in posts:
+        by_type.setdefault(record.post_type, []).append(record)
+    print("\n=== 型ごと（人の反応で見る）===")
+    print(f"  {'型':<14}{'件数':>5}{'表示中央':>9}{'人の反応':>9}{'反応率':>8}")
+    for kind, records in sorted(by_type.items(), key=lambda kv: -_median([r.views for r in kv[1]])):
+        v = [r.views for r in records]
+        reactions = sum(r.human_engagements for r in records)
+        rate = reactions / sum(v) * 100 if sum(v) else 0.0
+        print(f"  {kind:<14}{len(records):>5}{_median(v):>9,.0f}{reactions:>9}{rate:>7.2f}%")
+
+    # --- 実際に投稿された時刻ごと ---
+    by_hour: dict[int, list] = {}
+    for record in posts:
+        dt = record.posted_datetime
+        if dt is None:
+            continue
+        by_hour.setdefault(dt.astimezone(JST).hour, []).append(record)
+    print("\n=== 実投稿時刻ごと（設定時刻ではなく、実際に出た時刻）===")
+    print(f"  {'時':>4}{'件数':>5}{'表示中央':>9}")
+    for hour in sorted(by_hour):
+        v = [r.views for r in by_hour[hour]]
+        print(f"  {hour:>3}時{len(v):>5}{_median(v):>9,.0f}")
+    print()
+    return EXIT_OK
+
+
+def _median(values: list[int]) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return float(ordered[middle])
+    return (ordered[middle - 1] + ordered[middle]) / 2
 
 
 def cmd_replies(config: Config, args: argparse.Namespace) -> int:
@@ -883,6 +1136,14 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("insights", help="投稿の成績を取得して履歴へ記録する")
     sub.add_parser("doctor", help="運用が壊れていないか点検する")
     sub.add_parser("hours", help="時間帯ごとの成績を見る")
+    sub.add_parser("report", help="収益から見た成績表（CTR/EPC/EPM）")
+
+    p_revenue = sub.add_parser("revenue", help="楽天アフィリエイトの日次実績を取り込む")
+    p_revenue.add_argument("--csv", help="楽天のレポートCSV")
+    p_revenue.add_argument("--date", help="日付 YYYY-MM-DD（手入力するとき）")
+    p_revenue.add_argument("--clicks", type=int, default=0)
+    p_revenue.add_argument("--orders", type=int, default=0)
+    p_revenue.add_argument("--reward", type=int, default=0, help="成果報酬（円）")
 
     p_replies = sub.add_parser("replies", help="自分の投稿へのコメントに返信する")
     p_replies.add_argument("--live", action="store_true", help="実際に返信する（既定は下書き表示のみ）")
@@ -957,6 +1218,8 @@ def main(argv: list[str] | None = None) -> int:
         "insights": cmd_insights,
         "doctor": cmd_doctor,
         "hours": cmd_hours,
+        "report": cmd_report,
+        "revenue": cmd_revenue,
         "replies": cmd_replies,
         "engage": cmd_engage,
         "selftest": cmd_selftest,

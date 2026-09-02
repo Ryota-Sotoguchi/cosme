@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone
 from .compliance.checker import CheckResult, ComplianceChecker
 from .config import Config
 from .content.builder import ContentBuilder, Draft
+from .content.templates import LINK_FIRST, LINK_LAST
 from .errors import ComplianceSkip, NoDataError
 from .rakuten.client import DEFAULT_SORTS, RakutenClient
 from .rakuten.models import RakutenItem
@@ -138,6 +139,20 @@ class Pipeline:
 
         logger.info("ランプアップ: 運用%d日目、本日のリンク投稿 %d/%d 件", day, already, limit)
         return True
+
+    def link_position(self, today: "datetime | None" = None) -> str:
+        """リンクをタイムラインに出す1本目に置くか、連投の最後に置くか。
+
+        既定は "ab"。運用日の偶奇で交互に出し、どちらがクリックを取れるか
+        を実測で決める。楽天のレポートは日次のクリック数しか出せないので、
+        **1日にリンク投稿が1本しか無いことが前提**（config の
+        [[schedule]] で allow_affiliate を1枠に絞ってある）。
+        """
+        mode = str(self.config.experiment.get("link_position", LINK_LAST))
+        if mode == "ab":
+            day = (today or datetime.now(JST)).timetuple().tm_yday
+            return LINK_FIRST if day % 2 == 0 else LINK_LAST
+        return mode if mode in (LINK_FIRST, LINK_LAST) else LINK_LAST
 
     # ------------------------------------------------------------------
 
@@ -389,6 +404,7 @@ class Pipeline:
                         exclude_templates=tried_templates,
                         slot=slot_name,
                         today=datetime.now(JST).date(),
+                        link_position=self.link_position(),
                     )
                 except ValueError as exc:
                     logger.warning("生成できませんでした: %s", exc)

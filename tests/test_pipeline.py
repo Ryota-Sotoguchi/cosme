@@ -402,7 +402,8 @@ def test_falls_back_when_every_product_is_excluded(config, tmp_path):
         for i in range(5)
     ]
     pipeline = make_pipeline(config, tmp_path, items=banned)
-    result = pipeline.run("night")
+    # リンクを許可している唯一のスロット（2026-09-03 以降は noon だけ）
+    result = pipeline.run("noon")
 
     assert result.draft.post_type == "no_link"
     assert result.check.passed
@@ -576,7 +577,7 @@ def test_link_less_slot_does_not_consume_a_product(config, tmp_path):
     )
     pipeline.history._records = None
 
-    draft = pipeline.run("night").draft
+    draft = pipeline.run("noon").draft
 
     assert draft.post_type == "no_link"
     assert draft.items == [], "リンクなしなのに商品を消費している"
@@ -623,8 +624,16 @@ def test_casual_posts_dominate_the_rotation(config, tmp_path):
 def test_low_performing_types_are_rare(config):
     """割に合わない型を出しすぎないこと。
 
-    no_link は22件出して表示中央値132・反応率0.19%だった。
-    howto は4件で表示62・反応ゼロ。
+    ## 2026-09-03 に定義を引き直した
+
+    もとは no_link と howto をまとめて「割に合わない型」としていた。
+    その根拠だった反応率は insights.replies から取っており、
+    **自分の連投を人の返信として数えていた**（15日で返信60件のうち
+    51件が自己リプライ）。汚染された指標で作った基準だったので外す。
+
+    初日のブーストを除いた80件で引き直すと、表示中央値は
+    no_link 174 / question 168 / thread_topic 163 / casual 157 と横並びで、
+    はっきり落ちているのは howto の 62 だけだった。
     """
     from collections import Counter
 
@@ -633,9 +642,13 @@ def test_low_performing_types_are_rare(config):
         total.update(options)
     no_link_types = sum(total[t] for t in
                         ("casual", "question", "thread_topic", "no_link", "howto"))
-    weak = total["no_link"] + total["howto"]
-    assert weak / no_link_types <= 0.15, (
-        f"割に合わない型が {weak}/{no_link_types} 枠を占めている"
+    assert total["howto"] == 0, (
+        f"表示中央値62・反応ゼロの型を {total['howto']} 枠に入れている"
+    )
+    # 人が返信をくれた唯一の型。Threads は会話が続く投稿を高く評価するので、
+    # ここを痩せさせない。
+    assert total["question"] / no_link_types >= 0.20, (
+        f"問いかけが {total['question']}/{no_link_types} 枠しかない"
     )
 
 

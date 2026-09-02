@@ -56,10 +56,17 @@ token_warn_days = 14
 # 2026-08-21: 料率が全商品一律4.0%と判明したため、報酬額は価格でしか
 # 動かない。コンセプト（コスパ美容）を維持しつつ、単価の高い専門コスメも
 # 少し候補に入るよう上限だけ広げた（5,000円 → 8,000円）。
-# スコアリングの価格重みは「安いほど高得点」のままなので、
-# 中央値が大きく動くわけではなく、高額帯が候補に入りやすくなる程度。
+#
+# 2026-09-03: 15日間の実績で1成約48円（価格1,200円 × 4.0%）だった。
+# 紹介した23商品の価格中央値は1,700円で、1成約あたり68円。
+# 楽天の報酬上限は1商品1個につき1,000円なので、上限の1/15しか使えていない。
+# 上限を20,000円まで広げ、スコアリング側の「安いほど高得点」も弱める
+# （[scoring.weights] price_affordability を 2.0 → 1.0）。
+#
+# コンセプトは「安いものを出すこと」ではなく「数字で比べて損しない選び方」
+# なので、1万円の道具を単価計算で正当化する投稿はコンセプトから外れない。
 min_price = 500
-max_price = 8000
+max_price = 20000
 # レビューが少なすぎる商品は客観情報として弱いので除外
 min_review_count = 5
 min_review_average = 3.5
@@ -171,7 +178,9 @@ shop_keywords = ["薬局", "薬店", "ドラッグ", "調剤"]
 [scoring.weights]
 review_count = 3.0        # レビュー件数（対数正規化）: 客観性が最も高いので最重視
 review_average = 2.5      # レビュー平均
-price_affordability = 2.0 # 価格の手頃さ（コスパ重視コンセプト）
+# 価格の手頃さ。2.0 だと安い商品ばかりが上位に来て、1成約68円から動かない。
+# 下げすぎるとコンセプトが崩れるので半分にとどめる（2026-09-03）。
+price_affordability = 1.0
 postage_free = 1.5        # 送料無料
 point_rate = 0.8          # ポイント倍率
 affiliate_rate = 0.4      # アフィリエイト料率: 意図的に低く抑える
@@ -213,6 +222,18 @@ template_cooldown = 4
 # 投稿スケジュール（JST）
 # GitHub Actions 側の cron と一致させること
 # ------------------------------------------------------------
+[schedule_settings]
+# 定期実行が設定時刻からこの分数を超えてずれていたら、その枠は見送る。
+#
+# GitHub Actions の定期実行は混雑時に大きく遅れる。実測（8/20〜9/3）では
+# 72件すべてが設定時刻とずれ、8/27以降は4〜11時間半の遅延が続いた。
+# 朝の投稿が12:28に、夜の投稿が翌06:30に出て、そのとき表示回数1の投稿が
+# 3本出ている。深夜に「朝の支度」の話をするくらいなら、出さないほうがいい。
+#
+# 0 にすると無効（従来どおり、どれだけ遅れても投稿する）。
+# 手動実行には掛からない。
+max_drift_minutes = 90
+
 [[schedule]]
 slot = "morning"
 time_jst = "07:30"
@@ -234,11 +255,14 @@ cron_utc = "0 2 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
+# 1日で唯一のリンク枠。表示中央値がいちばん高い時間帯（実測282）。
+# 型は rotation で回す。3件並べる型（review_heavy 722 / postage_free 575）が
+# 実績では最も表示を取っているので、単品紹介だけにしない。
 [[schedule]]
 slot = "noon"
 time_jst = "12:15"
 cron_utc = "15 3 * * *"
-post_type = "product"
+post_type = "rotation"
 allow_affiliate = true
 
 # 12:15 から 18:00 まで5時間45分空いていたので、その間を埋める。
@@ -271,19 +295,29 @@ cron_utc = "0 10 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
+# 2026-09-03: リンク投稿を1日1本（noon）に絞った。
+#
+# 楽天アフィリエイトのレポートは **日次のクリック数しか出せず**、
+# 投稿単位に割り当てられない。1日にリンク投稿が1本しか無ければ、
+# その日のクリック数がそのままその投稿のクリック数になる。
+# 追加のインフラも費用もなしに、投稿単位の CTR と EPC が測れる。
+#
+# 15日で総クリックが5件しか無い状態なので、露出を1本削る損より
+# 「どの形式がクリックを取れるか分かる」利益のほうが大きい。
+# [experiment] の A/B が終わったら戻してよい。
 [[schedule]]
 slot = "night"
 time_jst = "20:30"
 cron_utc = "30 11 * * *"
-post_type = "product"
-allow_affiliate = true
+post_type = "rotation"
+allow_affiliate = false
 
 [[schedule]]
 slot = "late"
 time_jst = "22:30"
 cron_utc = "30 13 * * *"
 post_type = "rotation"
-allow_affiliate = true
+allow_affiliate = false
 
 # ローテーション順（state.json でカーソルを保持）
 #
@@ -298,44 +332,57 @@ allow_affiliate = true
 # 人がふだんThreadsに書くのは結論のない一行や答えのない疑問なので、
 # casual と question を主役にして、整った型は少数派にする。
 [rotation]
-# 2026-08-31: 実績で組み替えた。
+# 2026-09-03: 8/31 の組み替えを差し戻して組み直した。
 #
-#   型            件数  表示中央値  反応率
-#   casual          6      320     0.23%   ← 表示がいちばん伸びる
-#   thread_topic    3      190     0.93%   ← 反応率がいちばん高い
-#   question        6      114     0.81%
-#   no_link        22      132     0.19%   ← いちばん多く出していたのに割に合わない
-#   howto           4       62     0.00%   ← 表示も反応も最下位
+# ## 8/31 の判断が間違っていた理由
 #
-# no_link と howto を削って、casual / thread_topic / question に寄せた。
-# howto は完全には消さない（箇条書きが効く商品もあるので、朝に1枠だけ残す）。
+# 根拠にした「反応率」は insights.replies から取っており、
+# **自分の連投（自己リプライ）を数えていた**。Threads API で返信の
+# 投稿者を照合したところ、15日間の返信60件のうち51件が自分の連投だった。
+# thread_topic の「反応率0.93%」は6件すべてが自己リプライで、
+# 人の反応は 2いいね/859表示 = 0.23% しかない。
+# しかも標本が casual n=6 / thread_topic n=3 で、判断できる数ではなかった。
+#
+# ## 9/3 時点の再集計（初日のブーストを除いた80件）
+#
+#   型            件数  表示中央値  人の返信
+#   no_link         23      174        1
+#   question        12      168        6   ← 人が返してくれる唯一の型
+#   thread_topic     6      163        0
+#   casual          14      157        0
+#   howto            4       62        0   ← 表示も反応も最下位。枠から外す
+#
+# 表示中央値は howto 以外ほぼ横並びで、型で差が付いていない。
+# 差が付いているのは「人の返信が来るかどうか」だけなので、
+# question を最多にする。Threads は会話が続く投稿を高く評価する。
+#
+# howto は枠から外した（逃がし先としては _no_link_fallbacks に残る）。
 morning = [
     "casual",
-    "thread_topic",
     "question",
-    "casual",
     "thread_topic",
-    "howto",
+    "casual",
+    "no_link",
     "question",
     "casual",
 ]
 midmorning = [
+    "question",
     "casual",
+    "no_link",
     "question",
     "casual",
     "thread_topic",
-    "casual",
     "question",
-    "casual",
 ]
 latemorning = [
     "casual",
     "thread_topic",
     "question",
     "casual",
+    "no_link",
     "casual",
     "question",
-    "thread_topic",
 ]
 afternoon = [
     "question",
@@ -343,15 +390,15 @@ afternoon = [
     "casual",
     "thread_topic",
     "question",
-    "casual",
     "no_link",
+    "casual",
 ]
 predinner = [
     "casual",
-    "casual",
     "question",
-    "thread_topic",
+    "no_link",
     "casual",
+    "thread_topic",
     "question",
     "casual",
 ]
@@ -359,28 +406,48 @@ evening = [
     "thread_topic",
     "casual",
     "question",
-    "casual",
-    "thread_topic",
-    "casual",
     "no_link",
+    "casual",
+    "question",
+    "thread_topic",
 ]
 earlynight = [
     "casual",
     "question",
     "thread_topic",
     "casual",
+    "question",
+    "casual",
+    "no_link",
+]
+# noon だけがリンク枠。単品と3件まとめを混ぜる。
+noon = [
+    "product",
+    "review_heavy",
+    "product",
+    "postage_free",
+    "product",
+    "comparison",
+    "price_band",
+]
+# night / late は 2026-09-03 にリンク許可を外したので、リンクなしの型で回す。
+night = [
+    "question",
+    "no_link",
     "casual",
     "thread_topic",
     "question",
+    "casual",
+    "thread_topic",
 ]
 late = [
-    "product",        # 商品紹介
-    "price_band",     # 価格帯別候補
-    "no_link",        # リンクなし
-    "review_heavy",   # レビュー件数が多い商品の整理
-    "postage_free",   # 送料無料の商品
-    "no_link",        # リンクなし
-    "comparison",     # 比較
+    "no_link",
+    "casual",
+    "question",
+    "thread_topic",
+    "casual",
+    "no_link",
+    "question",
 ]
 
 # ------------------------------------------------------------
@@ -403,8 +470,32 @@ stages = [
     { until_day = 7, max_link_posts = 1 },
     { until_day = 14, max_link_posts = 2 },
 ]
-# 上記を過ぎた後の通常運転
-default_max_link_posts = 3
+# 上記を過ぎた後の通常運転。
+# 2026-09-03: [[schedule]] のリンク枠自体を1つに絞ったので、ここも1に揃える。
+# 二重の歯止めにしておく（片方だけ戻しても事故らない）。
+default_max_link_posts = 1
+
+# ------------------------------------------------------------
+# A/B
+#
+# 1回に1つだけ変える。投稿数が少ないので、同時に複数動かすと
+# どれが効いたか永久に分からなくなる。
+# ------------------------------------------------------------
+[experiment]
+# リンクをどこに置くか。
+#
+#   "first" … タイムラインに出る1本に PR・商品名・価格・レビュー・リンクを置く
+#   "last"  … 前振りを連投し、最後の1本にまとめる（2026-09-03 までの動作）
+#   "ab"    … 運用日の偶奇で交互に出す
+#
+# 15日間の実測は、リンク投稿の表示 6,211 に対してクリック5件（CTR 0.081%）。
+# "last" はタイムラインに商品もリンクも出さないので、クリックまで3手かかる。
+# 「リンク付き投稿は表示が落ちる」という前提で選んだ形だったが、
+# 初日を除く80件では リンク付き 270 / リンクなし 161 で、
+# その前提自体が支持されなかった。どちらが正しいかを実測で決める。
+#
+# 判定はクリック数。14日で "first" が1件も取れなければ元に戻す。
+link_position = "ab"
 
 # ------------------------------------------------------------
 # コンプライアンス

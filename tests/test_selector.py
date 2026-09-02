@@ -50,8 +50,20 @@ def test_matches_keyword_in_fullwidth(config):
 
 
 def test_excludes_out_of_price_range(config):
-    assert is_excluded(make_item(item_price=200), config.exclusion, config.selection).excluded
-    assert is_excluded(make_item(item_price=9800), config.exclusion, config.selection).excluded
+    """価格帯の外が落ちること。
+
+    境界は config から引く。数値を直書きすると、単価を上げる判断のたびに
+    テストが「実装のバグ」のような顔で落ちる（2026-09-03 に
+    max_price を 8,000 → 20,000 にしたとき実際に落ちた）。
+    """
+    low = int(config.selection["min_price"])
+    high = int(config.selection["max_price"])
+
+    assert is_excluded(make_item(item_price=low - 1), config.exclusion, config.selection).excluded
+    assert is_excluded(make_item(item_price=high + 1), config.exclusion, config.selection).excluded
+    # 境界そのものは通ること
+    assert not is_excluded(make_item(item_price=low), config.exclusion, config.selection).excluded
+    assert not is_excluded(make_item(item_price=high), config.exclusion, config.selection).excluded
 
 
 def test_excludes_out_of_stock_and_no_image(config):

@@ -19,7 +19,14 @@ from ..storage.state import State
 from . import facts as F
 from .parts import Part, day_tags_for, time_band_for
 from .voices import load_voices
-from .templates import Block, RenderContext, Template, templates_for
+from .templates import (
+    LINK_FIRST,
+    LINK_LAST,
+    Block,
+    RenderContext,
+    Template,
+    templates_for,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +52,8 @@ class Draft:
     segments: list[str] = field(default_factory=list)
     # リンクカードとして添付するURL。本文の文字数を消費しない。
     link_attachment: str | None = None
+    # リンクをどこに置いたか（"first" / "last" / ""）。A/B の識別子。
+    link_position: str = ""
     # トピックタグ。フォロワーがいなくても一覧経由で見てもらえる導線。
     topic_tag: str | None = None
 
@@ -211,6 +220,7 @@ class ContentBuilder:
         slot: str = "",
         brand_hint: str = "",
         today: date | None = None,
+        link_position: str = LINK_LAST,
     ) -> Draft:
         """投稿文を1つ生成する。
 
@@ -256,6 +266,7 @@ class ContentBuilder:
             # 避けないと、材料の揃いやすい軸ばかりが出る。
             recent_appeals=tuple(self.state.recent_part_ids("appeal", limit=5)),
             voices=self._voices_for(primary),
+            link_position=link_position,
         )
 
         rendered = template.render(ctx)
@@ -278,6 +289,7 @@ class ContentBuilder:
             part_ids=dict(rendered.part_ids),
             allowed_numbers=set(rendered.allowed_numbers),
             link_attachment=affiliate_url,
+            link_position=link_position if affiliate_url else "",
             segments=segments,
             # フォロワーが少ないうちは、タグ経由がほぼ唯一の発見導線になる。
             # リンクなし投稿にも付ける（むしろそちらのほうが伸びる）。

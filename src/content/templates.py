@@ -39,6 +39,11 @@ from .parts import (
 )
 
 
+# リンクの置き場所。config の [experiment] で切り替える。
+LINK_FIRST = "first"   # タイムラインに出る1本にPR・商品名・数値・リンクを置く
+LINK_LAST = "last"     # 前振りを連投し、最後の1本にまとめる（従来）
+
+
 @dataclass
 class Block:
     """本文の1ブロック。drop_priority が大きいほど先に削られる。"""
@@ -93,6 +98,8 @@ class RenderContext:
     recent_appeals: tuple[str, ...] = ()
     # 実際に使った人の声（使用感だけ）。商品ごとに違う。
     voices: tuple[str, ...] = ()
+    # リンクをどこに置くか。LINK_FIRST / LINK_LAST。
+    link_position: str = LINK_LAST
 
     @property
     def item(self) -> RakutenItem:
@@ -316,8 +323,16 @@ def _split_for_thread(
     良し悪しの主張は根拠を失う。書けるのは
     「このカテゴリーはこう選ぶ → これがその一つ」まで。
 
-    Threads は外部リンクのある投稿の表示回数を落とすので、
-    タイムラインに出る1本目にはリンクも商品名も置かない。
+    ## link_position
+
+    "last"  … 従来。前振りを連投し、最後の1本にPR・商品名・リンクを置く。
+    "first" … タイムラインに出る1本にPR・商品名・数値・リンクを全部置く。
+
+    "last" は「リンク付き投稿は表示が落ちる」という前提で作った形だが、
+    15日間の実測ではその前提が支持されなかった（初日を除く80件で
+    リンク付きの表示中央値 270 / リンクなし 161）。一方でクリックは
+    6,211表示に対して5件しか発生しておらず、リンクが3ホップ先にある
+    ことのほうが実害として大きい。どちらが正しいかは A/B で決める。
     """
     body = [text.strip() for text in stages if text and text.strip()]
 
@@ -333,12 +348,75 @@ def _split_for_thread(
     cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
     rendered.part_ids["cta"] = cta.id
 
+    if ctx.link_position == LINK_FIRST:
+        _render_link_first(ctx, rendered, body, cta)
+        return
+
     # 最後の1本。押す理由はCTAだけなので、注記で埋もれさせない。
     # 容量・入数の数値も出さない方針なので、名前から落とす
     final = f"{PR_TAG}\n\n{ctx.item.display_name_without_volume(38)}\n\n{cta.text}"
 
     rendered.segments = [*body, final]
     rendered.blocks = [Block(seg, 0) for seg in rendered.segments]
+
+
+def _render_link_first(
+    ctx: RenderContext, rendered: Rendered, body: list[str], cta: Part
+) -> None:
+    """1本で完結させる。おすすめ欄に出るその投稿から直接リンクへ行ける。
+
+    ## なぜ連投をやめるのか
+
+    連投にすると、タイムラインに出るのは1本目だけで、商品名もリンクも
+    2〜4本目にある。読み手は「開く → 読み進める → カードを押す」の
+    3手を踏むことになり、実測のCTRは 0.081% だった。
+
+    ## なぜ数値を戻すのか
+
+    いちばん表示が伸びた投稿（2,802）は、商品名・価格・レビュー件数・
+    平均が1本に揃っていた。初日を除いた80件でも、数字を含む投稿の
+    表示中央値は 277 で、含まない投稿の 172 を上回る。
+    「スペック羅列は読まれない」という想定は実測と逆だった。
+
+    ## #PR を先頭に置く理由
+
+    景表法（ステマ規制）が求めるのは、広告と判別できる表示が
+    **その投稿を見た人に見えること**。タイムラインに出る本人が
+    広告なのだから、表示もそこに要る。冒頭に置けば
+    pr_marker_max_offset の中にも収まる。
+
+    ## 型ごとの長さは残す
+
+    連投をやめると、どのテンプレートも「前振り＋商品＋CTA」になって
+    見た目が1種類に潰れる。テンプレートが宣言している段数を長さに読み替えて、
+    短い型・普通の型・長い型の3つに分ける。
+    """
+    lead = body[0] if body else ""
+    # 段数 = そのテンプレートが元々どれだけ長い型だったか
+    stages = len(body)
+
+    if stages <= 1:
+        # short 型。数値は1つだけにして、いちばん短い形を保つ。
+        fact_text, allowed = F.sentence_facts(ctx.item, ctx.fact_style)
+        rendered.allowed_numbers |= allowed
+        item_block = f"{ctx.item.display_name_without_volume(38)}\n{fact_text}"
+        middle = ""
+    else:
+        facts = F.build_facts(ctx.item)
+        rendered.allowed_numbers |= facts.allowed_numbers
+        item_block = "\n".join([ctx.item.display_name_without_volume(38), *facts.lines])
+        # checklist のような長い型だけ、選び方の段も1本に残す。
+        middle = body[1] if stages >= 3 else ""
+
+    rendered.blocks = [
+        Block(PR_TAG, 0),
+        Block(lead, 2),
+        Block(middle, 4),
+        Block(item_block, 0),
+        Block(cta.text, 1),
+    ]
+    # 単発投稿。segments は builder が blocks から組み立てる。
+    rendered.segments = []
 
 
 # ======================================================================
@@ -440,12 +518,28 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
         cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
         disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
         r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
+        note = "※リンクは1つ目のものです"
+
+        if ctx.link_position == LINK_FIRST:
+            # 3件を並べる型は、実績で表示がいちばん伸びている
+            # （review_heavy 722 / postage_free 575）。連投で商品と数値を
+            # 2本目へ送ると、その強みがタイムラインから消える。1本にまとめる。
+            body = "\n\n".join(b.text.strip() for b in r.blocks if b.text.strip())
+            r.blocks = [
+                Block(PR_TAG, 0),
+                Block(body, 0),
+                Block(f"{note}\n{cta.text}", 1),
+                Block(disclaimer.text, 3),
+            ]
+            r.segments = []
+            return r
+
         # 1本目は見出しだけ。商品と数値は2本目へ。
         rest = "\n\n".join(b.text.strip() for b in r.blocks[1:] if b.text.strip())
         r.segments = [
             r.blocks[0].text.strip(),
             _pr(ctx, rest),
-            f"※リンクは1つ目のものです\n{cta.text}\n{disclaimer.text}",
+            f"{note}\n{cta.text}\n{disclaimer.text}",
         ]
         r.blocks = [Block(seg, 0) for seg in r.segments]
     return r

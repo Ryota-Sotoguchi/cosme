@@ -92,6 +92,48 @@ class PostRecord:
         filtered.setdefault("has_affiliate_link", False)
         return cls(**filtered)
 
+    # ------------------------------------------------------------------
+    # 反応の読み方
+    #
+    # Threads の insights.replies は **自分の連投も1件として数える**。
+    # 商品投稿は3〜4本の連投なので、人が誰も返していなくても replies が
+    # 2〜3 になる。実際、15日間で replies=60 のうち 51 件が自分の連投で、
+    # その数字を根拠に config の枠配分を組み替えていた。
+    #
+    # 反応を語るときは必ず human_replies / human_engagements を使う。
+    # ------------------------------------------------------------------
+    @property
+    def self_replies(self) -> int:
+        """自分の連投による返信数。連投 n 本なら n-1 件。"""
+        stored = self.insights.get("replies_self")
+        if isinstance(stored, int):
+            return max(0, stored)
+        segments = self.extra.get("segments")
+        if isinstance(segments, int) and segments > 0:
+            return segments - 1
+        return 0
+
+    @property
+    def human_replies(self) -> int:
+        """人からの返信数。負にはしない。"""
+        total = self.insights.get("replies")
+        if total is None:
+            return 0
+        return max(0, int(total) - self.self_replies)
+
+    @property
+    def human_engagements(self) -> int:
+        """人からの反応の合計（いいね・返信・リポスト・引用・シェア）。"""
+        others = sum(
+            int(self.insights.get(key) or 0)
+            for key in ("likes", "reposts", "shares", "quotes")
+        )
+        return others + self.human_replies
+
+    @property
+    def views(self) -> int:
+        return int(self.insights.get("views") or 0)
+
     @property
     def posted_datetime(self) -> datetime | None:
         if not self.posted_at:

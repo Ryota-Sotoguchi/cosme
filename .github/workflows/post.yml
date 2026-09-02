@@ -5,17 +5,24 @@ name: post
 #   07:30 JST = 22:30 UTC (前日)  … morning     リンクなし
 #   09:30 JST = 00:30 UTC         … midmorning  リンクなし
 #   11:00 JST = 02:00 UTC         … latemorning リンクなし
-#   12:15 JST = 03:15 UTC         … noon        商品紹介【PR】
+#   12:15 JST = 03:15 UTC         … noon        商品紹介 #PR  ← 唯一のリンク枠
 #   14:30 JST = 05:30 UTC         … afternoon   リンクなし
 #   16:30 JST = 07:30 UTC         … predinner   リンクなし
 #   18:00 JST = 09:00 UTC         … evening     リンクなし
 #   19:00 JST = 10:00 UTC         … earlynight  リンクなし
-#   20:30 JST = 11:30 UTC         … night       商品紹介【PR】
-#   22:30 JST = 13:30 UTC         … late        ローテーション
+#   20:30 JST = 11:30 UTC         … night       リンクなし
+#   22:30 JST = 13:30 UTC         … late        リンクなし
 #
-# リンクを許可するのは noon / night / late の3枠だけ。
+# 2026-09-03: リンクを許可するのは noon の1枠だけにした。
+# 楽天アフィリエイトのレポートは日次のクリック数しか出せず、投稿単位に
+# 割り当てられない。1日1本なら、その日のクリック数がそのまま
+# その投稿のクリック数になる（費用ゼロで投稿別CTRが測れる）。
 # 枠を増やすときはリンクなし側に足すこと。
 # （test_affiliate_slots_are_limited が3枠以下を強制している）
+#
+# 定期実行が設定時刻から90分以上ずれたら、その枠は見送る
+# （config の [schedule_settings] max_drift_minutes）。
+# 8/27以降、4〜11時間半の遅延で深夜に朝の投稿が出ていたため。
 #
 # cron 文字列から config/config.toml の [[schedule]] を引いてスロットを決めるので、
 # 時刻を変えるときは「この cron」と「config.toml の cron_utc」の両方を揃えること。
