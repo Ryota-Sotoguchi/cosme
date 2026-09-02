@@ -12,7 +12,8 @@
       "ranking",
       "contrast",
       "loss_aversion",
-      "surprise"
+      "surprise",
+      "answer"
     ],
     "casual": [
       "cm_humid",
@@ -97,7 +98,8 @@
       "cta_save",
       "cta_reviews",
       "cta_later",
-      "cta_size"
+      "cta_size",
+      "cta_check"
     ],
     "disclaimer": [
       "dc_point",
@@ -214,7 +216,6 @@
     "predinner": 1
   },
   "template_history": [
-    "casual",
     "band_focus",
     "postage_free",
     "casual",
@@ -233,7 +234,8 @@
     "question",
     "casual",
     "topic_thread",
-    "question"
+    "question",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
