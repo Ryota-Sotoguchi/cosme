@@ -11,7 +11,8 @@
       "negative",
       "ranking",
       "contrast",
-      "loss_aversion"
+      "loss_aversion",
+      "surprise"
     ],
     "casual": [
       "cm_humid",
@@ -94,7 +95,8 @@
       "cta_price",
       "cta_save",
       "cta_reviews",
-      "cta_later"
+      "cta_later",
+      "cta_size"
     ],
     "disclaimer": [
       "dc_point",
@@ -135,7 +137,8 @@
     ],
     "recommend_closing": [
       "rl_fit",
-      "rl_check"
+      "rl_check",
+      "rl_keep"
     ],
     "recommend_opening": [
       "ro_forwho",
@@ -207,7 +210,6 @@
     "predinner": 0
   },
   "template_history": [
-    "casual",
     "topic",
     "casual",
     "question",
@@ -226,7 +228,8 @@
     "topic",
     "topic_thread",
     "casual",
-    "question"
+    "question",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
