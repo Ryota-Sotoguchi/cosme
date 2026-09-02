@@ -27,7 +27,8 @@
       "cm_cal_season",
       "cm_morning_rush",
       "cm_weekend",
-      "cm_season_swap"
+      "cm_season_swap",
+      "cm_p_morning_weak"
     ],
     "casual_brand": [
       "brand",
@@ -208,10 +209,9 @@
     "latemorning": 3,
     "midmorning": 1,
     "morning": 5,
-    "predinner": 0
+    "predinner": 1
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "casual",
@@ -230,7 +230,8 @@
     "casual",
     "question",
     "checklist",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
