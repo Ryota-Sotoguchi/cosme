@@ -133,7 +133,8 @@
       "q_shampoo_freq",
       "q_fail",
       "q_hair_dry",
-      "q_sale"
+      "q_sale",
+      "q_travel"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -200,7 +201,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "earlynight": 1,
     "evening": 0,
     "late": 6,
@@ -210,7 +211,6 @@
     "predinner": 0
   },
   "template_history": [
-    "topic",
     "casual",
     "question",
     "casual",
@@ -229,7 +229,8 @@
     "topic_thread",
     "casual",
     "question",
-    "checklist"
+    "checklist",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
