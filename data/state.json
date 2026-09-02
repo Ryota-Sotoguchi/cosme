@@ -25,7 +25,8 @@
       "cm_package",
       "cm_cal_season",
       "cm_morning_rush",
-      "cm_weekend"
+      "cm_weekend",
+      "cm_season_swap"
     ],
     "casual_brand": [
       "brand",
@@ -200,12 +201,11 @@
     "evening": 0,
     "late": 6,
     "latemorning": 2,
-    "midmorning": 0,
+    "midmorning": 1,
     "morning": 5,
     "predinner": 0
   },
   "template_history": [
-    "question",
     "question",
     "casual",
     "topic",
@@ -224,7 +224,8 @@
     "topic",
     "band_focus",
     "topic",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
