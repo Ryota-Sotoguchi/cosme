@@ -56,22 +56,40 @@ USER_AGENT = (
 # レビュー1件ぶんの塊を選ぶ。
 EXTRACT_JS = """
 () => {
-  const out = [];
   // レビュー本文は dl/dd や review 系のクラスに入る。
   // 構造が変わっても拾えるよう、複数の当たり方を試す。
-  // 実測で review-body が取れた。構造が変わっても拾えるよう候補を並べる。
+  //
+  // **候補を試したところで打ち切らない。**
+  // もとは out.length >= 5 で break していたため、最初に当たった
+  // セレクタだけを見て終わっていた。実測で1商品あたり4〜6件しか
+  // 集まらず、「2件以上が同じことを言っている」の判定に届かない
+  // 商品が半分あった。全部の当たり方を試して、本文で重複を除く。
+  const seen = new Set();
   const sels = [
     '[class*="review-body"]', '[class*="reviewBody"]', '[class*="ReviewBody"]',
     '[class*="comment"]', 'dd.comment',
+    '[class*="review"] p', '[data-testid*="review"]',
   ];
   for (const sel of sels) {
     document.querySelectorAll(sel).forEach(n => {
       const t = (n.innerText || '').trim();
-      if (t.length >= 10 && t.length <= 600) out.push(t);
+      if (t.length >= 10 && t.length <= 600) seen.add(t);
     });
-    if (out.length >= 5) break;
   }
-  return out;
+  return Array.from(seen);
+}
+"""
+
+# レビューは下までスクロールしないと読み込まれないことがある。
+# 開いた直後に読むと、画面に入っている数件しか取れない。
+SCROLL_JS = """
+async () => {
+  const step = () => new Promise(r => setTimeout(r, 400));
+  for (let i = 0; i < 8; i++) {
+    window.scrollBy(0, window.innerHeight);
+    await step();
+  }
+  window.scrollTo(0, 0);
 }
 """
 
@@ -121,6 +139,13 @@ def fetch_reviews(item_url: str, *, wait_ms: int, timeout_ms: int) -> tuple[list
                     return [], "レビューページへのリンクが見つかりません"
                 page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
                 page.wait_for_timeout(wait_ms)
+                # 遅延読み込みぶんを出してから読む。
+                # 失敗しても、画面に出ているぶんだけで続行する。
+                try:
+                    page.evaluate(SCROLL_JS)
+                    page.wait_for_timeout(1500)
+                except Exception:  # noqa: BLE001
+                    pass
                 bodies = page.evaluate(EXTRACT_JS)
             finally:
                 browser.close()
