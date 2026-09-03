@@ -222,12 +222,13 @@
       "tt_too_many",
       "tt_stock",
       "tt_color",
-      "tt_size"
+      "tt_size",
+      "tt_refill_first"
     ]
   },
   "rotation_cursor": {
     "afternoon": 2,
-    "earlynight": 2,
+    "earlynight": 3,
     "evening": 2,
     "late": 0,
     "latemorning": 4,
@@ -236,7 +237,6 @@
     "predinner": 2
   },
   "template_history": [
-    "topic",
     "band_focus",
     "topic",
     "topic_thread",
@@ -255,7 +255,8 @@
     "checklist",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
