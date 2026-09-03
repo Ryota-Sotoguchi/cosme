@@ -67,6 +67,8 @@
       "brand",
       "brand",
       "brand",
+      "brand",
+      "brand",
       "brand"
     ],
     "closing": [
@@ -218,7 +220,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 1,
+    "afternoon": 2,
     "earlynight": 2,
     "evening": 1,
     "late": 0,
@@ -228,7 +230,6 @@
     "predinner": 1
   },
   "template_history": [
-    "topic",
     "topic",
     "casual",
     "topic",
@@ -247,7 +248,8 @@
     "howto",
     "question",
     "casual",
-    "checklist"
+    "checklist",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
