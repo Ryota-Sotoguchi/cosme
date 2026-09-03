@@ -174,9 +174,13 @@ def test_saved_file_never_contains_review_bodies():
     raw = json.loads(path.read_text(encoding="utf-8"))
     allowed = set(TEXTURE_WORDS)
     for code, entry in raw.items():
-        assert set(entry) <= {"updated_at", "reviews_seen", "voices"}, code
+        assert set(entry) <= {"updated_at", "reviews_seen", "voices", "counts"}, code
         for word in entry["voices"]:
             assert word in allowed, f"{code}: 決めた語以外が保存されている「{word}」"
+        # counts は「決めた語 → 件数」だけ。ここに本文が入らないこと。
+        for word, count in (entry.get("counts") or {}).items():
+            assert word in allowed, f"{code}: 決めた語以外が保存されている「{word}」"
+            assert isinstance(count, int), f"{code}: {word} の件数が整数でない"
 
 
 def test_load_voices_survives_a_missing_file():

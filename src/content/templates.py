@@ -276,6 +276,7 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
             cursor=cursor,
             avoid=set(ctx.recent_appeals),
             voices=ctx.voices,
+            voice_counts=ctx.voice_counts,
         )
         if built is not None:
             text, appeal_id, allowed = built

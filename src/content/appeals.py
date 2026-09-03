@@ -457,6 +457,7 @@ def build_appeal(
     cursor: int,
     avoid: set[str] | None = None,
     voices: tuple[str, ...] = (),
+    voice_counts: dict[str, int] | None = None,
 ) -> tuple[str, str, set[str]] | None:
     """訴求文をひとつ作る。(本文, 訴求ID, 許可する数値) を返す。
 
@@ -480,7 +481,7 @@ def build_appeal(
         if appeal.id in avoid:
             continue
         ctx = AppealContext(item=item, benefit=benefit, category=category,
-                            cursor=cursor, allowed_numbers=set(), voices=voices)
+                            cursor=cursor, allowed_numbers=set(), voices=voices, voice_counts=voice_counts or {})
         text = appeal.build(ctx)
         if text:
             return text, appeal.id, ctx.allowed_numbers
