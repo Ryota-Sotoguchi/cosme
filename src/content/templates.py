@@ -99,6 +99,8 @@ class RenderContext:
     recent_appeals: tuple[str, ...] = ()
     # 実際に使った人の声（使用感だけ）。商品ごとに違う。
     voices: tuple[str, ...] = ()
+    # その使用感を何件のレビューが書いていたか。「多い」と書ける根拠。
+    voice_counts: dict[str, int] = field(default_factory=dict)
     # リンクをどこに置くか。LINK_FIRST / LINK_LAST。
     link_position: str = LINK_LAST
 
@@ -416,7 +418,9 @@ def _render_link_first(
     # 「安い」「レビューが多い」より読み手の判断を助ける。
     #
     # 訴求文がすでに声を使っているときは重ねない（同じ語が二度出る）。
-    voice = voice_sentence(ctx.voices, cursor=_variation_cursor(ctx))
+    voice = voice_sentence(
+        ctx.voices, cursor=_variation_cursor(ctx), counts=ctx.voice_counts
+    )
     if voice and any(word in lead for word in ctx.voices):
         voice = ""
 

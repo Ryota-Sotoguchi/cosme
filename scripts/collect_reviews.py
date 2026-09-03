@@ -197,6 +197,10 @@ def main() -> int:
             "updated_at": datetime.now(JST).strftime("%Y-%m-%d"),
             "reviews_seen": summary.total_reviews,
             "voices": [w for w, _ in summary.counts],
+            # 何件のレビューがそう書いていたか。
+            # 「〜って人が多かった」と書けるかどうかの根拠になる。
+            # 2件で「多い」とは言えないので、投稿側で言い方を変える。
+            "counts": {w: n for w, n in summary.counts},
         }
         print(f"OK  {code}: {summary.phrase(3)}", file=sys.stderr)
 

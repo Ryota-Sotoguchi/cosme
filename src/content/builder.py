@@ -18,7 +18,7 @@ from ..rakuten.models import RakutenItem
 from ..storage.state import State
 from . import facts as F
 from .parts import Part, day_tags_for, time_band_for
-from .voices import load_voices
+from .voices import load_voice_counts, load_voices
 from .templates import (
     LINK_FIRST,
     LINK_LAST,
@@ -83,6 +83,7 @@ class ContentBuilder:
         self._used_this_draft: dict[str, str] = {}
         self.voices_path = voices_path or Path("data/voices.json")
         self._voice_store: dict[str, tuple[str, ...]] | None = None
+        self._voice_count_store: dict[str, dict[str, int]] | None = None
 
     # ------------------------------------------------------------------
     def _pick(
@@ -156,6 +157,17 @@ class ContentBuilder:
         if self._voice_store is None:
             self._voice_store = load_voices(self.voices_path)
         return self._voice_store.get(item.item_code, ())
+
+    def _voice_counts_for(self, item: RakutenItem | None) -> dict[str, int]:
+        """その使用感を何件のレビューが書いていたか。
+
+        2件しか言っていないものを「多かった」と書かないための材料。
+        """
+        if item is None or not item.item_code:
+            return {}
+        if self._voice_count_store is None:
+            self._voice_count_store = load_voice_counts(self.voices_path)
+        return self._voice_count_store.get(item.item_code, {})
 
     # ------------------------------------------------------------------
     def _assemble(self, blocks: list[Block], affiliate_url: str | None) -> str:
@@ -266,6 +278,7 @@ class ContentBuilder:
             # 避けないと、材料の揃いやすい軸ばかりが出る。
             recent_appeals=tuple(self.state.recent_part_ids("appeal", limit=5)),
             voices=self._voices_for(primary),
+            voice_counts=self._voice_counts_for(primary),
             link_position=link_position,
         )
 

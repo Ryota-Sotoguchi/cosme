@@ -51,23 +51,35 @@ def test_texture_labels_pass_compliance():
 
 
 # ======================================================================
-# 効能に触れたレビューは使わない
+# 効能はどこにも出力しない
 # ======================================================================
-def test_reviews_mentioning_efficacy_are_dropped_whole():
-    """効能に触れたレビューは、丸ごと集計から外すこと。
+# 2026-09-03 に守り方を変えた。
+#
+# もとは効能語を1つでも含むレビューを丸ごと捨てていた。だがコスメの
+# レビューはほとんどが毛穴・くすみ・肌荒れに触れるので、**使える素材の
+# 大半が落ちていた**（8商品を集めて4商品しか拾えず、レビュー100件超の
+# 商品でも採用ゼロになる）。
+#
+# 出すのは TEXTURE_WORDS のラベルだけで、レビュー本文は投稿に出ない。
+# 安全性は「入力を捨てること」ではなく「出力が辞書に限られること」で
+# 担保する。そのほうが強い保証になる。
+def test_efficacy_part_of_a_review_is_not_extracted():
+    """効能に触れたレビューからも、使用感だけを拾うこと。
 
-    使用感の語が入っていても、そのレビューを根拠にはしない。
-    「伸びが良くてシミも薄くなった」を「伸びがいい」の1件として
-    数えると、実質その体験談を引いていることになる。
+    「伸びが良くてシミも薄くなった」から拾うのは「伸びがいい」だけ。
+    効能の部分はどこにも出力されない。
     """
     reviews = [
-        "伸びが良い。シミが薄くなりました",   # 効能に触れている → 丸ごと除外
+        "伸びが良い。シミが薄くなりました",
         "伸びが良くて使いやすい",
-        "伸びが良い",
     ]
     summary = extract_voices("x:1", reviews)
     counts = dict(summary.counts)
-    assert counts.get("伸びがいい") == 2, "効能に触れたレビューが数えられている"
+
+    assert counts.get("伸びがいい") == 2, "使用感を拾えていない"
+    assert not any(
+        any(word in label for word in FORBIDDEN_IN_VOICES) for label in counts
+    ), f"効能の語が出力に入った: {list(counts)}"
 
 
 @pytest.mark.parametrize("body", [
@@ -75,10 +87,30 @@ def test_reviews_mentioning_efficacy_are_dropped_whole():
     "ニキビが減った気がする",
     "肌質が変わりました",
     "効果を実感しています",
+    "シミが薄くなって感動しました",
 ])
-def test_efficacy_reviews_produce_nothing(body):
+def test_efficacy_only_reviews_produce_nothing(body):
+    """効能しか書いていないレビューからは、何も出ないこと。"""
     summary = extract_voices("x:1", [body, body])
     assert not summary.counts
+
+
+def test_output_never_contains_efficacy(_efficacy=FORBIDDEN_IN_VOICES):
+    """どんなレビューを与えても、出力に効能の語が現れないこと。
+
+    出力は辞書のラベルに限られるので、入力が何であっても成り立つ。
+    ここが崩れたら、辞書に効能語が混ざったということ。
+    """
+    reviews = [
+        "シミが消えました。伸びも良いです",
+        "毛穴が引き締まった。しっとりする",
+        "肌質が変わりました。香りもいい",
+    ] * 2
+    summary = extract_voices("x:1", reviews)
+    assert summary.counts, "使用感まで落としている"
+    for label in dict(summary.counts):
+        hits = [w for w in _efficacy if w in label]
+        assert not hits, f"{label} に効能の語 {hits}"
 
 
 # ======================================================================
@@ -305,4 +337,50 @@ def test_labels_read_naturally_before_tte():
         )
         assert not label.endswith("、"), f"{label} の末尾が読点"
 
+# ======================================================================
+# 「多い」と書けるのは根拠があるときだけ
+# ======================================================================
+# 2件しか言っていないものを「多かった」と書くと、こちらの都合で
+# 数を大きく見せることになる。件数に応じて言い方を変える。
+def test_many_wording_needs_evidence():
+    from src.content.voices import MANY_THRESHOLD, voice_sentence
+
+    words = ("べたつかない", "伸びがいい")
+    strong = {w: MANY_THRESHOLD + 5 for w in words}
+    weak = {w: 2 for w in words}
+
+    for cursor in range(6):
+        assert "多" in voice_sentence(words, cursor=cursor, counts=strong) or \
+               "声が多い" in voice_sentence(words, cursor=cursor, counts=strong) or \
+               "言ってる" in voice_sentence(words, cursor=cursor, counts=strong) or \
+               "よく見かけた" in voice_sentence(words, cursor=cursor, counts=strong) or \
+               "目立つ" in voice_sentence(words, cursor=cursor, counts=strong)
+        assert "多" not in voice_sentence(words, cursor=cursor, counts=weak), (
+            voice_sentence(words, cursor=cursor, counts=weak)
+        )
+
+
+def test_unknown_counts_are_treated_as_weak():
+    """件数が分からない古いデータで「多かった」と書かないこと。"""
+    from src.content.voices import voice_sentence
+
+    for cursor in range(6):
+        assert "多" not in voice_sentence(("さっぱり",), cursor=cursor)
+
+
+def test_voice_counts_round_trip(tmp_path):
+    """collect_reviews.py が書く形を読めること。"""
+    import json
+    from src.content.voices import load_voice_counts, load_voices
+
+    path = tmp_path / "voices.json"
+    path.write_text(json.dumps({
+        "shop:1": {"voices": ["しっとり"], "counts": {"しっとり": 7}},
+        "shop:2": {"voices": ["さっぱり"]},          # counts の無い古い行
+    }, ensure_ascii=False), encoding="utf-8")
+
+    assert load_voices(path)["shop:1"] == ("しっとり",)
+    counts = load_voice_counts(path)
+    assert counts["shop:1"] == {"しっとり": 7}
+    assert counts["shop:2"] == {}, "無い行は空。推測で埋めない"
 

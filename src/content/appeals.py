@@ -34,7 +34,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable
 
 from ..rakuten.models import RakutenItem
@@ -64,6 +64,7 @@ class AppealContext:
     allowed_numbers: set[str]
     # 実際に使った人の声（使用感だけ）。無ければ空。
     voices: tuple[str, ...] = ()
+    voice_counts: dict[str, int] = field(default_factory=dict)
 
     def pick(self, options: tuple[str, ...]) -> str:
         return options[self.cursor % len(options)]
@@ -395,7 +396,7 @@ def _voices(c: AppealContext) -> str | None:
         return None
     from .voices import voice_sentence
 
-    sentence = voice_sentence(c.voices, cursor=c.cursor)
+    sentence = voice_sentence(c.voices, cursor=c.cursor, counts=c.voice_counts)
     if not sentence:
         return None
     return c.pick((
@@ -415,7 +416,7 @@ def _pain_with_voices(c: AppealContext) -> str | None:
         return None
     from .voices import voice_sentence
 
-    sentence = voice_sentence(c.voices, cursor=c.cursor)
+    sentence = voice_sentence(c.voices, cursor=c.cursor, counts=c.voice_counts)
     if not sentence:
         return None
     return c.pick((

@@ -69,6 +69,29 @@ TEXTURE_WORDS: dict[str, tuple[str, ...]] = {
     "持ち運びしやすい": ("持ち運び", "旅行に", "コンパクト"),
     "朝でも使いやすい": ("朝でも", "朝使っ", "メイク前"),
     "家族で使える": ("家族で", "夫も", "子供も", "子どもも"),
+    # --- 2026-09-03（2回目）---
+    # 効能に触れたレビューを丸ごと捨てるのをやめたので、
+    # 拾える側の幅も広げる。ここに入れてよいのは
+    # 「使ってどう感じたか」「使い勝手がどうか」だけ。
+    "白浮きしない": ("白浮きしな", "白くならな", "白残りしな"),
+    "きしまない": ("きしまな", "軋まな", "ギシギシしな"),
+    "洗い上がりが好み": ("洗い上がりが好", "洗い上がりが良", "洗い上がりがい"),
+    "泡切れがいい": ("泡切れ", "流しやす", "すすぎやす"),
+    "伸ばしやすい": ("伸ばしやす", "のばしやす", "広げやす"),
+    "重ねづけしやすい": ("重ねづけ", "重ね付け", "重ねやす"),
+    "液だれしない": ("液だれしな", "垂れてこな", "こぼれにく"),
+    "手が汚れない": ("手が汚れな", "手を汚さ"),
+    "量を調整しやすい": ("量が調整", "量を調整", "出す量が"),
+    "乾くのが早い": ("乾くのが早", "すぐ乾", "乾きが早"),
+    "服につきにくい": ("服につかな", "服につきにく", "衣類につかな"),
+    "香りが残らない": ("香りが残らな", "匂いが残らな", "すぐ飛ぶ"),
+    "テクスチャが好み": ("テクスチャが好", "テクスチャーが好", "質感が好"),
+    "サイズがちょうどいい": ("サイズがちょうど", "大きさがちょうど", "ちょうどいい大き"),
+    "スポイトが使いやすい": ("スポイト",),
+    "チューブが絞りやすい": ("絞りやす", "チューブが"),
+    "パッケージが好き": ("パッケージが好", "見た目が好", "デザインが好"),
+    "時短になる": ("時短", "時間がかからな", "すぐ終わ"),
+    "メイクの上から使える": ("メイクの上", "化粧の上"),
 }
 
 
@@ -122,14 +145,26 @@ def extract_voices(item_code: str, reviews: list[str]) -> VoiceSummary:
     """レビュー本文の一覧から、使用感の出現回数を数える。
 
     本文は保存しない。数えた結果だけを返す。
+
+    ## 効能に触れたレビューも「使用感の部分だけ」使う（2026-09-03 変更）
+
+    もとは効能語を1つでも含むレビューを丸ごと捨てていた。
+    しかしコスメのレビューはほとんどが毛穴・くすみ・肌荒れに触れるので、
+    **実測で使える素材の大半が落ちていた**（8商品を集めて4商品しか
+    使用感を拾えず、レビュー100件超の商品でも採用ゼロになる）。
+
+    出すのは TEXTURE_WORDS のラベルだけで、レビュー本文は投稿に出ない。
+    「伸びが良くてシミも薄くなった」というレビューから拾うのは
+    「伸びがいい」だけで、効能の部分はどこにも出力されない。
+    捨てる必要は無い。
+
+    安全性は**入力を捨てること**ではなく、**出力が辞書に限られること**で
+    担保する。そのほうが強い保証になる
+    （test_texture_words_contain_no_efficacy_claims が辞書を見張る）。
     """
     counter: Counter[str] = Counter()
     for body in reviews:
         text = body or ""
-        # 効能に触れているレビューは丸ごと使わない。
-        # 使用感の語が入っていても、そのレビューを根拠にはしない。
-        if any(word in text for word in FORBIDDEN_IN_VOICES):
-            continue
         for label, variants in TEXTURE_WORDS.items():
             if any(v in text for v in variants):
                 counter[label] += 1
@@ -160,6 +195,26 @@ def load_voices(path: "Path") -> dict[str, tuple[str, ...]]:
         code: tuple(entry.get("voices", []))
         for code, entry in raw.items()
         if entry.get("voices")
+    }
+
+
+def load_voice_counts(path: "Path") -> dict[str, dict[str, int]]:
+    """商品ごとの「何件がそう言っていたか」。
+
+    古い voices.json には counts が無い。その場合は空で返し、
+    投稿側は控えめな言い方（「〜って人がいた」）を使う。
+    """
+    import json
+
+    if not path.exists():
+        return {}
+    try:
+        raw = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return {
+        code: {str(k): int(v) for k, v in (entry.get("counts") or {}).items()}
+        for code, entry in raw.items()
     }
 
 
@@ -213,24 +268,52 @@ def _joiner(word: str) -> str:
 # 「効果があった」系は voices.py の時点で拾っていない（薬機法）。
 # ここで扱えるのはテクスチャ・香り・使い勝手だけ。
 # ----------------------------------------------------------------------
+# 「多い」と言い切れるだけの件数があるときの言い方
 VOICE_FRAMES: tuple[str, ...] = (
     "{v}って書いてる人が多かった",
     "レビュー見てると{v}って声が多い",
     "使ってる人は{v}って言ってる",
     "{v}っていう感想をよく見かけた",
     "感想で目立つのは{v}ってところ",
-    "{v}らしい",
-    "使った人の言葉だと{v}",
     "{v}って書かれてることが多い",
 )
 
+# 数件しか言っていないときの言い方。
+# 2件を「多い」と書くのは、こちらの都合で数を大きく見せることになる。
+FEW_VOICE_FRAMES: tuple[str, ...] = (
+    "{v}って書いてる人がいた",
+    "{v}っていう感想があった",
+    "{v}らしい",
+    "使った人の言葉だと{v}",
+    "{v}って書いてる人もいる",
+)
 
-def voice_sentence(voices: tuple[str, ...], *, cursor: int = 0, limit: int = 2) -> str:
+# これ以上の件数が同じことを言っていれば「多い」と書いてよい
+MANY_THRESHOLD = 5
+
+
+def voice_sentence(
+    voices: tuple[str, ...],
+    *,
+    cursor: int = 0,
+    limit: int = 2,
+    counts: dict[str, int] | None = None,
+) -> str:
     """使った人の感想を、誰の感想か分かる形で一文にする。
+
+    counts を渡すと、件数に応じて言い方を変える。
+    2件しか言っていないものを「多かった」と書くと、
+    こちらの都合で数を大きく見せることになる。
 
     材料が無ければ空。**声が無くても投稿は成立する。**
     """
     phrase = voice_phrase(voices, cursor=cursor, limit=limit)
     if not phrase:
         return ""
-    return VOICE_FRAMES[cursor % len(VOICE_FRAMES)].format(v=phrase)
+
+    # 件数が分からないときも控えめな言い方にする。
+    # 「多かった」は根拠がある場合にだけ書く。
+    used = [w for w in voices if w in phrase]
+    weakest = min(((counts or {}).get(w, 0) for w in used), default=0)
+    frames = VOICE_FRAMES if weakest >= MANY_THRESHOLD else FEW_VOICE_FRAMES
+    return frames[cursor % len(frames)].format(v=phrase)
