@@ -31,9 +31,12 @@
       "cm_weekend",
       "cm_season_swap",
       "cm_p_morning_weak",
-      "cm_color"
+      "cm_color",
+      "cm_l_season"
     ],
     "casual_brand": [
+      "brand",
+      "brand",
       "brand",
       "brand",
       "brand",
@@ -225,7 +228,7 @@
   "rotation_cursor": {
     "afternoon": 2,
     "earlynight": 2,
-    "evening": 1,
+    "evening": 2,
     "late": 0,
     "latemorning": 4,
     "midmorning": 2,
@@ -233,7 +236,6 @@
     "predinner": 2
   },
   "template_history": [
-    "casual",
     "topic",
     "band_focus",
     "topic",
@@ -251,6 +253,7 @@
     "question",
     "casual",
     "checklist",
+    "casual",
     "casual",
     "casual"
   ],
