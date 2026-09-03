@@ -1,7 +1,14 @@
 {
+  "attenir:10000557": {
+    "reviews_seen": 6,
+    "updated_at": "2026-09-03",
+    "voices": [
+      "もちもちする"
+    ]
+  },
   "chronus:10001412": {
     "reviews_seen": 123,
-    "updated_at": "2026-08-31",
+    "updated_at": "2026-09-03",
     "voices": [
       "さっぱり"
     ]
@@ -11,6 +18,21 @@
     "updated_at": "2026-08-31",
     "voices": [
       "泡立ちがいい"
+    ]
+  },
+  "tvert:10000292": {
+    "reviews_seen": 6,
+    "updated_at": "2026-09-03",
+    "voices": [
+      "しっとり"
+    ]
+  },
+  "yayoi-cosme:10011604": {
+    "reviews_seen": 122,
+    "updated_at": "2026-09-03",
+    "voices": [
+      "しっとり",
+      "容器が使いやすい"
     ]
   }
 }
