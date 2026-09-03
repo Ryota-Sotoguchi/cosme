@@ -65,6 +65,7 @@
       "brand",
       "brand",
       "brand",
+      "brand",
       "brand"
     ],
     "closing": [
@@ -218,13 +219,12 @@
     "earlynight": 2,
     "evening": 1,
     "late": 0,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 2,
     "morning": 6,
     "predinner": 1
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "topic",
     "topic",
@@ -243,7 +243,8 @@
     "band_focus",
     "comparison",
     "howto",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
