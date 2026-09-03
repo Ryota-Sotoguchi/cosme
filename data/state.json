@@ -120,7 +120,8 @@
       "hw_first_cosme",
       "hw_volume",
       "hw_budget",
-      "hw_first_category"
+      "hw_first_category",
+      "hw_brush"
     ],
     "opening": [
       "op_curious",
@@ -218,11 +219,10 @@
     "late": 0,
     "latemorning": 3,
     "midmorning": 1,
-    "morning": 5,
+    "morning": 6,
     "predinner": 1
   },
   "template_history": [
-    "postage_free",
     "casual",
     "casual",
     "topic_thread",
@@ -241,7 +241,8 @@
     "topic_thread",
     "question",
     "band_focus",
-    "comparison"
+    "comparison",
+    "howto"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
