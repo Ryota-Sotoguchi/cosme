@@ -141,7 +141,8 @@
       "q_hair_dry",
       "q_sale",
       "q_travel",
-      "q_recommend"
+      "q_recommend",
+      "q_time_of_day"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -218,12 +219,11 @@
     "evening": 1,
     "late": 0,
     "latemorning": 3,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 6,
     "predinner": 1
   },
   "template_history": [
-    "casual",
     "casual",
     "topic_thread",
     "topic",
@@ -242,7 +242,8 @@
     "question",
     "band_focus",
     "comparison",
-    "howto"
+    "howto",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
