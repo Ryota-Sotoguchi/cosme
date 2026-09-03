@@ -113,7 +113,8 @@
       "cta_check",
       "cta_decide",
       "cta_leave",
-      "cta_detail"
+      "cta_detail",
+      "cta_compare"
     ],
     "disclaimer": [
       "dc_point",
@@ -165,7 +166,8 @@
     ],
     "recommend_opening": [
       "ro_forwho",
-      "ro_decide"
+      "ro_decide",
+      "ro_notprice"
     ],
     "roundup_closing": [
       "rc_undecided",
@@ -232,14 +234,13 @@
     "afternoon": 2,
     "earlynight": 3,
     "evening": 2,
-    "late": 0,
+    "late": 1,
     "latemorning": 4,
     "midmorning": 2,
     "morning": 6,
     "predinner": 2
   },
   "template_history": [
-    "topic",
     "topic_thread",
     "casual",
     "question",
@@ -258,7 +259,8 @@
     "casual",
     "casual",
     "topic_thread",
-    "band_focus"
+    "band_focus",
+    "objective"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
