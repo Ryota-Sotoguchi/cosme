@@ -367,37 +367,42 @@ def _future_effortless(c: AppealContext) -> str | None:
 # 18. 使った人の声
 # ======================================================================
 def _voices(c: AppealContext) -> str | None:
-    """使用感を出す。
+    """使った人の感想を出す。**この軸をいちばん強く使う。**
 
-    ## 出典は書かない
+    ## 出典は書く（2026-09-03 に方針を戻した）
 
-    「レビューで多かったのは」と毎回言うと、投稿が調査報告に見える。
-    出典は投稿の中身ではないので出さない
-    （根拠は data/voices.json に残っている）。
+    一度は「調査報告に見える」という理由で出典を外していた。
+    その結果できるのが「さっぱりめのタイプ」という、誰の感想か
+    分からない文で、読み手にはこちらが使ったように読める。
+    このアカウントは使っていないので、それは事実と違う。
 
-    ## ただし自分の体験にはしない
+    出典を言っても硬くならない。人がふだん書くのはこの形。
 
-    出典を消したうえで「さっぱりした」と書くと、
-    **こちらが使った話に読める**。このアカウントは使っていない。
+      ×  レビューによると、さっぱりという評価が多いようです
+      ○  さっぱりって書いてる人が多かった
 
-    そこで、体験ではなく **商品の性質** として書く。
+    しかも「使った人がそう言っている」ほうが強い。
+    使っていない人間の「いいと思う」には根拠が無いが、
+    何百人が同じことを書いているのは事実として重い。
 
-      ×  さっぱりして良かった        使った話になる
-      ×  レビューで多かったのは…     出典が前に出る
-      ○  さっぱりめのタイプ          商品の性質。誰の体験でもない
-      ○  さっぱりするらしい          伝聞。自分の話ではない
+    ## 何を出さないか
 
-    **使用感だけ。** 効能に触れたレビューは voices.py の時点で
-    集計から外してある。薬機法で、体験談を効能効果の証明に
-    使うことはできないため。
+    使用感（テクスチャ・香り・使い勝手）だけ。
+    効能に触れたレビューは voices.py の時点で集計から外してある。
+    薬機法で、体験談を効能効果の証明に使うことはできないため。
     """
-    if not c.voice:
+    if not c.voices:
+        return None
+    from .voices import voice_sentence
+
+    sentence = voice_sentence(c.voices, cursor=c.cursor)
+    if not sentence:
         return None
     return c.pick((
-        f"{c.voice}のタイプ",
-        f"{c.voice}らしい。そこが合うかどうかだと思う",
-        f"{c.category}としては{c.voice}寄り",
-        f"{c.voice}って言われてるやつ",
+        sentence,
+        f"{sentence}。ここが好みに合うかどうかだと思う",
+        f"{c.category}を探してる人へ。\n\n{sentence}",
+        f"{sentence}。\n\n合いそうなら候補に入れていいと思う",
     ))
 
 
@@ -405,12 +410,18 @@ def _voices(c: AppealContext) -> str | None:
 # 19. 悩み × 使った人の声
 # ======================================================================
 def _pain_with_voices(c: AppealContext) -> str | None:
-    if not (c.pain and c.voice):
+    """悩みを名指ししてから、使った人の言葉を置く。いちばん効く順序。"""
+    if not (c.pain and c.voices):
+        return None
+    from .voices import voice_sentence
+
+    sentence = voice_sentence(c.voices, cursor=c.cursor)
+    if not sentence:
         return None
     return c.pick((
-        f"{c.pain}人へ。\n\n{c.voice}のタイプらしい",
-        f"{c.pain}。\n\nこれは{c.voice}寄りみたい",
-        f"{c.voice}らしいので、{c.pain}人には合うかも",
+        f"{c.pain}人へ。\n\n{sentence}",
+        f"{c.pain}。\n\n{sentence}",
+        f"{sentence}。\n\n{c.pain}人には合うかも",
     ))
 
 

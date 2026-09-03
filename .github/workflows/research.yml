@@ -47,6 +47,21 @@ jobs:
       - name: Collect reply candidates
         run: python scripts/collect_candidates.py --limit 12
 
+      # 投稿済み商品のレビューから「使った人がどう感じたか」を集める。
+      #
+      # 投稿の主役はこれ。こちらは商品を使っていないので「良かった」とは
+      # 書けないが、何百人が同じ使用感を書いているのは事実で、
+      # 値段やレビュー件数より読み手の判断を助ける。
+      #
+      # 手で走らせる前提のままだったため、2026-09-03 時点で
+      # data/voices.json は2商品ぶんしか無く、ほとんどの投稿が
+      # 声なしで出ていた。定期実行に載せて素材を絶やさない。
+      #
+      # **レビュー本文は保存しない。** 使用感の語が何件のレビューに
+      # 出たかという数だけを残す（本文は書いた人の著作物）。
+      - name: Collect product reviews
+        run: python scripts/collect_reviews.py --limit 12
+
       # 収集した生データには第三者のユーザー名と本文が含まれる。
       # 公開リポジトリに残さず、成果物として90日だけ保持する。
       # 分析（research/PATTERNS.md）は人が書いたものなのでコミットする。
@@ -63,13 +78,13 @@ jobs:
 
       - name: Commit
         run: |
-          if [ -z "$(git status --porcelain research/)" ]; then
+          if [ -z "$(git status --porcelain research/ data/voices.json)" ]; then
             echo "変化なし"; exit 0
           fi
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add research/
-          git commit -m "chore(research): 参考アカウントの投稿を収集 [skip ci]"
+          git add research/ data/voices.json
+          git commit -m "chore(research): 参考アカウントの投稿と使用感を収集 [skip ci]"
           for i in 1 2 3; do
             git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
               && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0

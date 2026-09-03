@@ -57,6 +57,99 @@ def format_review_count(count: int) -> str:
     return f"{count:,}件"
 
 
+# ----------------------------------------------------------------------
+# おおよその言い方
+#
+# 人は「1,980円」「レビュー1,284件、平均4.4」とは書かない。
+# メモに残すときも「2,000円くらい」「レビューめっちゃ多い」と書く。
+# 細かい桁まで出すと、値札を転記した機械の文になる。
+#
+# ## 安全側の丸め方
+#
+# 景表法（有利誤認）を避けるため、**実際より安く見せない**。
+#   「◯円台」   … 切り捨て。3,520円 → 3,500円台。必ず正しい
+#   「◯円くらい」… 切り上げ。3,520円 → 3,600円くらい。実際はより安い
+#   「◯円ちょっと」… 切り捨て＋超過の明示。3,520円 → 3,500円ちょっと
+#
+# レビュー件数も同じで、「◯件超え」は切り捨てた値にしか使わない。
+# ----------------------------------------------------------------------
+def _grain(price: int) -> int:
+    """価格の丸め幅。桁が上がるほど粗くする。"""
+    if price < 1000:
+        return 100
+    if price < 10000:
+        return 100
+    return 1000
+
+
+def approx_price(price: int, style: int = 0) -> tuple[str, set[str]]:
+    """おおよその価格。(本文, 本文に出る数値) を返す。
+
+    style を回して同じ言い方が続かないようにする。
+    """
+    grain = _grain(price)
+    floor = (price // grain) * grain
+    ceil = floor + grain if price % grain else price
+
+    allowed = {normalize_number(str(floor)), normalize_number(str(ceil))}
+    forms = [
+        f"{ceil:,}円くらい",
+        f"{floor:,}円台",
+        f"{ceil:,}円くらい",
+        # 「ちょっと」で済むのは、丸め幅の3割まではみ出した場合まで。
+        # 12,800円を「12,000円ちょっと」と書くと 800円ぶん安く見える。
+        f"{floor:,}円ちょっと" if (price - floor) <= grain * 0.3 else f"{floor:,}円台",
+    ]
+    # ぴったりの値段なら「ちょっと」「台」は嘘になる
+    if price % grain == 0:
+        forms = [f"{price:,}円", f"{price:,}円ぴったり", f"{price:,}円"]
+        allowed = {normalize_number(str(price))}
+    return forms[style % len(forms)], allowed
+
+
+def approx_review_count(count: int, style: int = 0) -> tuple[str, set[str]]:
+    """おおよそのレビュー件数。少ないときは数を出さない。
+
+    「1,284件」と書くのは人の書き方ではない。
+    数えた人にしか意味の無い桁は落とす。
+    """
+    if count < 50:
+        return "", set()
+    if count < 300:
+        forms = ["レビューもそこそこある", "レビューはそれなりに付いてる"]
+        return forms[style % len(forms)], set()
+
+    grain = 1000 if count >= 1000 else 100
+    floor = (count // grain) * grain
+    if floor >= count:
+        text = f"レビュー{floor:,}件"
+    else:
+        forms = [
+            f"レビュー{floor:,}件超え",
+            f"レビューが{floor:,}件以上ついてる",
+            f"レビュー{floor:,}件超え",
+        ]
+        text = forms[style % len(forms)]
+    return text, {normalize_number(str(floor))}
+
+
+def approx_review_average(average: float, count: int, style: int = 0) -> str:
+    """レビュー平均は数字にしない。
+
+    「4.4」と書いても読み手は判断できず、桁を写しただけになる。
+    件数が少ないうちは平均そのものに意味が無いので黙る。
+    """
+    if count < 30:
+        return ""
+    if average >= 4.5:
+        forms = ["評価もかなり高い", "評価も高い", "評価はだいぶ良さそう"]
+    elif average >= 4.2:
+        forms = ["評価も高め", "評価は良いほう", "評価も悪くない"]
+    else:
+        return ""
+    return forms[style % len(forms)]
+
+
 def format_point_rate(rate: float) -> str:
     return f"{rate:g}倍"
 
@@ -81,35 +174,58 @@ class FactSet:
             self.allowed_numbers.add(normalize_number(str(token)))
 
 
-def build_facts(item: RakutenItem, *, bullet: str = "・") -> FactSet:
+def build_facts(item: RakutenItem, *, bullet: str = "・", style: int = 0) -> FactSet:
     """商品から事実行を作る。取得できた項目だけを並べる。
 
     箇条書き記号は控えめにする。記号を並べると「Botの表」に見えて、
     人が書いたメモらしさが消えるため。
+
+    **数値はおおよそにする。** 人は値札の桁をそのまま書き写さない。
+    「1,980円」「レビュー1,284件、平均4.4」は、読み手の判断を助けないうえ、
+    機械が転記した文にしか見えない。
     """
     facts = FactSet(item=item)
 
-    price_text = format_price(item.item_price)
+    price_text, price_allowed = approx_price(item.item_price, style)
     facts.add(f"{bullet}{price_text}")
+    for token in price_allowed:
+        facts.allowed_numbers.add(token)
+    # 価格帯の言い回し（別のパーツが使う）も許可しておく
     facts.allow(item.item_price, price_band_value(item.item_price))
 
-    if item.review_count is not None and item.review_average is not None and item.review_count > 0:
-        avg = format_review_average(item.review_average)
-        cnt = format_review_count(item.review_count)
-        facts.add(f"{bullet}レビュー{cnt}、平均{avg}")
-        facts.allow(item.review_count, avg)
-    elif item.review_count is not None and item.review_count > 0:
-        cnt = format_review_count(item.review_count)
-        facts.add(f"{bullet}レビュー{cnt}")
-        facts.allow(item.review_count)
+    count = item.review_count or 0
+    if count > 0:
+        review_text, review_allowed = approx_review_count(count, style)
+        if review_text:
+            average_text = (
+                approx_review_average(item.review_average, count, style)
+                if item.review_average is not None
+                else ""
+            )
+            # 「〜あるで評価も高め」のような接続にならないよう読点で繋ぐ
+            line = f"{review_text}、{average_text}" if average_text else review_text
+            facts.add(f"{bullet}{line}")
+            for token in review_allowed:
+                facts.allowed_numbers.add(token)
+        # 正確な件数・平均も許可はしておく（他のパーツが使う可能性がある）
+        facts.allow(count)
+        if item.review_average is not None:
+            facts.allow(format_review_average(item.review_average))
 
+    # 送料とポイントは1行にまとめる。
+    #
+    # 行を分けると4行の箇条書きになり、人のメモではなく仕様表に見える。
+    # どちらも短いので、並べても読みにくくならない。
+    extras: list[str] = []
     if item.is_postage_free:
-        facts.add(f"{bullet}送料無料")
-
+        extras.append("送料無料")
     if item.point_rate is not None and item.point_rate > 1:
-        rate = format_point_rate(item.point_rate)
-        facts.add(f"{bullet}ポイント{rate}")
+        # ポイント倍率はもともと粗い整数で、人もそのまま口にする数字。
+        # ここは丸めない（「20倍」を「20倍くらい」と書く人はいない）。
+        extras.append(f"ポイント{format_point_rate(item.point_rate)}")
         facts.allow(item.point_rate)
+    if extras:
+        facts.add(f"{bullet}{'で'.join(extras)}")
 
     return facts
 
@@ -128,7 +244,8 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
         normalize_number(str(price_band_value(item.item_price))),
     }
 
-    price = format_price(item.item_price)
+    price, price_allowed = approx_price(item.item_price, style)
+    allowed |= price_allowed
     free = bool(item.is_postage_free)
     count = item.review_count if (item.review_count or 0) > 0 else None
     average = item.review_average if count is not None else None
@@ -144,29 +261,44 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
         f"{price}だった…！",
     ]
     if count is not None:
-        variants.append(f"レビュー{format_review_count(count)}ついてる👀")
-    if average is not None:
-        variants.append(f"レビューの平均{format_review_average(average)}だって☺️")
+        review_text, review_allowed = approx_review_count(count, style)
+        if review_text:
+            allowed |= review_allowed
+            variants.append(f"{review_text}👀")
+    if average is not None and count is not None:
+        average_text = approx_review_average(average, count, style)
+        if average_text:
+            variants.append(f"{average_text}みたい☺️")
     variants.append(f"{price}で送料無料〜" if free else f"{price}みたい💭")
 
     return variants[style % len(variants)], allowed
 
 
-def inline_facts(item: RakutenItem) -> tuple[str, set[str]]:
-    """短文型で使う、1〜2文にまとめた事実表現。"""
+def inline_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
+    """短文型で使う、1〜2文にまとめた事実表現。
+
+    ここもおおよそにする。桁をそのまま並べると値札の転記になる。
+    """
     allowed: set[str] = {
         normalize_number(str(item.item_price)),
         normalize_number(str(price_band_value(item.item_price))),
     }
-    chunks = [format_price(item.item_price)]
+    price_text, price_allowed = approx_price(item.item_price, style)
+    allowed |= price_allowed
+    chunks = [price_text]
 
-    if item.review_count and item.review_count > 0:
-        chunks.append(f"レビュー{format_review_count(item.review_count)}")
-        allowed.add(normalize_number(str(item.review_count)))
+    count = item.review_count or 0
+    if count > 0:
+        review_text, review_allowed = approx_review_count(count, style)
+        if review_text:
+            chunks.append(review_text)
+            allowed |= review_allowed
+        allowed.add(normalize_number(str(count)))
         if item.review_average is not None:
-            avg = format_review_average(item.review_average)
-            chunks.append(f"平均{avg}")
-            allowed.add(normalize_number(avg))
+            average_text = approx_review_average(item.review_average, count, style)
+            if average_text:
+                chunks.append(average_text)
+            allowed.add(normalize_number(format_review_average(item.review_average)))
 
     if item.is_postage_free:
         chunks.append("送料無料")

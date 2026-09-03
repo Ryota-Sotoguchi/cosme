@@ -185,24 +185,37 @@ def test_generated_voice_appeals_pass_compliance():
 
 
 # ======================================================================
-# 出典を投稿に出さないこと
+# 誰の感想なのかを言うこと
 # ======================================================================
-# 「レビューで多かったのは」と毎回言うと、投稿が調査報告に見える。
-# 出典は投稿の中身ではないので出さない（根拠は data/voices.json に残る）。
-SOURCE_WORDS = ("レビュー", "口コミ", "クチコミ", "評価では", "使った人",
-                "みんな", "声が多い", "という声", "調べた", "集計")
+# 2026-09-03 に方針を反転した。
+#
+# それまでは「調査報告に見える」という理由で出典を外していた。
+# だが出典を消すと「さっぱりのタイプ」という、**誰の感想か分からない文**
+# になり、読み手にはこちらが使ったように読める。使っていないので事実と違う。
+#
+# 出典を言っても硬くならない。人がふだん書くのはこの形。
+#
+#   ×  レビューによると、さっぱりという評価が多いようです
+#   ○  さっぱりって書いてる人が多かった
+#
+# しかも「使った人がそう言っている」ほうが強い。使っていない人間の
+# 「いいと思う」には根拠が無いが、何百人が同じことを書いているのは
+# 事実として重い。
+ATTRIBUTION_MARKERS = ("書いてる人", "書いてる", "書かれてる", "声が多い",
+                       "使った人", "言ってる", "感想", "らしい", "レビュー")
 
 
-def test_posts_never_name_the_source():
-    """投稿に出典を書かないこと。"""
+def test_posts_say_whose_impression_it_is():
+    """声の軸は、誰の感想かが分かる形で書くこと。"""
     from src.content.appeals import APPEALS, AppealContext
     from src.content.benefits import BENEFITS
     from tests.conftest import make_item
 
     voiced = [a for a in APPEALS if a.id in ("voices", "pain_voices")]
+    assert voiced, "声の軸が無い"
     for appeal in voiced:
         for benefit in BENEFITS:
-            for cursor in range(6):
+            for cursor in range(8):
                 ctx = AppealContext(
                     item=make_item(), benefit=benefit, category="スキンケア",
                     cursor=cursor, allowed_numbers=set(),
@@ -210,26 +223,27 @@ def test_posts_never_name_the_source():
                 )
                 text = appeal.build(ctx)
                 assert text
-                hits = [w for w in SOURCE_WORDS if w in text]
-                assert not hits, f"{appeal.id} が出典を書いている {hits}:\n  {text}"
+                assert any(m in text for m in ATTRIBUTION_MARKERS), (
+                    f"{appeal.id} が誰の感想か言っていない:\n  {text}"
+                )
 
 
 # ======================================================================
-# 出典を消しても、自分の体験にはしないこと
+# ただし、こちらが使った話にはしないこと
 # ======================================================================
-# 出典を消したうえで「さっぱりした」と書くと、こちらが使った話に読める。
+# 他人の感想を引くのと、自分が使ったことにするのは別。
 # このアカウントは商品を使っていない。
 #
-# 体験ではなく **商品の性質** として書く。
-#
-#   ×  さっぱりして良かった   使った話になる
-#   ○  さっぱりのタイプ       商品の性質。誰の体験でもない
-#   ○  さっぱりらしい         伝聞。自分の話ではない
-OWN_EXPERIENCE = ("してみた", "してみて", "した感じ", "でした", "だった",
-                  "良かった", "よかった", "気に入", "使ってる", "使った")
+#   ○  さっぱりって書いてる人が多かった   他人の感想。事実
+#   ○  さっぱりらしい                     伝聞。自分の話ではない
+#   ×  使ってみたらさっぱりした           使った話。事実と違う
+#   ×  わたしも使ってる                   同上
+OWN_EXPERIENCE = ("使ってみた", "使ってみて", "試してみた", "塗ってみた",
+                  "つけてみた", "わたしも使", "私も使", "自分で使",
+                  "買ってよかった", "リピ", "愛用")
 
 
-def test_posts_do_not_read_as_our_own_experience():
+def test_posts_do_not_claim_we_used_it():
     from src.content.appeals import APPEALS, AppealContext
     from src.content.benefits import BENEFITS
     from tests.conftest import make_item
@@ -237,7 +251,7 @@ def test_posts_do_not_read_as_our_own_experience():
     voiced = [a for a in APPEALS if a.id in ("voices", "pain_voices")]
     for appeal in voiced:
         for benefit in BENEFITS:
-            for cursor in range(6):
+            for cursor in range(8):
                 ctx = AppealContext(
                     item=make_item(), benefit=benefit, category="スキンケア",
                     cursor=cursor, allowed_numbers=set(),
@@ -250,23 +264,45 @@ def test_posts_do_not_read_as_our_own_experience():
                 )
 
 
-def test_voice_phrase_stays_single():
-    """1語だけにすること。
-
-    2語並べると「さっぱり、伸びがいいのタイプ」のように繋ぎが崩れる。
-    地の文に溶かす前提なので、列挙にしない。
-    """
-    words = ("さっぱり", "伸びがいい", "香りがいい")
-    for cursor in range(3):
-        phrase = voice_phrase(words, cursor=cursor)
-        assert "、" not in phrase, f"複数語が並んでいる: {phrase}"
-        assert phrase in words
+def test_voice_phrase_takes_at_most_two_words():
+    """2語まで。3語並べるとスペック表になって人の言葉に見えない。"""
+    words = ("さっぱり", "伸びがいい", "香りがいい", "長持ちする")
+    for cursor in range(4):
+        phrase = voice_phrase(words, cursor=cursor, limit=2)
+        assert phrase.count("、") <= 1, f"語を並べすぎ: {phrase}"
+        for word in words:
+            phrase = phrase.replace(word, "")
+        assert phrase.replace("し、", "").replace("、", "") == "", "知らない語が混ざった"
 
 
-def test_labels_connect_to_a_noun():
-    """ラベルが連体形であること。
+def test_voice_sentence_reads_as_someone_elses_words():
+    from src.content.voices import voice_sentence
 
-    「さっぱりする」だと「さっぱりするのタイプ」になって崩れる。
+    for cursor in range(8):
+        sentence = voice_sentence(("さっぱり", "伸びがいい"), cursor=cursor)
+        assert sentence
+        assert any(m in sentence for m in ATTRIBUTION_MARKERS), sentence
+        assert not any(w in sentence for w in OWN_EXPERIENCE), sentence
+
+
+def test_voice_sentence_is_empty_without_material():
+    """声が無い商品では黙ること。無いものを作らない。"""
+    from src.content.voices import voice_sentence
+
+    assert voice_sentence(()) == ""
+
+
+def test_labels_read_naturally_before_tte():
+    """ラベルが「〜って」に繋がる形であること。
+
+    文型が「{語}って書いてる人が多かった」なので、
+    語尾は終止形でよい（連体形の制約は 2026-09-03 に外した）。
+    「さっぱりだ」のような断定形だけは繋がらない。
     """
     for label in TEXTURE_WORDS:
-        assert not label.endswith("する"), f"{label} が連体形になっていない"
+        assert not label.endswith(("だ", "です", "ます")), (
+            f"{label} が「って」に繋がらない"
+        )
+        assert not label.endswith("、"), f"{label} の末尾が読点"
+
+

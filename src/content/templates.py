@@ -18,6 +18,7 @@ from ..rakuten.models import RakutenItem
 from . import facts as F
 from .appeals import build_appeal
 from .benefits import TIPS_HEADINGS, benefit_by_cursor, benefit_for, tips_block
+from .voices import voice_sentence
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -397,22 +398,34 @@ def _render_link_first(
 
     if stages <= 1:
         # short 型。数値は1つだけにして、いちばん短い形を保つ。
-        fact_text, allowed = F.sentence_facts(ctx.item, ctx.fact_style)
+        fact_text, allowed = F.sentence_facts(ctx.item, _variation_cursor(ctx))
         rendered.allowed_numbers |= allowed
         item_block = f"{ctx.item.display_name_without_volume(38)}\n{fact_text}"
         middle = ""
     else:
-        facts = F.build_facts(ctx.item)
+        facts = F.build_facts(ctx.item, style=_variation_cursor(ctx))
         rendered.allowed_numbers |= facts.allowed_numbers
         item_block = "\n".join([ctx.item.display_name_without_volume(38), *facts.lines])
         # checklist のような長い型だけ、選び方の段も1本に残す。
         middle = body[1] if stages >= 3 else ""
+
+    # 使った人の感想。**押す理由としていちばん強い材料。**
+    #
+    # こちらは使っていないので「良かった」とは書けないが、
+    # 何百人が同じ使用感を書いているのは事実で、しかも
+    # 「安い」「レビューが多い」より読み手の判断を助ける。
+    #
+    # 訴求文がすでに声を使っているときは重ねない（同じ語が二度出る）。
+    voice = voice_sentence(ctx.voices, cursor=_variation_cursor(ctx))
+    if voice and any(word in lead for word in ctx.voices):
+        voice = ""
 
     rendered.blocks = [
         Block(PR_TAG, 0),
         Block(lead, 2),
         Block(middle, 4),
         Block(item_block, 0),
+        Block(voice, 3),
         Block(cta.text, 1),
     ]
     # 単発投稿。segments は builder が blocks から組み立てる。
