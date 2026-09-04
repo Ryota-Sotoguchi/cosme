@@ -35,9 +35,12 @@
       "cm_color",
       "cm_l_season",
       "cm_l_night",
-      "cm_season"
+      "cm_season",
+      "cm_holiday_soon"
     ],
     "casual_brand": [
+      "brand",
+      "brand",
       "brand",
       "brand",
       "brand",
@@ -241,7 +244,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 2,
+    "afternoon": 3,
     "earlynight": 3,
     "evening": 2,
     "late": 1,
@@ -251,7 +254,6 @@
     "predinner": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "question",
@@ -270,7 +272,8 @@
     "question",
     "casual",
     "casual",
-    "checklist"
+    "checklist",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
