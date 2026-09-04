@@ -34,9 +34,12 @@
       "cm_p_morning_weak",
       "cm_color",
       "cm_l_season",
-      "cm_l_night"
+      "cm_l_night",
+      "cm_season"
     ],
     "casual_brand": [
+      "brand",
+      "brand",
       "brand",
       "brand",
       "brand",
@@ -239,13 +242,12 @@
     "earlynight": 3,
     "evening": 2,
     "late": 1,
-    "latemorning": 4,
+    "latemorning": 5,
     "midmorning": 3,
     "morning": 7,
     "predinner": 2
   },
   "template_history": [
-    "question",
     "checklist",
     "question",
     "casual",
@@ -264,6 +266,7 @@
     "band_focus",
     "objective",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
