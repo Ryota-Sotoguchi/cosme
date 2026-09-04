@@ -120,7 +120,8 @@
       "cta_decide",
       "cta_leave",
       "cta_detail",
-      "cta_compare"
+      "cta_compare",
+      "cta_look"
     ],
     "disclaimer": [
       "dc_point",
@@ -169,12 +170,14 @@
       "rl_fit",
       "rl_check",
       "rl_keep",
-      "rl_candidate"
+      "rl_candidate",
+      "rl_start"
     ],
     "recommend_opening": [
       "ro_forwho",
       "ro_decide",
-      "ro_notprice"
+      "ro_notprice",
+      "ro_notmany"
     ],
     "roundup_closing": [
       "rc_undecided",
@@ -248,7 +251,6 @@
     "predinner": 2
   },
   "template_history": [
-    "checklist",
     "question",
     "casual",
     "topic_thread",
@@ -267,7 +269,8 @@
     "objective",
     "question",
     "casual",
-    "casual"
+    "casual",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
