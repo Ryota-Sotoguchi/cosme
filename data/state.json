@@ -168,7 +168,8 @@
       "q_recommend",
       "q_time_of_day",
       "q_refill",
-      "q_same_or_new"
+      "q_same_or_new",
+      "q_stock"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -247,7 +248,7 @@
   "rotation_cursor": {
     "afternoon": 3,
     "earlynight": 3,
-    "evening": 2,
+    "evening": 3,
     "late": 1,
     "latemorning": 5,
     "midmorning": 3,
@@ -255,7 +256,6 @@
     "predinner": 3
   },
   "template_history": [
-    "topic_thread",
     "question",
     "band_focus",
     "comparison",
@@ -274,6 +274,7 @@
     "casual",
     "checklist",
     "casual",
+    "question",
     "question"
   ],
   "threads_token": {
