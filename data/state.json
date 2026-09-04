@@ -33,9 +33,12 @@
       "cm_season_swap",
       "cm_p_morning_weak",
       "cm_color",
-      "cm_l_season"
+      "cm_l_season",
+      "cm_l_night"
     ],
     "casual_brand": [
+      "brand",
+      "brand",
       "brand",
       "brand",
       "brand",
@@ -237,12 +240,11 @@
     "evening": 2,
     "late": 1,
     "latemorning": 4,
-    "midmorning": 2,
+    "midmorning": 3,
     "morning": 7,
     "predinner": 2
   },
   "template_history": [
-    "casual",
     "question",
     "checklist",
     "question",
@@ -261,7 +263,8 @@
     "topic_thread",
     "band_focus",
     "objective",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
