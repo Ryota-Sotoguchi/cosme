@@ -129,7 +129,8 @@
       "cta_detail",
       "cta_compare",
       "cta_look",
-      "cta_price"
+      "cta_price",
+      "cta_size"
     ],
     "disclaimer": [
       "dc_point",
@@ -137,7 +138,8 @@
       "dc_time",
       "dc_check",
       "dc_point",
-      "dc_change"
+      "dc_change",
+      "dc_time"
     ],
     "fact_intro": [
       "fi_plain",
@@ -192,13 +194,17 @@
     "roundup_closing": [
       "rc_undecided",
       "rc_which",
-      "rc_diff"
+      "rc_diff",
+      "rc_priority"
     ],
     "roundup_comparison": [
       "ru_cmp_1"
     ],
     "roundup_postage_free": [
       "ru_pos_1"
+    ],
+    "roundup_price_band": [
+      "ru_band_1"
     ],
     "roundup_review_heavy": [
       "ru_rev_1"
@@ -254,14 +260,14 @@
     "afternoon": 3,
     "earlynight": 4,
     "evening": 3,
-    "late": 1,
+    "late": 2,
     "latemorning": 5,
     "midmorning": 3,
     "morning": 7,
-    "predinner": 3
+    "predinner": 3,
+    "price_band_window": 1
   },
   "template_history": [
-    "comparison",
     "howto",
     "question",
     "casual",
@@ -280,7 +286,8 @@
     "question",
     "question",
     "casual",
-    "band_focus"
+    "band_focus",
+    "price_band"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
