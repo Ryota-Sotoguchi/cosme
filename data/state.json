@@ -15,7 +15,8 @@
       "surprise",
       "answer",
       "value",
-      "discovery"
+      "discovery",
+      "effort_saving"
     ],
     "casual": [
       "cm_humid",
@@ -127,7 +128,8 @@
       "cta_leave",
       "cta_detail",
       "cta_compare",
-      "cta_look"
+      "cta_look",
+      "cta_price"
     ],
     "disclaimer": [
       "dc_point",
@@ -259,7 +261,6 @@
     "predinner": 3
   },
   "template_history": [
-    "band_focus",
     "comparison",
     "howto",
     "question",
@@ -278,7 +279,8 @@
     "casual",
     "question",
     "question",
-    "casual"
+    "casual",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
