@@ -156,7 +156,8 @@
       "q_sale",
       "q_travel",
       "q_recommend",
-      "q_time_of_day"
+      "q_time_of_day",
+      "q_refill"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -237,11 +238,10 @@
     "late": 1,
     "latemorning": 4,
     "midmorning": 2,
-    "morning": 6,
+    "morning": 7,
     "predinner": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "question",
     "checklist",
@@ -260,7 +260,8 @@
     "casual",
     "topic_thread",
     "band_focus",
-    "objective"
+    "objective",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
