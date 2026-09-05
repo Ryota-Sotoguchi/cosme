@@ -262,7 +262,8 @@
       "tt_size",
       "tt_refill_first",
       "tt_stock_expiry",
-      "tt_same_brand"
+      "tt_same_brand",
+      "tt_review_count"
     ]
   },
   "rotation_cursor": {
@@ -273,11 +274,10 @@
     "latemorning": 6,
     "midmorning": 4,
     "morning": 0,
-    "predinner": 3,
+    "predinner": 4,
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "casual",
     "topic_thread",
     "band_focus",
@@ -296,6 +296,7 @@
     "topic_thread",
     "question",
     "checklist",
+    "topic_thread",
     "topic_thread"
   ],
   "threads_token": {
