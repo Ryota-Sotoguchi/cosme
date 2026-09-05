@@ -40,9 +40,12 @@
       "cm_season",
       "cm_holiday_soon",
       "cm_train",
-      "cm_gift"
+      "cm_gift",
+      "cm_weekend_pouch"
     ],
     "casual_brand": [
+      "brand",
+      "brand",
       "brand",
       "brand",
       "brand",
@@ -269,7 +272,7 @@
   "rotation_cursor": {
     "afternoon": 4,
     "earlynight": 4,
-    "evening": 3,
+    "evening": 4,
     "late": 2,
     "latemorning": 6,
     "midmorning": 4,
@@ -278,7 +281,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "band_focus",
     "objective",
@@ -297,7 +299,8 @@
     "question",
     "checklist",
     "topic_thread",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
