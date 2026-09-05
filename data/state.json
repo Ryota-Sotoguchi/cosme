@@ -38,9 +38,12 @@
       "cm_l_night",
       "cm_season",
       "cm_holiday_soon",
-      "cm_train"
+      "cm_train",
+      "cm_gift"
     ],
     "casual_brand": [
+      "brand",
+      "brand",
       "brand",
       "brand",
       "brand",
@@ -263,12 +266,11 @@
     "late": 2,
     "latemorning": 5,
     "midmorning": 3,
-    "morning": 7,
+    "morning": 0,
     "predinner": 3,
     "price_band_window": 1
   },
   "template_history": [
-    "howto",
     "question",
     "casual",
     "checklist",
@@ -287,7 +289,8 @@
     "question",
     "casual",
     "band_focus",
-    "price_band"
+    "price_band",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
