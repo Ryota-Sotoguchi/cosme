@@ -16,7 +16,8 @@
       "answer",
       "value",
       "discovery",
-      "effort_saving"
+      "effort_saving",
+      "self_relevant"
     ],
     "casual": [
       "cm_humid",
@@ -133,7 +134,8 @@
       "cta_compare",
       "cta_look",
       "cta_price",
-      "cta_size"
+      "cta_size",
+      "cta_save"
     ],
     "disclaimer": [
       "dc_point",
@@ -187,7 +189,8 @@
       "rl_check",
       "rl_keep",
       "rl_candidate",
-      "rl_start"
+      "rl_start",
+      "rl_basis"
     ],
     "recommend_opening": [
       "ro_forwho",
@@ -273,7 +276,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "checklist",
     "casual",
     "casual",
     "casual",
@@ -292,7 +294,8 @@
     "price_band",
     "casual",
     "topic_thread",
-    "question"
+    "question",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
