@@ -257,7 +257,8 @@
       "nl_morning_night",
       "nl_first_impression",
       "nl_shopping_time",
-      "nl_switch_cost"
+      "nl_switch_cost",
+      "nl_photo_reviews"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -284,7 +285,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "band_focus",
     "objective",
     "question",
     "casual",
@@ -303,7 +303,8 @@
     "topic_thread",
     "topic_thread",
     "casual",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
