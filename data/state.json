@@ -179,7 +179,8 @@
       "q_time_of_day",
       "q_refill",
       "q_same_or_new",
-      "q_stock"
+      "q_stock",
+      "q_night_care"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -265,14 +266,13 @@
     "earlynight": 4,
     "evening": 3,
     "late": 2,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 4,
     "morning": 0,
     "predinner": 3,
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "checklist",
     "casual",
     "casual",
@@ -291,7 +291,8 @@
     "band_focus",
     "price_band",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
