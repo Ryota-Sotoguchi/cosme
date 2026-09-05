@@ -256,7 +256,8 @@
       "tt_stock",
       "tt_color",
       "tt_size",
-      "tt_refill_first"
+      "tt_refill_first",
+      "tt_stock_expiry"
     ]
   },
   "rotation_cursor": {
@@ -265,13 +266,12 @@
     "evening": 3,
     "late": 2,
     "latemorning": 5,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "predinner": 3,
     "price_band_window": 1
   },
   "template_history": [
-    "question",
     "casual",
     "checklist",
     "casual",
@@ -290,7 +290,8 @@
     "casual",
     "band_focus",
     "price_band",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
