@@ -351,3 +351,81 @@ def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product") ->
 
     tags = TOPIC_TAGS.get(category) or TOPIC_TAGS["コスメ"]
     return tags[(cursor // every) % len(tags)]
+
+
+# ----------------------------------------------------------------------
+# 並べたときの位置づけ
+#
+# 商品を3つ並べても、それぞれが何なのか分からないと選べない。
+# 「この中ではいちばん安い」「レビューがいちばん多い」は、
+# 並べた3つを比べれば機械的に決まる事実なので、主観を入れずに書ける。
+#
+# **1商品につき1つだけ返す。** 全部並べると仕様表になる。
+# ----------------------------------------------------------------------
+def _leads_by_margin(values: "list[float]", index: int, margin: float) -> bool:
+    """index の値が、2番手より margin 倍以上ちぎれているか。
+
+    僅差で「いちばん」と書くと、表示上は同じに見えるのに片方だけ
+    特別扱いすることになる（実データで 345/331/310件 が
+    どれも「レビュー300件超え」と表示されるのに、1件だけ
+    「レビューがいちばん多い」と書いていた）。
+    """
+    top = values[index]
+    if top <= 0:
+        return False
+    others = [v for i, v in enumerate(values) if i != index]
+    if not others:
+        return False
+    return top >= max(others) * margin
+
+
+def _trails_by_margin(values: "list[float]", index: int, margin: float) -> bool:
+    """index の値が、2番手より margin 倍以上安いか。"""
+    bottom = values[index]
+    if bottom <= 0:
+        return False
+    others = [v for i, v in enumerate(values) if i != index]
+    if not others:
+        return False
+    return bottom <= min(others) * margin
+
+
+def comparative_notes(items: "list[RakutenItem]") -> list[str]:
+    """並べた商品それぞれの位置づけ。items と同じ順・同じ長さで返す。
+
+    どれにも当てはまらない商品は空文字。無理に何か言わせない。
+
+    **僅差では「いちばん」と言わない。** 表示は丸めた数値なので、
+    僅差だと本文の数値が同じに見えるのに片方だけ特別扱いになる。
+    """
+    if len(items) < 2:
+        return ["" for _ in items]
+
+    prices = [float(i.item_price) for i in items]
+    counts = [float(i.review_count or 0) for i in items]
+    averages = [float(i.review_average or 0.0) for i in items]
+    points = [float(i.point_rate or 0.0) for i in items]
+    all_free = all(i.is_postage_free for i in items)
+
+    notes: list[str] = []
+    for index, item in enumerate(items):
+        # 上から順に、いちばん言う価値のあるものを1つ選ぶ。
+        # 差が小さいものは飛ばす。
+        if _trails_by_margin(prices, index, 0.9):
+            notes.append("この中ではいちばん安い")
+        elif _leads_by_margin(counts, index, 1.5):
+            notes.append("レビューがいちばん多い")
+        elif averages[index] > 0 and averages[index] >= max(
+            [v for i, v in enumerate(averages) if i != index] or [0]
+        ) + 0.15:
+            notes.append("評価はこの中で一番高い")
+        elif points[index] > 1 and _leads_by_margin(points, index, 1.5):
+            notes.append("ポイントがいちばん付く")
+        elif item.is_postage_free and not all_free:
+            # 全部が送料無料なら、それは並べたときの違いにならない
+            notes.append("送料がかからない")
+        elif _leads_by_margin(prices, index, 1.3):
+            notes.append("この中ではいちばん高い")
+        else:
+            notes.append("")
+    return notes

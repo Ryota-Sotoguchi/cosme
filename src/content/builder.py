@@ -302,7 +302,11 @@ class ContentBuilder:
             part_ids=dict(rendered.part_ids),
             allowed_numbers=set(rendered.allowed_numbers),
             link_attachment=affiliate_url,
-            link_position=link_position if affiliate_url else "",
+            # テンプレートが自分で置き場所を決めた場合はそちらを記録する。
+            # 記録が実態とずれると A/B の集計が意味を失う。
+            link_position=(
+                (rendered.link_position or link_position) if affiliate_url else ""
+            ),
             segments=segments,
             # フォロワーが少ないうちは、タグ経由がほぼ唯一の発見導線になる。
             # リンクなし投稿にも付ける（むしろそちらのほうが伸びる）。

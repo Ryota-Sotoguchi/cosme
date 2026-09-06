@@ -60,6 +60,10 @@ class Rendered:
     segments: list[str] = field(default_factory=list)
     part_ids: dict[str, str] = field(default_factory=dict)
     allowed_numbers: set[str] = field(default_factory=set)
+    # そのテンプレートが実際にリンクを置いた場所。
+    # ctx.link_position を無視する型（longform は常に1本）が、
+    # A/B の集計に嘘を残さないために申告する。空なら ctx に従ったという意味。
+    link_position: str = ""
 
 
 class Picker(Protocol):
@@ -563,6 +567,97 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
     return r
 
 
+def render_longform(ctx: RenderContext) -> Rendered:
+    """3件を、選ぶ観点と位置づけつきで書ききる型。
+
+    ## なぜ長い型が要るのか
+
+    実測（101投稿）の文字数は中央値60字・最大214字で、上限500字の
+    半分も使っていなかった。短い型ばかりだと「並べただけ」で終わり、
+    読み手が選ぶところまで持っていけない。
+
+    ## 何で埋めるか
+
+    水増しはしない。埋めるのは全部データから出るもの。
+
+      * 選ぶときに見る観点（剤形ごとの tips を6件まで）
+      * 3商品それぞれの おおよその価格・レビュー・送料/ポイント
+      * 3つを比べたときの位置づけ（いちばん安い/レビューが多い…）
+      * 使った人の感想（あれば）
+      * その剤形で言える「使うとどうなるか」
+
+    位置づけは3件を比べれば機械的に決まる事実なので、主観が入らない。
+    並べるだけの投稿と違って、読み手はここで選べる。
+    """
+    r = Rendered(blocks=[])
+    cursor = _variation_cursor(ctx)
+
+    opening = ctx.pick("roundup_price_band", ROUNDUP_OPENINGS["price_band"], **ctx.flags())
+    closing = ctx.pick("roundup_closing", ROUNDUP_CLOSINGS, **ctx.flags())
+    r.part_ids.update({"roundup_price_band": opening.id, "roundup_closing": closing.id})
+
+    prices = [i.item_price for i in ctx.items]
+    lo = F.price_band_value(min(prices))
+    hi = F.price_band_value(max(prices))
+    band_range = f"{lo:,}〜{hi:,}円" if lo != hi else f"{lo:,}円前後"
+    r.allowed_numbers |= {F.normalize_number(str(lo)), F.normalize_number(str(hi))}
+
+    headline = opening.text.format(
+        category=ctx.category, band=band_range, band_range=band_range
+    )
+
+    # 選ぶ観点。長い型なので、短い型より多めに出す。
+    benefit = benefit_for(ctx.item.display_name(60)) if ctx.items else None
+    if benefit is not None:
+        tips = tips_block(benefit, cursor=cursor, count=5)
+    else:
+        tips = _generic_tips(ctx)
+    r.allowed_numbers |= set(F.extract_numbers(tips))
+
+    # 3商品それぞれ。名前 → 数値 → 並べたときの位置づけ。
+    notes = F.comparative_notes(ctx.items)
+    entries: list[str] = []
+    for index, (item, note) in enumerate(zip(ctx.items, notes)):
+        facts = F.build_facts(item, bullet="", style=cursor + index)
+        r.allowed_numbers |= facts.allowed_numbers
+        lines = [item.display_name_without_volume(30), "／".join(facts.lines)]
+        if note:
+            lines.append(note)
+        entries.append("\n".join(lines))
+
+    voice = voice_sentence(ctx.voices, cursor=cursor, counts=ctx.voice_counts)
+    future = benefit.future if benefit is not None else ""
+
+    # 1行目で読み手を名指しする。おすすめ欄に流れてきた人は、
+    # このアカウントが何のアカウントか知らない（PATTERNS.md P1/P3）。
+    pain = benefit.pain if benefit is not None else ""
+
+    r.blocks = [
+        Block(PR_TAG if ctx.affiliate_url else "", 0),
+        Block(pain, 4),
+        Block(headline, 0),
+        Block(tips, 3),
+        Block("\n\n".join(entries), 0),
+        Block(voice, 4),
+        Block(future, 5),
+        Block(closing.text, 6),
+    ]
+
+    if ctx.affiliate_url:
+        r.allowed_numbers.add("1")
+        cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
+        disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+        r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
+        r.blocks.append(Block(f"※リンクは1つ目のものです\n{cta.text}", 1))
+        r.blocks.append(Block(disclaimer.text, 2))
+
+    # 書ききる型なので連投にしない。1本で読み切ってもらう。
+    # リンクは必ずタイムラインに出る本文にあるので、A/B にはそう記録する。
+    r.segments = []
+    r.link_position = LINK_FIRST
+    return r
+
+
 def render_price_band(ctx: RenderContext) -> Rendered:
     return _roundup(ctx, "price_band")
 
@@ -710,6 +805,7 @@ TEMPLATES: tuple[Template, ...] = (
     Template("review_heavy", render_review_heavy, ("review_heavy",), item_count=3),
     Template("postage_free", render_postage_free, ("postage_free",), item_count=3),
     Template("comparison", render_comparison, ("comparison",), item_count=2),
+    Template("longform", render_longform, ("longform",), item_count=3),
     Template("topic", render_topic, ("no_link",), item_count=0, requires_affiliate=False),
     Template("topic_thread", render_topic_thread, ("thread_topic",), item_count=0,
              requires_affiliate=False),

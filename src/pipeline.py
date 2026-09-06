@@ -36,6 +36,7 @@ ITEMS_NEEDED = {
     "review_heavy": 3,
     "postage_free": 3,
     "comparison": 2,
+    "longform": 3,
     "no_link": 0,
     "thread_topic": 0,
     "question": 0,

@@ -421,14 +421,17 @@ earlynight = [
     "no_link",
 ]
 # noon だけがリンク枠。単品と3件まとめを混ぜる。
+# longform は「書ききる型」。上限500字に対して実測は中央値60字・最大214字で、
+# 半分も使っていなかった。選ぶ観点・3件の数値・並べたときの位置づけまで
+# 入れて、読み手が選べるところまで持っていく。
 noon = [
     "product",
+    "longform",
     "review_heavy",
     "product",
+    "longform",
     "postage_free",
-    "product",
     "comparison",
-    "price_band",
 ]
 # night / late は 2026-09-03 にリンク許可を外したので、リンクなしの型で回す。
 night = [
