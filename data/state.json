@@ -192,7 +192,8 @@
       "q_refill",
       "q_same_or_new",
       "q_stock",
-      "q_night_care"
+      "q_night_care",
+      "q_lip_or_eye"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -280,7 +281,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 4,
+    "afternoon": 5,
     "earlynight": 5,
     "evening": 4,
     "late": 3,
@@ -291,7 +292,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "casual",
@@ -310,7 +310,8 @@
     "casual",
     "casual",
     "topic_thread",
-    "band_focus"
+    "band_focus",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
