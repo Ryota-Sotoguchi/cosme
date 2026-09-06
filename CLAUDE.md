@@ -109,6 +109,24 @@ main.py → pipeline.py が全体を統括
 不合格なら別テンプレートで再生成 → それでもだめなら**その商品をスキップして次候補**。
 1商品の問題で全体運用を止めない設計。
 
+## 定期的にやること
+
+作って終わりにすると、設計時に見えなかった問題が積み上がる。
+初回の分析（2026-09-03）で出たのは、どれも運用を始めるまで
+分からなかったものだった（リンクが3ホップ先／反応数が自己リプライで汚染／
+定期実行が最大11時間半ずれる）。同種の問題は出続ける前提で回す。
+
+| 頻度 | やること |
+|---|---|
+| 毎日（自動） | `insights` が成績を取得。`research` が競合の投稿とレビューの使用感を集める |
+| 毎週（自動） | `review.yml` が `report` を `research/review/YYYY-MM-DD.md` に残す |
+| 毎週（人） | その週のファイルの **点検** 欄だけ見る。空なら config を触らない |
+| 月1（人） | 楽天のレポートCSVを `revenue --csv` で取り込む。これが無いと CTR も EPC も出ない |
+
+**自動では config を変えない。** 標本が薄いうちに枠を組み替えて
+失敗した前例がある（n=3〜6 の実績で組み替え、翌週に根拠が消えた）。
+点検欄が「標本が5本未満の型がある」と言っているうちは、その型を動かさない。
+
 ## 変更するときの注意点
 
 | 対象 | 注意 |
@@ -118,6 +136,7 @@ main.py → pipeline.py が全体を統括
 | `content/facts.py` | 数値は**おおよそで出す**（`approx_price` / `approx_review_count`）。値札の桁をそのまま書かない。丸めは**実際より安く見せない向き**に固定してあり `test_approx_numbers.py` が見張る |
 | `content/voices.py` | 拾ってよいのは使用感だけ。効能の語を `TEXTURE_WORDS` に入れない。文型は必ず「誰の感想か」が分かる形（`voice_sentence`） |
 | `config.toml` の `[[schedule]]` | `.github/workflows/post.yml` の cron と**両方**直す。`test_schedule.py` が突き合わせる |
+| `config.toml` の `max_drift_minutes` | 定期実行のずれは実測で中央値232分ある。**小さくすると全投稿がスキップされる**（90分にして直近30本すべてが該当した）。時間帯の食い違いは `parts.time_band_at` が実際の時刻から言い回しを選ぶことで直してある |
 | `rakuten/client.py` | 2026年の刷新で `accessKey` 必須・`Origin` 必須・ドメイン変更。記憶で書き換えない |
 | `storage/history.py` | `append()` の URL 秘匿化を外さない |
 | `config.toml` の `similarity_window` | **件数指定**なので、枠を増やすと射程の日数が縮む。`test_similarity_window_covers_two_weeks` が枠数 × 14日を要求する |

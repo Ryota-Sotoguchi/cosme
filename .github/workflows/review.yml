@@ -1,0 +1,69 @@
+name: review
+
+# 週次でアカウントの成績を点検し、記録として残す。
+#
+# ## なぜ要るのか
+#
+# 作って終わりにすると、設計時に見えなかった問題が積み上がる。
+# 実際、初回の分析（2026-09-03）で「リンクが3ホップ先」「反応数が
+# 自己リプライで汚染」「定期実行が最大11時間半ずれる」が出た。
+# どれも運用を始めるまで分からなかったもので、同種の問題は出続ける。
+#
+# ## 何をするか
+#
+# 数字を並べるだけだと、毎週見ても何をすればいいか分からない。
+# report の **点検** 欄が、判断が要るところだけを名指しする。
+# ここが空なら、その週は config を触らなくていい。
+#
+# 自動では何も変えない。**改善の判断は人がやる。**
+# 標本が薄いうちに枠を組み替えて失敗した前例があるため
+# （n=3〜6 の実績で組み替えて、根拠が消えた）。
+on:
+  schedule:
+    - cron: '0 22 * * 0'   # 月曜 07:00 JST（週明けに先週ぶんを見る）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: review
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # 成績は insights が毎日入れている。ここでは読むだけ。
+      # 楽天のクリック・報酬は公開APIが無いので、人が revenue コマンドで
+      # 取り込むまで空欄のまま（点検欄がそう言う）。
+      - name: Report
+        run: |
+          python -m src.main report \
+            --out "research/review/$(date -u -d '+9 hours' +%Y-%m-%d).md"
+
+      - name: Commit
+        run: |
+          if [ -z "$(git status --porcelain research/review)" ]; then
+            echo "変化なし"; exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add research/review
+          git commit -m "chore(review): 週次の点検結果 [skip ci]"
+          for i in 1 2 3; do
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" \
+              && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 5
+          done
+          echo "::warning::点検結果のpushに失敗しました"

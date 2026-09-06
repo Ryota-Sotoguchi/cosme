@@ -19,6 +19,8 @@ import tempfile
 
 import pytest
 
+from src.storage.history import JST
+
 from src.compliance.rules import scan
 from src.content.brand_murmurs import BRAND_MURMURS, murmur_for
 from src.content.builder import ContentBuilder
@@ -45,26 +47,35 @@ def test_every_slot_maps_to_a_band():
         assert time_band_for(slot.slot), f"{slot.slot} の時間帯が未定義"
 
 
-@pytest.mark.parametrize("slot,forbidden", [
-    ("morning", ("寝る前", "今日もおつかれ", "湯船")),
-    ("midmorning", ("寝る前", "今日もおつかれ")),
-    ("late", ("朝の支度", "朝、鏡の前")),
-    ("night", ("朝の支度",)),
+@pytest.mark.parametrize("hour,forbidden", [
+    (7, ("寝る前", "今日もおつかれ", "湯船")),
+    (9, ("寝る前", "今日もおつかれ")),
+    (22, ("朝の支度", "朝、鏡の前")),
+    (20, ("朝の支度",)),
 ])
-def test_posts_match_the_time_of_day(slot, forbidden):
+def test_posts_match_the_time_of_day(hour, forbidden):
     """時間と内容が食い違わないこと。
 
     「朝の支度、あと五分だけ時間がほしい」が22:30に出るのは、
     人間なら起きない。実際に起きていた（flags に time_band を
     渡し忘れていて、絞り込みが一度も効いていなかった）。
+
+    2026-09-07: 判定を **枠の名前から実際の時刻に変えた**。
+    定期実行のずれが中央値232分あり、枠の名前で選ぶと
+    朝の枠の言い回しが夕方に出る。
     """
+    from datetime import datetime
+
+    from src.content.parts import time_band_at
+
     builder = _builder()
+    now = datetime(2026, 9, 8, hour, 0, tzinfo=JST)
     for _ in range(12):
-        draft = builder.build("casual", [], template_id="casual", slot=slot)
+        draft = builder.build("casual", [], template_id="casual", now=now)
         builder.state.record_part_ids(draft.part_ids)
         for word in forbidden:
             assert word not in draft.text, (
-                f"{slot}({time_band_for(slot)}) に「{word}」が出た:\n  {draft.text}"
+                f"{hour}時({time_band_at(hour)}) に「{word}」が出た:\n  {draft.text}"
             )
 
 

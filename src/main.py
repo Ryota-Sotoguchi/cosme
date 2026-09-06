@@ -42,6 +42,7 @@ from .logging_setup import setup_logging
 from .pipeline import Pipeline
 from .rakuten.client import RakutenClient
 from .storage.history import History, PostRecord
+from .content.voices import load_voices
 from .storage.revenue import Revenue, RevenueDay
 from .storage.state import State
 from .threads.client import ThreadsClient
@@ -571,6 +572,30 @@ def cmd_report(config: Config, args: argparse.Namespace) -> int:
     クリックは日次でしか取れないので、**リンク投稿がその日1本だけ**の日
     しか投稿に割り当てない。2本以上あった日は帰属不能として除く。
     """
+    if getattr(args, "out", None):
+        # 週次の記録として残す。差分で「何が変わったか」を追えるようにする。
+        import contextlib
+        import io
+
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = _report_body(config)
+        body = buffer.getvalue()
+        print(body)
+        out = Path(args.out)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        header = (
+            f"# {datetime.now(JST).strftime('%Y-%m-%d')} 週次点検\n\n"
+            "`python -m src.main report` の出力。\n"
+            "**点検** の欄が空でなければ、そこだけ見て判断する。\n\n```\n"
+        )
+        out.write_text(header + body.strip() + "\n```\n", encoding="utf-8")
+        print(f"書き出し: {out}")
+        return code
+    return _report_body(config)
+
+
+def _report_body(config: Config) -> int:
     history = History(config.history_path)
     revenue = Revenue(config.revenue_path)
     posts = [r for r in history.successful() if r.insights.get("views") is not None]
@@ -670,8 +695,101 @@ def cmd_report(config: Config, args: argparse.Namespace) -> int:
     for hour in sorted(by_hour):
         v = [r.views for r in by_hour[hour]]
         print(f"  {hour:>3}時{len(v):>5}{_median(v):>9,.0f}")
+
+    # --- 点検 ---
+    #
+    # 数字を並べるだけだと、毎週見ても何をすればいいか分からない。
+    # 判断が要るところだけを名指しする。
+    flags = _review_flags(config, posts, link_posts, attributable, revenue)
+    print("\n=== 点検 ===")
+    if flags:
+        for line in flags:
+            print(f"  ▲ {line}")
+    else:
+        print("  気になるところなし")
     print()
     return EXIT_OK
+
+
+def _review_flags(config, posts, link_posts, attributable, revenue) -> list[str]:
+    """毎週見るべき異常だけを拾う。
+
+    「分析 → 改善」を回すには、数字より先に「どこを触るか」が要る。
+    ここが空なら、その週は config を触らなくていい。
+    """
+    flags: list[str] = []
+    total = revenue.totals()
+
+    # --- 収益の入口 ---
+    if not revenue.load():
+        flags.append(
+            "楽天の実績が未取り込み。CTR も EPC も出せない"
+            "（python -m src.main revenue --csv <レポート>）"
+        )
+    elif link_posts and total.clicks == 0:
+        flags.append(
+            f"リンク投稿 {len(link_posts)}本でクリック0。"
+            "リンクの置き場所（[experiment] link_position）を見直す"
+        )
+
+    # --- A/B の判定material ---
+    positions = {}
+    for record, entry in attributable:
+        positions.setdefault(record.extra.get("link_position") or "-", []).append(entry)
+    if len(positions) > 1:
+        thin = [name for name, rows in positions.items() if len(rows) < 5]
+        if thin:
+            flags.append(f"A/B の標本が薄い（{', '.join(thin)} が5本未満）。まだ判定しない")
+
+    # --- 指標の汚染 ---
+    unknown = [r for r in posts if not r.extra.get("segments") and r.insights.get("replies")]
+    if unknown:
+        flags.append(
+            f"連投本数が記録されていない投稿が {len(unknown)}件ある。"
+            "自己リプライを差し引けないので反応率が過大に出る"
+        )
+
+    # --- 実投稿時刻 ---
+    #
+    # ずれ自体は避けられない（GitHub Actions の混雑）。言い回しは
+    # 実際の時刻から選ぶようにしたので、多少のずれは害にならない。
+    # 見るのは「捨てられる水準まで遅れていないか」だけ。
+    limit = float(config.schedule_settings.get("max_drift_minutes", 0) or 0)
+    if limit > 0:
+        dropped = sum(
+            1 for r in posts[-30:]
+            if r.posted_datetime
+            and _schedule_drift_minutes(config, r.slot, r.posted_datetime) > limit
+        )
+        if dropped:
+            flags.append(
+                f"直近30本のうち {dropped}本が {limit:.0f}分以上ずれている。"
+                "この水準の遅延は投稿ごと捨てられる"
+            )
+
+    # --- 標本が薄いまま config を触らないための歯止め ---
+    by_type: dict[str, int] = {}
+    for record in posts:
+        by_type[record.post_type] = by_type.get(record.post_type, 0) + 1
+    thin_types = [k for k, n in by_type.items() if n < 5]
+    if thin_types:
+        flags.append(
+            f"標本が5本未満の型がある（{', '.join(sorted(thin_types))}）。"
+            "この型の成績で枠を組み替えない"
+        )
+
+    # --- 使った人の感想の在庫 ---
+    voices = load_voices(config.data_dir / "voices.json")
+    posted_codes = {r.item_code for r in posts if r.item_code}
+    if posted_codes:
+        covered = len(posted_codes & set(voices))
+        ratio = covered / len(posted_codes)
+        if ratio < 0.5:
+            flags.append(
+                f"使った人の感想がある商品は {covered}/{len(posted_codes)}件だけ。"
+                "投稿の主役にする材料が足りていない"
+            )
+    return flags
 
 
 def _median(values: list[int]) -> float:
@@ -1170,7 +1288,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("insights", help="投稿の成績を取得して履歴へ記録する")
     sub.add_parser("doctor", help="運用が壊れていないか点検する")
     sub.add_parser("hours", help="時間帯ごとの成績を見る")
-    sub.add_parser("report", help="収益から見た成績表（CTR/EPC/EPM）")
+    p_report = sub.add_parser("report", help="収益から見た成績表（CTR/EPC/EPM）")
+    p_report.add_argument("--out", help="結果を書き出すファイル（週次の記録用）")
 
     p_revenue = sub.add_parser("revenue", help="楽天アフィリエイトの日次実績を取り込む")
     p_revenue.add_argument("--csv", help="楽天のレポートCSV")

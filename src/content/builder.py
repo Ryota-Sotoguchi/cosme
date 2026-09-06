@@ -17,7 +17,7 @@ from pathlib import Path
 from ..rakuten.models import RakutenItem
 from ..storage.state import State
 from . import facts as F
-from .parts import Part, day_tags_for, time_band_for
+from .parts import Part, day_tags_for, time_band_at, time_band_for
 from .voices import load_voice_counts, load_voices
 from .templates import (
     LINK_FIRST,
@@ -230,6 +230,7 @@ class ContentBuilder:
         with_affiliate_link: bool = True,
         exclude_templates: set[str] | None = None,
         slot: str = "",
+        now: datetime | None = None,
         brand_hint: str = "",
         today: date | None = None,
         link_position: str = LINK_LAST,
@@ -271,7 +272,10 @@ class ContentBuilder:
             affiliate_url=affiliate_url,
             # 直近の使用履歴の長さでずらす。乱数を使わず決定的に回す。
             fact_style=len(self.state.recent_part_ids("closing", limit=10_000)),
-            time_band=time_band_for(slot),
+            # 言い回しの時間帯は **実際に投稿する時刻** から引く。
+            # 枠の名前で引くと、朝の枠が夕方に出たときに
+            # 「朝の支度」の話が夕方に流れる（実測でずれは中央値232分）。
+            time_band=time_band_at((now or datetime.now(JST)).astimezone(JST).hour),
             brand_hint=brand_hint,
             day_tags=day_tags_for(today or datetime.now(JST).date()),
             # 直近5本で使った訴求軸は避ける。

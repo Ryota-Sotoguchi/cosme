@@ -54,11 +54,30 @@ def test_unknown_slot_does_not_raise(config):
     assert _schedule_drift_minutes(config, "存在しない枠", at(12, 15)) == 0.0
 
 
-def test_guard_is_configured(config):
-    """ガードが有効で、現実的な値であること。
+def test_guard_does_not_silence_the_account(config):
+    """ガードが、実測のずれで全投稿を落とさないこと。
 
-    小さすぎると毎回見送りになる（実測の中央値は43分）。
-    大きすぎると深夜に朝の投稿が出るのを止められない。
+    90分で入れたときは **直近30本すべてが該当** し、そのままなら
+    アカウントが止まっていた（実測 9/5〜9/7 のずれは中央値232分・最小99分）。
+
+    時間帯の食い違いはスキップではなく time_band_at で直す。
+    ここは「半日ずれたら捨てる」最後の歯止めだけを持つ。
     """
     limit = float(config.schedule_settings.get("max_drift_minutes", 0))
-    assert 60 <= limit <= 180, f"max_drift_minutes = {limit} は現実的でない"
+    assert limit >= 300, (
+        f"max_drift_minutes = {limit} だと通常の遅延まで捨てる"
+    )
+    assert limit <= 720, f"max_drift_minutes = {limit} では歯止めにならない"
+
+
+def test_time_band_follows_the_actual_hour():
+    """言い回しの時間帯は、枠ではなく実際の時刻から引くこと。"""
+    from src.content.parts import time_band_at, time_band_for
+
+    # 朝の枠が夕方に走ったら、夕方の言い回しを使う
+    assert time_band_for("morning") != time_band_at(18)
+    assert time_band_at(7) == time_band_for("morning")
+    assert time_band_at(13) == time_band_for("noon")
+    assert time_band_at(18) == time_band_for("evening")
+    assert time_band_at(23) == time_band_for("late")
+    assert time_band_at(3) == time_band_for("late")

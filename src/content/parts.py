@@ -78,6 +78,26 @@ def time_band_for(slot: str) -> str:
     return _SLOT_BANDS.get(slot, "")
 
 
+def time_band_at(hour: int) -> str:
+    """**実際に投稿する時刻**から時間帯を引く。
+
+    GitHub Actions の定期実行は大きく遅れる。実測（2026-09-05〜07）では
+    ずれの中央値が232分で、90分以内に出た投稿は30本中0本だった。
+    枠の名前（morning）で言い回しを選ぶと、朝の枠が夕方に出たときに
+    「朝の支度」の話が夕方に流れる。
+
+    枠は「その日に何を出すか」の計画として使い、
+    言い回しの時間帯は実際の時刻から引く。
+    """
+    if 5 <= hour < 11:
+        return MORNING
+    if 11 <= hour < 16:
+        return NOON
+    if 16 <= hour < 20:
+        return EVENING
+    return NIGHT
+
+
 # ======================================================================
 # 日付のタグ
 #
