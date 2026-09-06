@@ -278,13 +278,14 @@
       "tt_stock_expiry",
       "tt_same_brand",
       "tt_review_count",
-      "tt_switch"
+      "tt_switch",
+      "tt_two_axes"
     ]
   },
   "rotation_cursor": {
     "afternoon": 5,
     "earlynight": 5,
-    "evening": 4,
+    "evening": 5,
     "late": 3,
     "latemorning": 0,
     "midmorning": 5,
@@ -293,7 +294,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "question",
     "casual",
     "band_focus",
     "price_band",
@@ -312,7 +312,8 @@
     "topic_thread",
     "band_focus",
     "question",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
