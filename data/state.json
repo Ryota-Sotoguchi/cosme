@@ -42,7 +42,8 @@
       "cm_train",
       "cm_gift",
       "cm_weekend_pouch",
-      "cm_sunday"
+      "cm_sunday",
+      "cm_shopping"
     ],
     "casual_brand": [
       "brand",
@@ -281,12 +282,11 @@
     "late": 3,
     "latemorning": 6,
     "midmorning": 4,
-    "morning": 0,
+    "morning": 1,
     "predinner": 4,
     "price_band_window": 1
   },
   "template_history": [
-    "question",
     "casual",
     "casual",
     "checklist",
@@ -305,7 +305,8 @@
     "casual",
     "casual",
     "topic",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-10-29T20:46:25.901200+00:00",
