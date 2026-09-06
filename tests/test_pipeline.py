@@ -870,7 +870,7 @@ def test_no_link_falls_back_to_another_type(config):
 
     order = Pipeline._no_link_fallbacks("thread_topic")
     assert order[0] == "thread_topic", "まず本来の型を試すこと"
-    assert set(order) == {"casual", "no_link", "question", "thread_topic", "howto"}
+    assert set(order) == {"casual", "no_link", "question", "essay", "thread_topic", "howto"}
     assert len(order) == len(set(order))
     # 反応ゼロだった型を逃がし先として増やさない
     assert order[-1] == "howto"

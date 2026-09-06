@@ -42,6 +42,7 @@ ITEMS_NEEDED = {
     "question": 0,
     "casual": 0,
     "howto": 0,
+    "essay": 0,
 }
 
 
@@ -497,5 +498,5 @@ class Pipeline:
         実績が4件で表示中央値62・反応ゼロだったから。
         逃がし先として増やしていい型ではない。
         """
-        order = ["casual", "no_link", "question", "thread_topic", "howto"]
+        order = ["casual", "no_link", "question", "essay", "thread_topic", "howto"]
         return [post_type, *[t for t in order if t != post_type]]

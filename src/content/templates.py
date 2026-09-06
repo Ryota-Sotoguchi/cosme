@@ -17,11 +17,19 @@ from typing import Callable, Protocol
 from ..rakuten.models import RakutenItem
 from . import facts as F
 from .appeals import build_appeal
-from .benefits import TIPS_HEADINGS, benefit_by_cursor, benefit_for, tips_block
+from .benefits import (
+    BENEFITS,
+    TIPS_HEADINGS,
+    benefit_by_cursor,
+    benefit_for,
+    pitfall_line,
+    tips_block,
+)
 from .voices import voice_sentence
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
+    ESSAY_QUESTIONS,
     FACT_INTROS,
     CASUAL_MURMURS,
     HOWTO_POSTS,
@@ -697,6 +705,63 @@ def render_thread(ctx: RenderContext) -> Rendered:
     ])
     return r
 
+# 書ききる型で扱う剤形。pick で回してクールダウンを効かせる。
+ESSAY_SUBJECTS: tuple[Part, ...] = tuple(Part(b.id, b.id) for b in BENEFITS)
+BENEFIT_BY_ID = {b.id: b for b in BENEFITS}
+
+
+def render_essay(ctx: RenderContext) -> Rendered:
+    """リンクなしで書ききる型。買い方の基準を理由つきで置く。
+
+    ## なぜリンクなし側にも要るのか
+
+    1日10枠のうちリンク投稿は1枠だけで、残り9枠はリンクなし。
+    書ききる型をリンク投稿にしか入れないと、9割の投稿には効かない。
+
+    ## 何で埋めるか
+
+    観点の名前だけ並べても読み手には何も残らない。実測でも、
+    箇条書きだけの howto 型は表示中央値62・反応ゼロで最下位だった。
+    ここでは観点ごとに「なぜ見るのか」を添える（benefits.TIP_NOTES）。
+
+    商品を出さないので、剤形はカーソルで決める。特定の商品を
+    薦めるわけではないので、これで筋は通る。
+    """
+    r = Rendered(blocks=[])
+    # 剤形は pick で回す。カーソル任せだと同じ剤形が続けて出る
+    # （実際に、連続で4本とも同じ剤形になった）。
+    subject = ctx.pick("essay", ESSAY_SUBJECTS, **ctx.flags())
+    benefit = BENEFIT_BY_ID[subject.id]
+    cursor = ctx.fact_style + len(subject.id)
+    r.part_ids["essay"] = benefit.id
+
+    # 1行目で対象を名指しする（PATTERNS.md P1/P3）。
+    tips = tips_block(benefit, cursor=cursor, count=6, with_why=True)
+    r.allowed_numbers |= set(F.extract_numbers(tips))
+    r.allowed_numbers |= set(F.extract_numbers(benefit.pain))
+    r.allowed_numbers |= set(F.extract_numbers(benefit.future))
+
+    question = ctx.pick("essay_question", ESSAY_QUESTIONS, **ctx.flags())
+    r.part_ids["essay_question"] = question.id
+
+    # 基準だけだと「正しいこと」で終わる。失敗の形を一つ置くと、
+    # 読み手がそこで自分の買い方を思い出す。
+    pitfall = pitfall_line(benefit, cursor)
+    r.allowed_numbers |= set(F.extract_numbers(pitfall))
+
+    r.blocks = [
+        Block(benefit.pain, 0),
+        Block(benefit.concern, 4),
+        Block(tips, 0),
+        Block(pitfall, 2),
+        Block(benefit.future, 3),
+        # 長い投稿は読み切ったあとに何もすることが無い。
+        # 実測で人の返信が付いたのは問いかけ型だけだったので、最後に聞く。
+        Block(question.text, 1),
+    ]
+    return r
+
+
 def render_howto(ctx: RenderContext) -> Rendered:
     """ノウハウ投稿。保存したくなるチェックリスト型。
 
@@ -813,6 +878,7 @@ TEMPLATES: tuple[Template, ...] = (
     Template("question", render_question, ("question",), item_count=0,
              requires_affiliate=False),
     Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),
+    Template("essay", render_essay, ("essay",), item_count=0, requires_affiliate=False),
 )
 
 TEMPLATES_BY_ID: dict[str, Template] = {t.id: t for t in TEMPLATES}

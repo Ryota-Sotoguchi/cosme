@@ -357,12 +357,16 @@ allow_affiliate = false
 # question を最多にする。Threads は会話が続く投稿を高く評価する。
 #
 # howto は枠から外した（逃がし先としては _no_link_fallbacks に残る）。
+#
+# 2026-09-07: essay（リンクなしで書ききる型）を4枠に入れた。
+# 上限500字に対して実測は中央値60字。1日10枠のうち9枠がリンクなしなので、
+# 書ききる型をリンク投稿にしか入れないと、9割の投稿に効かない。
 morning = [
     "casual",
     "question",
     "thread_topic",
     "casual",
-    "no_link",
+    "essay",
     "question",
     "casual",
 ]
@@ -380,7 +384,7 @@ latemorning = [
     "thread_topic",
     "question",
     "casual",
-    "no_link",
+    "essay",
     "casual",
     "question",
 ]
@@ -406,10 +410,10 @@ evening = [
     "thread_topic",
     "casual",
     "question",
-    "no_link",
+    "casual",
     "casual",
     "question",
-    "thread_topic",
+    "essay",
 ]
 earlynight = [
     "casual",
@@ -436,9 +440,9 @@ noon = [
 # night / late は 2026-09-03 にリンク許可を外したので、リンクなしの型で回す。
 night = [
     "question",
-    "no_link",
+    "essay",
     "casual",
-    "thread_topic",
+    "casual",
     "question",
     "casual",
     "thread_topic",
