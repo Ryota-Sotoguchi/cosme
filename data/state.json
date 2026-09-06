@@ -43,7 +43,8 @@
       "cm_gift",
       "cm_weekend_pouch",
       "cm_sunday",
-      "cm_shopping"
+      "cm_shopping",
+      "cm_weekend_slow"
     ],
     "casual_brand": [
       "brand",
@@ -281,13 +282,12 @@
     "evening": 4,
     "late": 3,
     "latemorning": 6,
-    "midmorning": 4,
+    "midmorning": 5,
     "morning": 1,
     "predinner": 4,
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "casual",
     "checklist",
     "casual",
@@ -306,6 +306,7 @@
     "casual",
     "topic",
     "topic",
+    "casual",
     "casual"
   ],
   "threads_token": {
