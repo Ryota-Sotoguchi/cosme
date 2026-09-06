@@ -279,12 +279,13 @@
       "tt_same_brand",
       "tt_review_count",
       "tt_switch",
-      "tt_two_axes"
+      "tt_two_axes",
+      "tt_first_buy"
     ]
   },
   "rotation_cursor": {
     "afternoon": 5,
-    "earlynight": 5,
+    "earlynight": 6,
     "evening": 5,
     "late": 3,
     "latemorning": 0,
@@ -294,7 +295,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "band_focus",
     "price_band",
     "casual",
@@ -313,6 +313,7 @@
     "band_focus",
     "question",
     "casual",
+    "topic_thread",
     "topic_thread"
   ],
   "threads_token": {
