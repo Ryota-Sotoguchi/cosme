@@ -39,13 +39,26 @@ _REWARD_KEYS = ("報酬", "成果報酬", "reward", "金額")
 
 @dataclass
 class RevenueDay:
-    """ある1日の実績。"""
+    """ある1日の実績。
 
-    date: str          # YYYY-MM-DD (JST)
+    period_days が 1 より大きいときは「その日で終わる N 日間の合計」で、
+    日別ではない。管理画面のダッシュボードは期間の合計しか出さないので、
+    CSV が無いときはこの形で入れる。
+
+    **期間合計は投稿単位の集計に使わない。** 1日1本のリンク投稿に
+    クリックを割り当てられるのは、日別が入っているときだけ。
+    """
+
+    date: str          # YYYY-MM-DD (JST)。期間集計なら最終日
     clicks: int = 0
     orders: int = 0
     reward: int = 0    # 円
     source: str = "manual"
+    period_days: int = 1
+
+    @property
+    def is_daily(self) -> bool:
+        return self.period_days <= 1
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), ensure_ascii=False)
@@ -92,6 +105,7 @@ class Revenue:
                         orders=int(payload.get("orders", 0)),
                         reward=int(payload.get("reward", 0)),
                         source=str(payload.get("source", "manual")),
+                        period_days=int(payload.get("period_days", 1)),
                     )
                 except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
                     # 壊れた行があっても運用は止めない
@@ -124,14 +138,31 @@ class Revenue:
         key = day.isoformat() if isinstance(day, date) else str(day)
         return self.load().get(key)
 
+    def daily(self) -> dict[str, RevenueDay]:
+        """日別だけ。投稿への割り当てに使えるのはこれだけ。"""
+        return {k: v for k, v in self.load().items() if v.is_daily}
+
     def totals(self) -> RevenueDay:
-        rows = self.load().values()
+        """全体の合計。
+
+        期間集計と日別が重なっていると二重に数えるので、
+        期間集計がある場合はそちらを優先し、重なる日別は落とす。
+        """
+        rows = list(self.load().values())
+        periods = [r for r in rows if not r.is_daily]
+        covered: set[str] = set()
+        for entry in periods:
+            end = date.fromisoformat(entry.date)
+            for offset in range(entry.period_days):
+                covered.add((end - timedelta(days=offset)).isoformat())
+
+        counted = periods + [r for r in rows if r.is_daily and r.date not in covered]
         return RevenueDay(
             date="合計",
-            clicks=sum(r.clicks for r in rows),
-            orders=sum(r.orders for r in rows),
-            reward=sum(r.reward for r in rows),
-            source=f"{len(list(rows))}日分",
+            clicks=sum(r.clicks for r in counted),
+            orders=sum(r.orders for r in counted),
+            reward=sum(r.reward for r in counted),
+            source=f"{len(counted)}件",
         )
 
     # ------------------------------------------------------------------

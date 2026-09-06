@@ -166,3 +166,63 @@ def test_history_keeps_reading_old_records(tmp_path: Path):
     assert records[0].views == 100
     # segments も replies_self も無い行。勝手な補正をしない。
     assert records[0].self_replies == 0
+
+
+# ======================================================================
+# 期間合計（管理画面のダッシュボード）
+# ======================================================================
+# 楽天の管理画面は「30日間の合計」しか出さない。日別は CSV からしか
+# 取れないので、合計だけでも入れられるようにしてある。
+#
+# ただし **期間合計は投稿単位の集計に使わない。**
+# 1日1本のリンク投稿にクリックを割り当てられるのは、日別があるときだけ。
+def test_period_total_is_not_daily(tmp_path: Path):
+    store = Revenue(tmp_path / "revenue.jsonl")
+    store.put(RevenueDay(date="2026-09-07", clicks=8, orders=1, reward=48,
+                         period_days=30))
+    assert store.totals().clicks == 8
+    assert store.daily() == {}, "期間合計を日別として扱っている"
+
+
+def test_daily_entries_are_usable(tmp_path: Path):
+    store = Revenue(tmp_path / "revenue.jsonl")
+    store.put(RevenueDay(date="2026-09-06", clicks=3, orders=0, reward=0))
+    assert set(store.daily()) == {"2026-09-06"}
+
+
+def test_period_and_daily_are_not_double_counted(tmp_path: Path):
+    """期間に含まれる日別を二重に数えないこと。"""
+    store = Revenue(tmp_path / "revenue.jsonl")
+    store.put(RevenueDay(date="2026-09-07", clicks=8, orders=1, reward=48,
+                         period_days=30))
+    store.put(RevenueDay(date="2026-09-06", clicks=3, orders=0, reward=0))
+    assert store.totals().clicks == 8, "期間に含まれる日別を足している"
+
+
+def test_daily_outside_the_period_still_counts(tmp_path: Path):
+    """期間の外にある日別は足すこと。"""
+    store = Revenue(tmp_path / "revenue.jsonl")
+    store.put(RevenueDay(date="2026-09-07", clicks=8, orders=1, reward=48,
+                         period_days=30))
+    store.put(RevenueDay(date="2026-07-01", clicks=5, orders=1, reward=20))
+    assert store.totals().clicks == 13
+
+
+def test_period_days_survives_a_reload(tmp_path: Path):
+    path = tmp_path / "revenue.jsonl"
+    Revenue(path).put(RevenueDay(date="2026-09-07", clicks=8, period_days=30))
+    entry = Revenue(path).get("2026-09-07")
+    assert entry is not None
+    assert entry.period_days == 30
+    assert not entry.is_daily
+
+
+def test_old_rows_without_period_days_are_daily(tmp_path: Path):
+    """既存の行を読めること。period_days が無ければ日別として扱う。"""
+    path = tmp_path / "revenue.jsonl"
+    path.write_text(
+        '{"date": "2026-09-01", "clicks": 2, "orders": 0, "reward": 0}\n',
+        encoding="utf-8",
+    )
+    entry = Revenue(path).get("2026-09-01")
+    assert entry is not None and entry.is_daily

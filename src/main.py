@@ -538,9 +538,11 @@ def cmd_revenue(config: Config, args: argparse.Namespace) -> int:
             clicks=args.clicks,
             orders=args.orders,
             reward=args.reward,
+            period_days=max(1, args.days),
         )
         revenue.put(entry)
-        print(f"\n{entry.date} を記録しました → {config.revenue_path}")
+        span = "" if entry.is_daily else f"（{entry.period_days}日間の合計）"
+        print(f"\n{entry.date} を記録しました{span} → {config.revenue_path}")
 
     rows = revenue.load()
     if not rows:
@@ -627,6 +629,9 @@ def _report_body(config: Config) -> int:
         print("  クリック・報酬は未取り込み（revenue コマンドで入れてください）")
 
     # --- 投稿単位に割り当てられる日だけ抜く ---
+    #
+    # 期間合計（管理画面の「30日間」）は日別が分からないので使わない。
+    daily_revenue = revenue.daily()
     per_day: dict[str, list] = {}
     for record in link_posts:
         dt = record.posted_datetime
@@ -638,7 +643,7 @@ def _report_body(config: Config) -> int:
     for day, records in sorted(per_day.items()):
         if len(records) != 1:
             continue
-        entry = revenue.get(day)
+        entry = daily_revenue.get(day)
         if entry is None:
             continue
         attributable.append((records[0], entry))
@@ -670,6 +675,8 @@ def _report_body(config: Config) -> int:
     else:
         print("\n  リンク投稿に日次実績を割り当てられていません。")
         print("  （リンク投稿が1日1本の日 かつ その日の実績が入っている日だけ集計します）")
+        if revenue.load() and not daily_revenue:
+            print("  いま入っているのは期間合計だけです。日別はCSVからしか取れません。")
 
     # --- 型ごと ---
     by_type: dict[str, list] = {}
@@ -725,6 +732,11 @@ def _review_flags(config, posts, link_posts, attributable, revenue) -> list[str]
         flags.append(
             "楽天の実績が未取り込み。CTR も EPC も出せない"
             "（python -m src.main revenue --csv <レポート>）"
+        )
+    elif not revenue.daily():
+        flags.append(
+            "実績が期間合計だけ。日別が無いと投稿ごとのCTRが出せず、"
+            "リンク位置のA/Bを判定できない（管理画面のレポートからCSVを落とす）"
         )
     elif link_posts and total.clicks == 0:
         flags.append(
@@ -1297,6 +1309,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_revenue.add_argument("--clicks", type=int, default=0)
     p_revenue.add_argument("--orders", type=int, default=0)
     p_revenue.add_argument("--reward", type=int, default=0, help="成果報酬（円）")
+    p_revenue.add_argument(
+        "--days", type=int, default=1,
+        help="--date で終わる期間の日数。管理画面の「30日間」を入れるとき用。"
+             "1より大きいと期間合計として扱い、投稿単位の集計には使わない",
+    )
 
     p_replies = sub.add_parser("replies", help="自分の投稿へのコメントに返信する")
     p_replies.add_argument("--live", action="store_true", help="実際に返信する（既定は下書き表示のみ）")
