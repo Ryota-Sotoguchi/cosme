@@ -47,7 +47,8 @@
       "cm_sunday",
       "cm_shopping",
       "cm_weekend_slow",
-      "cm_s_sleepy"
+      "cm_s_sleepy",
+      "cm_favorite_combo"
     ],
     "casual_brand": [
       "brand",
@@ -294,14 +295,13 @@
     "earlynight": 6,
     "evening": 5,
     "late": 4,
-    "latemorning": 0,
+    "latemorning": 1,
     "midmorning": 6,
     "morning": 2,
     "predinner": 5,
     "price_band_window": 1
   },
   "template_history": [
-    "question",
     "checklist",
     "topic_thread",
     "topic_thread",
@@ -320,7 +320,8 @@
     "checklist",
     "topic_thread",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
