@@ -196,7 +196,8 @@
       "q_same_or_new",
       "q_stock",
       "q_night_care",
-      "q_lip_or_eye"
+      "q_lip_or_eye",
+      "q_deciding"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -294,12 +295,11 @@
     "late": 4,
     "latemorning": 0,
     "midmorning": 5,
-    "morning": 1,
+    "morning": 2,
     "predinner": 5,
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "question",
     "checklist",
@@ -318,7 +318,8 @@
     "topic_thread",
     "topic_thread",
     "checklist",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
