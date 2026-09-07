@@ -200,7 +200,8 @@
       "q_stock",
       "q_night_care",
       "q_lip_or_eye",
-      "q_deciding"
+      "q_deciding",
+      "q_package"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -296,7 +297,7 @@
   "rotation_cursor": {
     "afternoon": 6,
     "earlynight": 6,
-    "evening": 5,
+    "evening": 6,
     "late": 4,
     "latemorning": 1,
     "midmorning": 6,
@@ -306,7 +307,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "casual",
     "topic",
@@ -325,7 +325,8 @@
     "topic_thread",
     "casual",
     "band_focus",
-    "topic"
+    "topic",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
