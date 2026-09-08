@@ -303,7 +303,8 @@
       "tt_cheap_vs_value",
       "tt_too_many",
       "tt_stock",
-      "tt_impulse"
+      "tt_impulse",
+      "tt_night_cart"
     ]
   },
   "rotation_cursor": {
@@ -311,7 +312,7 @@
     "earlynight": 0,
     "evening": 6,
     "late": 5,
-    "latemorning": 1,
+    "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
     "night": 1,
@@ -320,7 +321,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "band_focus",
     "question",
@@ -339,7 +339,8 @@
     "question",
     "casual",
     "topic_thread",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
