@@ -214,7 +214,10 @@
       "q_bath_time",
       "q_morning_night",
       "q_price_line",
-      "q_review"
+      "q_review",
+      "q_how_many",
+      "q_page",
+      "q_first_step"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -326,11 +329,10 @@
     "morning": 3,
     "night": 1,
     "noon": 2,
-    "predinner": 5,
+    "predinner": 6,
     "price_band_window": 1
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "topic_thread",
@@ -349,7 +351,8 @@
     "casual",
     "topic_thread",
     "longform",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
