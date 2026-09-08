@@ -170,6 +170,12 @@
       "dc_time",
       "dc_check"
     ],
+    "essay": [
+      "body_soap"
+    ],
+    "essay_question": [
+      "eq_which"
+    ],
     "fact_intro": [
       "fi_plain",
       "fi_soft",
@@ -322,7 +328,7 @@
     "afternoon": 0,
     "autoreply_shape": 2,
     "earlynight": 0,
-    "evening": 6,
+    "evening": 0,
     "late": 5,
     "latemorning": 2,
     "midmorning": 0,
@@ -333,7 +339,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "topic_thread",
     "checklist",
@@ -352,7 +357,8 @@
     "topic_thread",
     "longform",
     "casual",
-    "question"
+    "question",
+    "essay"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
