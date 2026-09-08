@@ -117,10 +117,40 @@ class Candidate:
     # 評価の内訳。なぜ選ばれたかを人が読めるように残す。
     scores: dict[str, float] = field(default_factory=dict)
 
+    # --- ブラウザ経路（autoreply）で埋まるもの。既定値のまま使える ---
+    source: str = ""
+    """どこから拾ったか。'timeline' / 'account' / 'search' …"""
+
+    href: str = ""
+    """DOM から取れた生のパス。/@user/post/XXXXX"""
+
+    reposts: int = 0
+    quotes: int = 0
+
+    collected_at: str = ""
+    """観測時刻（ISO8601 JST）。伸びの速度を出すときの基準。"""
+
+    is_reply: bool = False
+    """リプライへのリプライは狙わない。埋もれて読まれない。"""
+
+    has_media: bool = False
+
     @property
     def is_postable(self) -> bool:
         """API から返信できるか。post_id が無ければ手で返すしかない。"""
         return bool(self.post_id)
+
+    @property
+    def is_browser_repliable(self) -> bool:
+        """ブラウザから返信できるか。
+
+        `is_postable` と違い post_id を要求しない。**ここが自動返信を
+        作れる理由そのもの。** スクレイプで取れる短縮ID（DTVoI4xlSTZ）は
+        API が reply_to_id に要求する数値ID とは別のID空間なので、
+        API 経路は「公式検索で引けた投稿にしか返せない」制約があった。
+        ブラウザはパーマリンクを開くだけで返信できるので、その制約が消える。
+        """
+        return bool(self.username and self.shortcode) and not self.is_reply
 
     @property
     def permalink(self) -> str:

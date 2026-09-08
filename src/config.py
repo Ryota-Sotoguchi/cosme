@@ -137,6 +137,19 @@ class ScheduleSlot:
     allow_affiliate: bool
 
 
+@dataclass(frozen=True)
+class TargetAccount:
+    """自動返信で巡回する人気アカウント。
+
+    research/accounts.md（文体の参考先）とは別物。あちらは体験談・効能断定・
+    美容医療で伸ばしているアカウントを含むので、返信先に流用しない。
+    """
+
+    username: str
+    note: str = ""
+    weight: float = 1.0
+
+
 @dataclass
 class Config:
     """config.toml の内容 + 認証情報 + 実行モード。"""
@@ -147,6 +160,7 @@ class Config:
     data_dir: Path
     config_path: Path
     schedule: list[ScheduleSlot] = field(default_factory=list)
+    autoreply_targets: list[TargetAccount] = field(default_factory=list)
 
     # --- セクションへのショートカット ---
     @property
@@ -250,6 +264,54 @@ class Config:
         """他人の投稿に返信した記録。同じ相手に張り付かないために使う。"""
         return self.data_dir / "engagements.jsonl"
 
+    # --- 自動返信（autoreply）。ローカル実行専用 ---
+    @property
+    def autoreply(self) -> dict[str, Any]:
+        """ブラウザ操作による自動返信の設定。無ければ空 = 無効。"""
+        return self.raw.get("autoreply", {})
+
+    def autoreply_section(self, name: str) -> dict[str, Any]:
+        """[autoreply.<name>] を取る。無ければ空。"""
+        value = self.autoreply.get(name)
+        return value if isinstance(value, dict) else {}
+
+    def autoreply_filter(self, source: str = "") -> dict[str, Any]:
+        """収集元ごとの足切り条件。
+
+        [autoreply.filter] を土台に、[autoreply.filter.<source>] で上書きする。
+
+        **収集元によって相手の素性が違う。** 監視対象（[[autoreply.targets]]）は
+        人が選んだアカウントなので、タイムラインで偶然流れてきた知らない投稿と
+        同じ厳しさで見る理由がない。
+        """
+        section = self.autoreply_section("filter")
+        base = {k: v for k, v in section.items() if not isinstance(v, dict)}
+        override = section.get(source)
+        return {**base, **override} if isinstance(override, dict) else base
+
+    @property
+    def engage_db_path(self) -> Path:
+        """自動返信の記録（sqlite）。**gitignore 済み。公開しない。**"""
+        return self.data_dir / "engage" / "engage.sqlite3"
+
+    @property
+    def autoreply_stop_path(self) -> Path:
+        """キルスイッチ。これがあれば設定を触らずに自動返信を止められる。"""
+        return self.data_dir / "engage" / "STOP"
+
+    @property
+    def browser_profile_dir(self) -> Path:
+        """ログイン状態を保つブラウザプロファイル。
+
+        **セッション Cookie が入る。絶対にコミットしない**（.gitignore 済み）。
+        """
+        raw = self.autoreply_section("browser").get(
+            "profile_dir", ".playwright/threads-profile"
+        )
+        path = Path(raw)
+        return path if path.is_absolute() else PROJECT_ROOT / path
+
+
 
 def load_config(
     config_path: Path | None = None,
@@ -287,6 +349,18 @@ def load_config(
     if not schedule:
         raise ConfigError("config.toml に [[schedule]] が1つも定義されていません")
 
+    # [autoreply] は任意セクション。上の必須リストには足さないこと
+    # （足すと [autoreply] を書いていない既存の config.toml が読めなくなる）。
+    autoreply_targets = [
+        TargetAccount(
+            username=str(entry["username"]).lstrip("@"),
+            note=str(entry.get("note", "")),
+            weight=float(entry.get("weight", 1.0)),
+        )
+        for entry in (raw.get("autoreply", {}).get("targets") or [])
+        if entry.get("username")
+    ]
+
     credentials = Credentials(
         rakuten_application_id=os.environ.get("RAKUTEN_APPLICATION_ID") or None,
         rakuten_access_key=os.environ.get("RAKUTEN_ACCESS_KEY") or None,
@@ -306,4 +380,5 @@ def load_config(
         data_dir=data_dir or DEFAULT_DATA_DIR,
         config_path=path,
         schedule=schedule,
+        autoreply_targets=autoreply_targets,
     )

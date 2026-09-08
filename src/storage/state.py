@@ -71,6 +71,44 @@ class State:
         """運用開始からの経過日数（開始当日を 1 日目とする）。"""
         return (datetime.now(JST).date() - self.operation_start_date()).days + 1
 
+    # --- 自動返信のランプアップ ----------------------------------------
+    #
+    # **投稿パイプラインの運用開始日とは別に持つ。**
+    #
+    # もともと autoreply のランプは operation_started_on を見ていたが、
+    # あちらは投稿パイプラインが動き出した日で、自動返信より18日早かった。
+    # 結果としてランプの両ステージが最初から過ぎており、一度も効いていなかった。
+    def autoreply_start_date(self) -> date | None:
+        """自動返信が初めて実際に返信した日。まだ無ければ None。
+
+        **勝手に今日を刻まない。** 刻むのは実際に返信できたときだけ
+        （runner._record）。そうしないと DRY_RUN の試行でランプの日数を
+        使い切ってしまう。
+        """
+        raw = self._data.get("autoreply_started_on")
+        if not raw:
+            return None
+        try:
+            return date.fromisoformat(raw)
+        except ValueError:
+            return None
+
+    def mark_autoreply_started(self) -> date:
+        """初めて返信した日を刻む。2回目以降は何もしない。"""
+        existing = self.autoreply_start_date()
+        if existing is not None:
+            return existing
+        today = datetime.now(JST).date()
+        self._data["autoreply_started_on"] = today.isoformat()
+        return today
+
+    def autoreply_days_since_start(self) -> int | None:
+        """自動返信を始めてからの経過日数（初日を 1 日目）。まだなら None。"""
+        start = self.autoreply_start_date()
+        if start is None:
+            return None
+        return (datetime.now(JST).date() - start).days + 1
+
     # --- ローテーション -----------------------------------------------
     def next_rotation(self, slot: str, options: list[str]) -> str:
         """スロットのローテーションを1つ進めて返す。"""
@@ -87,6 +125,43 @@ class State:
             raise ValueError(f"スロット '{slot}' のローテーション候補が空です")
         cursors: dict[str, int] = self._data.get("rotation_cursor", {})
         return options[int(cursors.get(slot, 0)) % len(options)]
+
+    def advance_rotation(self, slot: str, options: list[str]) -> None:
+        """カーソルだけ1つ進める。値は返さない。
+
+        `next_rotation` は «覗く» と «進める» が一体になっている。
+        投稿パイプラインでは、型を決めてから**実行できるか判った後で**
+        進めたいので、2つに分けられる経路が要る。
+
+        分けた理由（2026-09-08）: `price_band` は `late` の2番目にあり、
+        そこにカーソルが来るたびリンク枠が空いておらず、降格していた。
+        降格しても順番だけは消費されるので、次に回ってくるのは約1週間後。
+        結果として `price_band` は一度も候補収集に到達していなかった。
+        """
+        if not options:
+            raise ValueError(f"スロット '{slot}' のローテーション候補が空です")
+        cursors: dict[str, int] = self._data.setdefault("rotation_cursor", {})
+        cursors[slot] = (int(cursors.get(slot, 0)) + 1) % len(options)
+
+    def rotation_stall(self, slot: str) -> int:
+        """このスロットで «進めずに見送った» 回数。"""
+        return int(self._data.get("rotation_stall", {}).get(slot, 0))
+
+    def record_rotation_stall(self, slot: str) -> int:
+        """見送りを1回数えて、その回数を返す。
+
+        **これが無いと詰む。** 進めない条件がずっと成り立つ場合
+        （例: そのスロットのリンク枠が恒久的に閉じている）、
+        カーソルは同じ型を指したまま永久に動かず、後ろの型が
+        二度と出てこない。呼び出し側はこの回数を見て諦める。
+        """
+        stalls: dict[str, int] = self._data.setdefault("rotation_stall", {})
+        stalls[slot] = int(stalls.get(slot, 0)) + 1
+        return stalls[slot]
+
+    def clear_rotation_stall(self, slot: str) -> None:
+        stalls: dict[str, int] = self._data.setdefault("rotation_stall", {})
+        stalls.pop(slot, None)
 
     # --- 文章パーツの使用履歴 -------------------------------------------
     def recent_part_ids(self, group: str, limit: int = 6) -> list[str]:

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from ..compliance.rules import scan
+from ..compliance.rules import EXPERIENCE_RULES, FAKE_REVIEW_RULES, scan
 
 JST = timezone(timedelta(hours=9))
 
@@ -37,6 +37,15 @@ SELF_PROMO = (
 
 MAX_LENGTH = 120
 
+# **このアカウントは「レビュー」という言葉を使わない。**
+#
+# 投稿文と同じ方針（tests/test_no_review_word.py に理由がある）。
+# プロンプトにも書いてあるが、LLM は書いてあることを守り切らないので
+# 機械側でも止める。「口コミ」は fake_review の規則と重なるが、
+# あちらは「口コミでは○○という声」の形しか見ないので、
+# 単独で出てきた場合はここで拾う。
+REVIEW_WORDS = ("レビュー", "レヴュー", "口コミ", "クチコミ")
+
 
 @dataclass
 class ReviewResult:
@@ -47,8 +56,16 @@ class ReviewResult:
         return "OK" if self.ok else " / ".join(self.problems)
 
 
-def review(text: str) -> ReviewResult:
-    """返信文を検査する。"""
+def review(text: str, *, include_experience: bool = False) -> ReviewResult:
+    """返信文を検査する。
+
+    `include_experience=True` で、使用体験と口コミの創作も弾く。
+    **機械が書いた文には必ず付けること。**
+
+    既定が False なのは人が書く場合のため。`.claude/commands/reply.md` は
+    「経験」型（同じ状況の話）を返信の型のひとつとして認めており、
+    人は「使ってもいない商品の体験は書かない」を自分で判断できる。
+    """
     problems: list[str] = []
     body = (text or "").strip()
 
@@ -63,12 +80,27 @@ def review(text: str) -> ReviewResult:
 
     # リンクの無い投稿なので薬機法だけが効く。効能を語らせない。
     hits = scan(body, has_link=False)
+    if include_experience:
+        # scan(has_link=False) は ALWAYS_RULES しか見ないので、
+        # EXPERIENCE_RULES / FAKE_REVIEW_RULES が素通りする。
+        # 景表法の観点ではリンクの無い返信に体験談を禁じる理由は無いが、
+        # **このアカウントは商品を使っていない**（CLAUDE.md「架空の体験・
+        # 口コミを書かない」）。人は文脈で線を引けるが、機械には引けない。
+        hits = hits + [
+            rule for rule in (*EXPERIENCE_RULES, *FAKE_REVIEW_RULES)
+            if rule.pattern.search(body)
+        ]
     if hits:
         problems.append(f"NG表現: {[h.label for h in hits]}")
 
     for word in SELF_PROMO:
         if word in body:
             problems.append(f"自分への誘導: {word}")
+            break
+
+    for word in REVIEW_WORDS:
+        if word in body:
+            problems.append(f"レビューの語は使わない: {word}")
             break
 
     # テンプレ判定。定型句を抜いて、中身が残らなければ弾く。
@@ -85,6 +117,14 @@ def review(text: str) -> ReviewResult:
 # ======================================================================
 # 記録
 # ======================================================================
+def _parse(value: str) -> datetime | None:
+    """記録の時刻を読む。壊れていれば None（recent_usernames と同じ扱い）。"""
+    try:
+        return datetime.fromisoformat(value)
+    except (ValueError, TypeError):
+        return None
+
+
 @dataclass
 class Engagement:
     username: str
@@ -142,3 +182,33 @@ class EngagementLog:
 
     def replied_shortcodes(self) -> set[str]:
         return {e.shortcode for e in self.all()}
+
+    def last_replied_at(self) -> datetime | None:
+        """最後に返信した時刻。まだ無ければ None。
+
+        **手動返信も含む。** Meta から見れば、手で返したのも機械が返したのも
+        同じアカウントの返信なので、間隔の計算では区別しない。
+        """
+        latest: datetime | None = None
+        for e in self.all():
+            when = _parse(e.replied_at)
+            if when is not None and (latest is None or when > latest):
+                latest = when
+        return latest
+
+    def last_replied_at_by_username(self, *, days: int = 30) -> dict[str, datetime]:
+        """相手ごとの最終返信時刻。同一アカウントのクールダウン判定に使う。
+
+        recent_usernames() が「返したかどうか」しか返さないのに対し、
+        こちらは「いつ返したか」を返す。収集元ごとにクールダウンの長さを
+        変えたいので、集合ではなく時刻が要る。
+        """
+        cutoff = datetime.now(JST) - timedelta(days=days)
+        out: dict[str, datetime] = {}
+        for e in self.all():
+            when = _parse(e.replied_at)
+            if when is None or when < cutoff:
+                continue
+            if e.username not in out or when > out[e.username]:
+                out[e.username] = when
+        return out

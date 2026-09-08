@@ -954,6 +954,27 @@ def cmd_hours(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def _report_autoreply_readiness(config: Config) -> None:
+    """自動返信の前提を表示する。**問題があっても点検は失敗させない。**
+
+    autoreply はローカル実行専用の付加機能で、GitHub Actions では動かない。
+    CI で claude CLI が無いのは正常なので、ここを致命扱いにすると
+    doctor が毎日赤くなって本当の異常が埋もれる。
+    """
+    from .engage.llm import build_client
+
+    client = build_client(config)
+    if client.available:
+        print(f"  claude CLI         : ✅ {client.resolved_binary()}")
+    else:
+        print("  claude CLI         : － 未インストール（autoreply のみ使用）")
+
+    if config.browser_profile_dir.is_dir():
+        print("  Threads ログイン   : ✅ プロファイルあり")
+    else:
+        print("  Threads ログイン   : － 未設定（autoreply --login）")
+
+
 def cmd_doctor(config: Config, args: argparse.Namespace) -> int:
     """運用が壊れていないかを点検する。
 
@@ -986,6 +1007,9 @@ def cmd_doctor(config: Config, args: argparse.Namespace) -> int:
     except (MissingSecretError, TransientError) as exc:
         warnings.append(f"Threads API を確認できませんでした: {str(exc)[:100]}")
         print("  Threads API        : ⚠️ 確認不可")
+
+    # --- 自動返信の前提（ローカル実行専用。無くても運用は回る）---
+    _report_autoreply_readiness(config)
 
     # --- 本日の投稿数（出しすぎるとブロックされる）---
     posted_today = len(history.posts_today())
@@ -1211,6 +1235,393 @@ def _latest_candidate_file() -> Path | None:
     return files[0] if files else None
 
 
+def cmd_autoreply(config: Config, args: argparse.Namespace) -> int:
+    """ブラウザ操作で伸びている投稿へ自動返信する。**ローカル実行専用。**
+
+    投稿するには鍵が2つ要る: config.toml の enabled = true と --live。
+    どちらか片方だけでは投稿しない。
+
+    ブラウザと LLM は重いので、**必要になった時点で import する**
+    （selftest がこの経路に触れないようにするため）。
+    """
+    if args.llm_check:
+        return _autoreply_llm_check(config)
+
+    if args.history:
+        return _autoreply_history(config)
+
+    if args.login:
+        return _autoreply_login(config)
+
+    if args.selfcheck:
+        return _autoreply_selfcheck(config, headed=args.headed)
+
+    if args.explain:
+        return _autoreply_explain(config, args.explain)
+
+    return _autoreply_run(config, args)
+
+
+def _autoreply_run(config: Config, args: argparse.Namespace) -> int:
+    """収集から投稿まで回す。既定は DRY_RUN。"""
+    from .engage.browser.session import ThreadsSession
+    from .engage.llm import build_client
+    from .engage.review import EngagementLog
+    from .engage.runner import EngageRunner
+    from .engage.store import EngageStore
+
+    # **--live を明示したときだけ投稿する。**
+    #
+    # config.dry_run に任せない。あれは DRY_RUN 環境変数を見ており、
+    # post.yml が定期実行で DRY_RUN=false を設定している。そのままだと
+    # 環境変数が残っている端末で --live 無しに本番投稿してしまい、
+    # 「鍵が2つ要る」という取り決めが崩れる。
+    dry_run = not args.live
+    llm = build_client(config)
+    if not llm.available and not args.collect_only:
+        print("claude CLI が見つかりません。--llm-check で確認してください。")
+        return EXIT_CONFIG
+
+    def make_session():
+        session = ThreadsSession(config, headless=not args.headed).start()
+        try:
+            session.require_login()
+        except AuthError:
+            session.close()
+            raise
+        return session
+
+    state = State(config.state_path)
+    try:
+        with EngageStore(config.engage_db_path) as store:
+            runner = EngageRunner(
+                config,
+                store=store,
+                engagement_log=EngagementLog(config.engagements_path),
+                llm=llm,
+                state=state,
+                session_factory=make_session,
+            )
+            report = runner.run(
+                dry_run=dry_run,
+                limit=args.limit,
+                sources=args.source,
+                collect_only=args.collect_only,
+            )
+            _print_report(report, dry_run=dry_run, collect_only=args.collect_only)
+            # **DRY_RUN でも保存する。**
+            #
+            # ここに入るのはローテーションのカーソルだけで、返信の実績では
+            # ない（実績は threads_replies と engagements.jsonl で、そちらは
+            # DRY_RUN では書かない）。保存しないと巡回するアカウントも
+            # 返信の型も毎回同じものに固定され、仕掛けがまるごと効かなくなる。
+            state.save()
+    except ImportError:
+        print(_PLAYWRIGHT_HINT)
+        return EXIT_CONFIG
+    except AuthError as exc:
+        print(f"❌ {exc}")
+        return EXIT_CONFIG
+    except TransientError as exc:
+        print(f"⚠️  一時的な障害です: {exc}")
+        return EXIT_TRANSIENT
+
+    return EXIT_OK
+
+
+def _print_report(report, *, dry_run: bool, collect_only: bool = False) -> None:
+    mode = "DRY_RUN（投稿しません）" if dry_run else "本番"
+    print(f"\n=== 自動返信 / {mode} ===\n")
+
+    if report.stopped:
+        print(f"実行しませんでした: {report.stopped}")
+        return
+
+    if report.budget:
+        print(f"  残枠      : {report.budget}")
+    if report.paused:
+        print(f"  ⏸  {report.paused}")
+        print("     （収集と観測は続けています。次回の伸び率の計算に使います）")
+    print(f"  収集      : {report.collected} 件")
+    print(f"  未処理    : {report.after_seen} 件")
+    print(f"  順位付け  : {report.ranked} 件")
+    print(f"  検討      : {report.considered} 件")
+    print(f"  LLM 呼出  : {report.llm_calls} 回")
+
+    if report.ranked_candidates and not report.posted:
+        print("\n  順位付けを通った候補:")
+        for i, (candidate, score) in enumerate(report.ranked_candidates[:10], 1):
+            age = f"{candidate.age_hours:.0f}時間前" if candidate.age_hours is not None else "時期不明"
+            print(f"\n  {i}. @{candidate.username}  buzz {score.total:.2f}")
+            print(f"     {candidate.permalink}")
+            print(f"     ♥{candidate.likes} 💬{candidate.replies} / {age}"
+                  f" / {'美容' if candidate.is_beauty else 'その他'}")
+            print(f"     {score.explain()}")
+            print(f"     {candidate.text[:70]}")
+
+    for plan, result in report.posted:
+        candidate = plan.candidate
+        head = "投稿しました" if not dry_run else "投稿する予定"
+        mark = "✅" if (dry_run or result.confirmed) else "⚠️ "
+        print(f"\n{mark} {head}: @{candidate.username}")
+        print(f"     {candidate.permalink}")
+        print(f"     元投稿 : {candidate.text[:60]}")
+        print(f"     buzz   : {plan.buzz.explain()}")
+        print(f"     対象   : {plan.target_verdict.summary()}")
+        print(f"     型     : {plan.draft.shape}（{plan.draft.attempts}回目）")
+        print(f"     返信   : {plan.draft.text}")
+        print(f"     審査   : {plan.reply_verdict.summary()}")
+        if plan.draft.rejected:
+            print("     没案   :")
+            for line in plan.draft.rejected:
+                print(f"       - {line[:110]}")
+        if not dry_run and not result.confirmed:
+            print("     ⚠️  着弾を確認できませんでした（二重投稿を避けるため再送しません）")
+
+    # ルールで落ちたものは数だけ。理由が似るので並べても読みにくい。
+    rule_skips = report.skips("rule")
+    if rule_skips:
+        from collections import Counter
+        counts = Counter(r.split("（")[0] for _, r in rule_skips)
+        summary = " / ".join(f"{reason} {n}" for reason, n in counts.most_common())
+        print(f"\n  ルールで見送り {len(rule_skips)} 件: {summary}")
+
+    # **LLM と再確認で落ちたものは1件ずつ出す。** ここが知りたいところ。
+    for stage, label in (("judge", "判定で見送り"), ("verify", "投稿直前に中止")):
+        entries = report.skips(stage)
+        if entries:
+            print(f"\n  {label} {len(entries)} 件:")
+            for shortcode, reason in entries:
+                print(f"    - {shortcode}: {reason[:110]}")
+
+    if report.errors:
+        print("\n  ⚠️  問題:")
+        for error in report.errors:
+            print(f"    - {error[:160]}")
+
+    if report.posted:
+        return
+    if collect_only:
+        print("\n  ここまでが収集と順位付けです"
+              "（--collect-only なので LLM 判定と返信生成は行っていません）。")
+    elif not report.ranked_candidates:
+        print("\n  順位付けを通る候補がありませんでした。")
+    else:
+        print("\n  候補はありましたが、返信までは至りませんでした。")
+
+
+def _autoreply_explain(config: Config, shortcode: str) -> int:
+    """1件について、何が起きたかを表示する。"""
+    from .engage.store import EngageStore
+
+    with EngageStore(config.engage_db_path) as store:
+        seen = store.previous_sighting(shortcode)
+        if seen is None:
+            print(f"記録にありません: {shortcode}")
+            return EXIT_OK
+
+        print(f"\n=== {shortcode} ===\n")
+        print(f"  投稿者     : @{seen.username}")
+        print(f"  収集元     : {seen.source or '-'}")
+        print(f"  初めて見た : {seen.first_seen_at}")
+        print(f"  最後に見た : {seen.last_seen_at}")
+        print(f"  反応       : ♥{seen.likes} 💬{seen.replies}")
+        print(f"  経過時間   : {seen.age_hours}")
+        print(f"  buzz       : {seen.buzz_score}")
+        print(f"  判断       : {seen.decision}")
+
+        for row in store.recent_replies(limit=200):
+            if row.shortcode != shortcode:
+                continue
+            print(f"\n  返信       : {row.reply_text}")
+            print(f"  型         : {row.reply_shape}（{row.generation_attempts}回目）")
+            print(f"  対象の点   : {row.target_score}")
+            print(f"  審査の点   : {row.reply_score}")
+            print(f"  着弾確認   : {'✅' if row.confirmed else '⚠️ 未確認'}")
+            if row.outcome_likes is not None:
+                print(f"  成果       : ♥{row.outcome_likes} 💬{row.outcome_replies}")
+            break
+    return EXIT_OK
+
+
+def _autoreply_login(config: Config) -> int:
+    """ブラウザを開いて、人が手でログインする。
+
+    **認証情報はコードで扱わない。** 2段階認証もキャプチャも人がやる。
+    """
+    from .engage.browser.session import ThreadsSession
+
+    print(f"\nプロファイル: {config.browser_profile_dir}")
+    print("ここに Threads のセッションが入ります。**絶対にコミットしないこと。**\n")
+
+    try:
+        with ThreadsSession(config, headless=False) as session:
+            if session.login_interactively():
+                print("\n✅ ログインしました。次回からはこのプロファイルを使います。")
+            else:
+                print("\n❌ 時間内にログインを確認できませんでした。")
+                return EXIT_CONFIG
+    except ImportError:
+        print(_PLAYWRIGHT_HINT)
+        return EXIT_CONFIG
+
+    # 無視されていることをその場で見せる。data/ は公開リポジトリに載る。
+    import subprocess
+
+    result = subprocess.run(
+        ["git", "check-ignore", "-v", str(config.browser_profile_dir)],
+        capture_output=True, text=True, check=False)
+    if result.returncode == 0:
+        print(f"\ngitignore 確認: {result.stdout.strip()}")
+    else:
+        print("\n⚠️  プロファイルが gitignore されていません。"
+              " .gitignore に .playwright/ を足してください。")
+        return EXIT_CONFIG
+    return EXIT_OK
+
+
+def _autoreply_selfcheck(config: Config, *, headed: bool = False) -> int:
+    """セレクタが今日も効くかを確かめる。
+
+    Threads は継続的にデプロイするので、セレクタは数週間で壊れる前提。
+    投稿する前に確かめるためのカナリア。
+
+    **場所ごとに分けて探す。** 返信欄はダイアログを開くまで存在しないので、
+    タイムラインで探して «無い» と言っても誤警報にしかならない。
+    毎回赤くなる点検は、いずれ誰も見なくなる。
+
+    ダイアログは開くが、**文字は打たないし投稿もしない。**
+    """
+    from .engage.browser import actions, selectors
+    from .engage.browser.session import ThreadsSession
+
+    print("\n=== セレクタ点検 ===\n")
+    unmeasured = selectors.unmeasured()
+    if unmeasured:
+        print(f"未実測が {len(unmeasured)} 件: {', '.join(unmeasured)}")
+        print("（いずれも «無いのが正常» な要素。必須ではない）\n")
+
+    report: dict[str, bool] = {}
+    try:
+        with ThreadsSession(config, headless=not headed) as session:
+            page = session.require_login()
+
+            print("[1] タイムライン")
+            report |= actions.selector_report(page, where=selectors.WHERE_FEED)
+
+            link = actions.resolve(page, "post_permalink", required=False)
+            href = link.get_attribute("href") if link is not None else None
+            if not href:
+                print("  ⚠️  投稿が1件も見つからず、返信欄まで確認できませんでした")
+            else:
+                url = f"https://www.threads.com{href.split('?')[0]}"
+                print(f"\n[2] 投稿詳細 → 返信欄（{url}）")
+                page = session.goto(url)
+                if actions.open_reply_composer(page):
+                    report |= actions.selector_report(page, where=selectors.WHERE_MODAL)
+                    actions.close_dialog(page)
+                    print("  （開いて確認しただけ。何も投稿していません）")
+                else:
+                    print("  ❌ 返信ボタンを押せませんでした")
+                    report |= {k: False for k in selectors.keys_where(selectors.WHERE_MODAL)}
+    except ImportError:
+        print(_PLAYWRIGHT_HINT)
+        return EXIT_CONFIG
+    except AuthError as exc:
+        print(f"❌ {exc}")
+        return EXIT_CONFIG
+
+    print()
+    missing_required = []
+    for key, ok in report.items():
+        spec = selectors.get(key)
+        mark = "✅" if ok else ("❌" if spec.required else "⚠️ ")
+        suffix = "  [必須]" if spec.required else ""
+        print(f"  {mark} {key}{suffix}")
+        if not ok and spec.required:
+            missing_required.append(key)
+
+    print()
+    if missing_required:
+        print(f"❌ 必須セレクタが引けません: {missing_required}")
+        print("   Threads の DOM が変わった可能性があります。")
+        print("   python3 scripts/probe_threads_dom.py で実測し直してください。")
+        return EXIT_CONFIG
+    print("✅ 必須セレクタはすべて引けました")
+    return EXIT_OK
+
+
+_PLAYWRIGHT_HINT = """
+playwright が入っていません。autoreply はブラウザを使います。
+
+    pip install -r requirements-browser.txt
+    python3 -m playwright install chromium
+    sudo python3 -m playwright install-deps chromium
+
+投稿パイプラインはブラウザを必要としないので、
+requirements.txt には入れていません。
+"""
+
+
+def _autoreply_history(config: Config) -> int:
+    """これまでの自動返信を表示する。"""
+    from .engage.store import EngageStore
+
+    with EngageStore(config.engage_db_path) as store:
+        rows = store.recent_replies(limit=30)
+        print(f"\n=== 自動返信の履歴（{config.engage_db_path}）===\n")
+        if not rows:
+            print("  まだありません。")
+            return EXIT_OK
+        for row in rows:
+            mark = "✅" if row.confirmed else "⚠️ "
+            outcome = ""
+            if row.outcome_likes is not None:
+                outcome = f"  → ♥{row.outcome_likes} 💬{row.outcome_replies}"
+            print(f"  {mark} {row.replied_at[:16]}  @{row.username:18} "
+                  f"[{row.reply_shape or '-'}] {row.reply_text[:40]}{outcome}")
+        print(f"\n  合計 {len(rows)} 件（⚠️ は着弾を確認できなかったもの）")
+    return EXIT_OK
+
+
+def _autoreply_llm_check(config: Config) -> int:
+    """claude CLI の疎通を確かめる。"""
+    from .engage.llm import build_client
+
+    client = build_client(config)
+    print(f"binary : {client.binary}")
+    print(f"model  : {client.model}")
+
+    if not client.available:
+        print("状態   : ❌ 見つかりません\n")
+        try:
+            client.ask("ping")
+        except LlmUnavailableError as exc:
+            print(exc)
+        return EXIT_CONFIG
+
+    print(f"解決先 : {client.resolved_binary()}")
+    print("状態   : ✅ 見つかりました\n")
+    print("疎通を確かめています…")
+    try:
+        response = client.ask(
+            'JSON だけを返してください。前置きも説明もコードフェンスも付けないこと。'
+            ' スキーマ: {"ok": true, "lang": "<この指示が書かれている言語>"}'
+        )
+    except TransientError as exc:
+        print(f"❌ 応答がありません: {exc}")
+        return EXIT_TRANSIENT
+
+    print(f"応答     : {response.text[:200]}")
+    print(f"JSON     : {response.data}")
+    print(f"所要時間 : {response.duration_ms / 1000:.1f}秒")
+    if not response.data:
+        print("\n⚠️  JSON を取り出せませんでした。モデルか設定を見直してください。")
+        return EXIT_TRANSIENT
+    print("\n✅ LLM の疎通を確認しました")
+    return EXIT_OK
+
+
 def cmd_selftest(config: Config, args: argparse.Namespace) -> int:
     """認証情報なしで、生成〜コンプライアンスまでの経路を検証する。
 
@@ -1339,6 +1750,30 @@ def build_parser() -> argparse.ArgumentParser:
     p_engage.add_argument("--live", action="store_true",
                           help="実際に投稿する（既定は検査だけ）")
 
+    p_auto = sub.add_parser(
+        "autoreply",
+        help="ブラウザ操作で伸びている投稿へ自動返信する（ローカル実行専用）")
+    p_auto.add_argument("--login", action="store_true",
+                        help="ブラウザを開いてログインする（初回だけ。手で認証する）")
+    p_auto.add_argument("--selfcheck", action="store_true",
+                        help="セレクタが今日も効くか確かめる")
+    p_auto.add_argument("--llm-check", action="store_true",
+                        help="claude CLI の疎通を確かめる")
+    p_auto.add_argument("--collect-only", action="store_true",
+                        help="収集と順位付けだけ（LLM を呼ばない）")
+    p_auto.add_argument("--history", action="store_true",
+                        help="これまでの自動返信を表示する")
+    p_auto.add_argument("--explain", metavar="SHORTCODE",
+                        help="1件の点数内訳と判断理由を表示する")
+    p_auto.add_argument("--source", action="append", default=None,
+                        metavar="NAME", help="収集元を絞る（複数指定可）")
+    p_auto.add_argument("--limit", type=int, default=None,
+                        help="この実行で出す返信の上限")
+    p_auto.add_argument("--headed", action="store_true",
+                        help="ブラウザを表示する（動きを目で見る）")
+    p_auto.add_argument("--live", action="store_true",
+                        help="実際に返信する（既定は DRY_RUN）")
+
     sub.add_parser("selftest", help="認証情報なしで生成〜検証の経路をテスト")
 
     p_token = sub.add_parser("token", help="Threads アクセストークンの管理")
@@ -1392,6 +1827,7 @@ def main(argv: list[str] | None = None) -> int:
         "revenue": cmd_revenue,
         "replies": cmd_replies,
         "engage": cmd_engage,
+        "autoreply": cmd_autoreply,
         "selftest": cmd_selftest,
         "token": cmd_token,
     }

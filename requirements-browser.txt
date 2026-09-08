@@ -1,0 +1,14 @@
+# ブラウザ操作（autoreply）専用の依存。
+#
+# **requirements.txt には入れない。**
+# 投稿パイプラインはブラウザを必要としないので、依存を混ぜたくない
+# （.github/workflows/research.yml のコメントと同じ理由）。
+#
+# 入れ方:
+#     pip install -r requirements-browser.txt
+#     python3 -m playwright install chromium
+#
+# システムライブラリは README の手順を見ること。
+# `sudo playwright install-deps` は pip --user で入れた場合に使えない
+# （root からパッケージが見えず、sudo は PATH も引き継がない）。
+playwright>=1.49,<2

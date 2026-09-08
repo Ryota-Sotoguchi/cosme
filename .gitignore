@@ -42,3 +42,18 @@ data/*.tmp
 # ワークフローは成果物（artifact）として保持し、コミットしない。
 research/log/raw/
 research/replies/
+research/dom/
+
+# --- 自動返信（autoreply）のローカル資産。絶対にコミットしない ---
+# post.yml / insights.yml / token-refresh.yml は `git add data/` を実行する。
+# ここに置いたものは、無視しない限り公開リポジトリへ push される。
+#
+#   .playwright/  … Threads のセッション Cookie が入る。
+#                   載った時点でアカウント乗っ取りと同義。
+#   data/engage/  … 第三者のユーザー名・投稿本文・返信本文。
+#   engagements.jsonl … 同上（手動返信の記録も含む）。
+#
+# autoreply はローカル実行専用なので、コミットされなくても運用に支障はない。
+.playwright/
+data/engage/
+data/engagements.jsonl
