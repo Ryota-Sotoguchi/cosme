@@ -55,7 +55,8 @@
       "cm_favorite_combo",
       "cm_everyone",
       "cm_heavy",
-      "cm_buy_glad"
+      "cm_buy_glad",
+      "cm_two_bottles"
     ],
     "casual_brand": [
       "brand",
@@ -327,7 +328,7 @@
   "rotation_cursor": {
     "afternoon": 0,
     "autoreply_shape": 2,
-    "earlynight": 0,
+    "earlynight": 1,
     "evening": 0,
     "late": 5,
     "latemorning": 2,
@@ -339,7 +340,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "topic_thread",
     "topic_thread",
     "checklist",
     "topic_thread",
@@ -358,7 +358,8 @@
     "longform",
     "casual",
     "question",
-    "essay"
+    "essay",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
