@@ -237,8 +237,14 @@ class ContentBuilder:
     ) -> Draft:
         """投稿文を1つ生成する。
 
-        slot を渡すと、その時間帯に合わない文を候補から外す。
-        「朝の支度」が22:30に出るような食い違いを防ぐ。
+        **時間帯は `now` で決まる。`slot` では決まらない。**
+
+        以前は枠の名前から時間帯を引いていたが、定期実行のずれが実測で
+        中央値232分あり、朝の枠が昼過ぎに出る。いまは `time_band_at` が
+        実際に投稿する時刻から言い回しを選ぶ。
+
+        `slot` は呼び出し側の記録用に残してあるだけで、生成には影響しない。
+        時間帯を変えたいときに渡す先はここではなく `now`。
         """
         candidates = self.available_templates(post_type, exclude=exclude_templates)
         if not candidates:
