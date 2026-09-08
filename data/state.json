@@ -2,6 +2,9 @@
   "answered_replies": [
     "18611881231024120"
   ],
+  "autoreply_keyword_cursor": 2,
+  "autoreply_started_on": "2026-09-07",
+  "autoreply_target_cursor": 4,
   "operation_started_on": "2026-08-20",
   "part_history": {
     "appeal": [
@@ -313,6 +316,7 @@
   },
   "rotation_cursor": {
     "afternoon": 6,
+    "autoreply_shape": 2,
     "earlynight": 0,
     "evening": 6,
     "late": 5,
