@@ -350,7 +350,7 @@ def test_roundup_posts_use_one_category(config, tmp_path):
                                genre_label="メイク", review_count=900 + i))
 
     pipeline = make_pipeline(config, tmp_path, items=mixed)
-    for post_type in ("price_band", "review_heavy", "comparison"):
+    for post_type in ("price_band", "postage_free", "comparison"):
         scored = pipeline.gather_candidates(post_type)
         needed = 3 if post_type != "comparison" else 2
         ordered = pipeline._same_category_first(scored, needed)

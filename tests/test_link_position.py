@@ -187,7 +187,7 @@ def test_unknown_mode_falls_back_to_the_previous_behaviour(config, tmp_path, mon
 # ======================================================================
 # 3件並べる型（実績で表示がいちばん伸びている）
 # ======================================================================
-ROUNDUPS = (("review_heavy", 3), ("postage_free", 3), ("comparison", 2), ("price_band", 3))
+ROUNDUPS = (("postage_free", 3), ("comparison", 2), ("price_band", 3))
 
 
 def build_roundup(tmp_path: Path, post_type: str, count: int, position: str):
@@ -209,9 +209,8 @@ def build_roundup(tmp_path: Path, post_type: str, count: int, position: str):
 def test_roundup_link_first_is_a_single_post(tmp_path, post_type, count):
     """3件並べる型でも、商品と数値をタイムラインに残すこと。
 
-    review_heavy は1件で722表示、postage_free は575表示と、
-    実績では最も表示を取っている型。連投にすると商品も数値も
-    2本目へ行き、その強みがタイムラインから消える。
+    まとめ形式は1件で722表示、575表示と、実績では最も表示を取っている形。
+    連投にすると商品も数値も2本目へ行き、その強みがタイムラインから消える。
     """
     draft = build_roundup(tmp_path, post_type, count, LINK_FIRST)
     assert len(draft.segments) == 1
@@ -243,6 +242,12 @@ def test_the_only_affiliate_slot_can_reach_the_roundups(config):
 
     options = config.rotation.get(affiliate_slots[0].slot, [])
     assert options, "リンク枠のローテーションが空"
-    assert {"review_heavy", "postage_free"} <= set(options), (
-        f"表示実績の良い型がリンク枠から外れている: {options}"
+    # **型名ではなく «まとめ形式» を要求する。**
+    # review_heavy はレビュー件数で選ぶ型で、その存在理由が
+    # 「レビュー」という語そのものだったので廃止した（CLAUDE.md §4-2）。
+    # 722表示は型の名前ではなく «3件並べる形» の成果で、
+    # postage_free が同じ形で575表示を出している。
+    roundups = {"price_band", "postage_free", "comparison"} & set(options)
+    assert len(roundups) >= 2, (
+        f"まとめ形式がリンク枠から外れている: {options}"
     )

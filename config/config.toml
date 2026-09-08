@@ -265,7 +265,7 @@ post_type = "rotation"
 allow_affiliate = false
 
 # 1日で唯一のリンク枠。表示中央値がいちばん高い時間帯（実測282）。
-# 型は rotation で回す。3件並べる型（review_heavy 722 / postage_free 575）が
+# 型は rotation で回す。3件並べるまとめ形式（722表示 / 575表示）が
 # 実績では最も表示を取っているので、単品紹介だけにしない。
 [[schedule]]
 slot = "noon"
@@ -440,7 +440,7 @@ earlynight = [
 noon = [
     "product",
     "longform",
-    "review_heavy",
+    "price_band",
     "product",
     "longform",
     "postage_free",

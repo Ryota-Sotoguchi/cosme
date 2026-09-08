@@ -33,7 +33,6 @@ JST = timezone(timedelta(hours=9))
 ITEMS_NEEDED = {
     "product": 1,
     "price_band": 3,
-    "review_heavy": 3,
     "postage_free": 3,
     "comparison": 2,
     "longform": 3,

@@ -229,8 +229,9 @@ def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
 
 # 剤形が分からない商品向け。効能に触れず、買い方の話だけにする。
 GENERIC_TIPS: tuple[str, ...] = (
-    "レビューの件数",
-    "レビューの新しさ",
+    "詰め替えがあるか",
+    "発送までの日数",
+    "返品できるか",
     "送料込みでいくらか",
     "何が何個入っているか",
     "ケースや付属品があるか",
@@ -552,7 +553,7 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
 
         if ctx.link_position == LINK_FIRST:
             # 3件を並べる型は、実績で表示がいちばん伸びている
-            # （review_heavy 722 / postage_free 575）。連投で商品と数値を
+            # （まとめ形式は722表示 / 575表示）。連投で商品と数値を
             # 2本目へ送ると、その強みがタイムラインから消える。1本にまとめる。
             body = "\n\n".join(b.text.strip() for b in r.blocks if b.text.strip())
             r.blocks = [
@@ -668,10 +669,6 @@ def render_longform(ctx: RenderContext) -> Rendered:
 
 def render_price_band(ctx: RenderContext) -> Rendered:
     return _roundup(ctx, "price_band")
-
-
-def render_review_heavy(ctx: RenderContext) -> Rendered:
-    return _roundup(ctx, "review_heavy")
 
 
 def render_postage_free(ctx: RenderContext) -> Rendered:
@@ -867,7 +864,6 @@ TEMPLATES: tuple[Template, ...] = (
     Template("checklist", render_checklist, ("product",)),
     Template("band_focus", render_band_focus, ("product",)),
     Template("price_band", render_price_band, ("price_band",), item_count=3),
-    Template("review_heavy", render_review_heavy, ("review_heavy",), item_count=3),
     Template("postage_free", render_postage_free, ("postage_free",), item_count=3),
     Template("comparison", render_comparison, ("comparison",), item_count=2),
     Template("longform", render_longform, ("longform",), item_count=3),

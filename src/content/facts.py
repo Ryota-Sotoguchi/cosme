@@ -107,31 +107,15 @@ def approx_price(price: int, style: int = 0) -> tuple[str, set[str]]:
     return forms[style % len(forms)], allowed
 
 
-def approx_review_count(count: int, style: int = 0) -> tuple[str, set[str]]:
-    """おおよそのレビュー件数。少ないときは数を出さない。
-
-    「1,284件」と書くのは人の書き方ではない。
-    数えた人にしか意味の無い桁は落とす。
-    """
-    if count < 50:
-        return "", set()
-    if count < 300:
-        forms = ["レビューもそこそこある", "レビューはそれなりに付いてる"]
-        return forms[style % len(forms)], set()
-
-    grain = 1000 if count >= 1000 else 100
-    floor = (count // grain) * grain
-    if floor >= count:
-        text = f"レビュー{floor:,}件"
-    else:
-        forms = [
-            f"レビュー{floor:,}件超え",
-            f"レビューが{floor:,}件以上ついてる",
-            f"レビュー{floor:,}件超え",
-        ]
-        text = forms[style % len(forms)]
-    return text, {normalize_number(str(floor))}
-
+# approx_review_count（おおよその件数）はここにあった。
+#
+# **「レビュー」という語を本文に出さない**方針にしたので消した（CLAUDE.md §4-2）。
+# 「買った人が多い」等への言い換えもしない — レビュー ⊆ 購入者なので、
+# API から取れる事実を超えた推測になる。
+#
+# 件数のデータは選定とスコアリングに残っている
+# （scoring.weights.review_count / selection.min_review_count）。
+# 評価の言い回しは approx_review_average が担当する。語を使わないので残した。
 
 def approx_review_average(average: float, count: int, style: int = 0) -> str:
     """レビュー平均は数字にしない。
@@ -195,19 +179,19 @@ def build_facts(item: RakutenItem, *, bullet: str = "・", style: int = 0) -> Fa
 
     count = item.review_count or 0
     if count > 0:
-        review_text, review_allowed = approx_review_count(count, style)
-        if review_text:
-            average_text = (
-                approx_review_average(item.review_average, count, style)
-                if item.review_average is not None
-                else ""
-            )
-            # 「〜あるで評価も高め」のような接続にならないよう読点で繋ぐ
-            line = f"{review_text}、{average_text}" if average_text else review_text
-            facts.add(f"{bullet}{line}")
-            for token in review_allowed:
-                facts.allowed_numbers.add(token)
-        # 正確な件数・平均も許可はしておく（他のパーツが使う可能性がある）
+        # **件数は本文に出さない。**「レビュー」という語を使わないため
+        # （CLAUDE.md §4-2）。件数を言い換えることもしない。
+        #
+        # 評価の言い回し（「評価もかなり高い」）は残す。あれはレビュー由来の
+        # 情報だが語を使っておらず、禁じているのは語のほうなので。
+        average_text = (
+            approx_review_average(item.review_average, count, style)
+            if item.review_average is not None
+            else ""
+        )
+        if average_text:
+            facts.add(f"{bullet}{average_text}")
+        # 正確な件数・平均は許可しておく（他のパーツが使う可能性がある）
         facts.allow(count)
         if item.review_average is not None:
             facts.allow(format_review_average(item.review_average))
@@ -260,15 +244,14 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
         f"{price}。送料もかからないの、うれしい🤍" if free else f"{price}。",
         f"{price}だった…！",
     ]
-    if count is not None:
-        review_text, review_allowed = approx_review_count(count, style)
-        if review_text:
-            allowed |= review_allowed
-            variants.append(f"{review_text}👀")
     if average is not None and count is not None:
         average_text = approx_review_average(average, count, style)
         if average_text:
-            variants.append(f"{average_text}みたい☺️")
+            # **値段を必ず添える。** 評価の言い回しには数字が入らないので、
+            # これだけだと «数値ゼロの事実行» になる。link_position=first の
+            # 1本目は、商品名と数値がタイムラインに出ることが条件
+            # （test_link_first_shows_the_product_in_the_timeline）。
+            variants.append(f"{price}。{average_text}みたい☺️")
     variants.append(f"{price}で送料無料〜" if free else f"{price}みたい💭")
 
     return variants[style % len(variants)], allowed
@@ -289,10 +272,6 @@ def inline_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
 
     count = item.review_count or 0
     if count > 0:
-        review_text, review_allowed = approx_review_count(count, style)
-        if review_text:
-            chunks.append(review_text)
-            allowed |= review_allowed
         allowed.add(normalize_number(str(count)))
         if item.review_average is not None:
             average_text = approx_review_average(item.review_average, count, style)
@@ -413,8 +392,6 @@ def comparative_notes(items: "list[RakutenItem]") -> list[str]:
         # 差が小さいものは飛ばす。
         if _trails_by_margin(prices, index, 0.9):
             notes.append("この中ではいちばん安い")
-        elif _leads_by_margin(counts, index, 1.5):
-            notes.append("レビューがいちばん多い")
         elif averages[index] > 0 and averages[index] >= max(
             [v for i, v in enumerate(averages) if i != index] or [0]
         ) + 0.15:

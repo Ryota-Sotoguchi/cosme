@@ -16,7 +16,6 @@ import pytest
 from src.content.facts import (
     approx_price,
     approx_review_average,
-    approx_review_count,
     build_facts,
     extract_numbers,
     inline_facts,
@@ -82,27 +81,11 @@ def test_exact_price_is_not_dressed_up():
 
 
 # ======================================================================
-@pytest.mark.parametrize("count", (0, 12, 49, 62, 189, 299, 1284, 2531, 6806))
-@pytest.mark.parametrize("style", range(3))
-def test_review_count_is_rounded_down(count, style):
-    """「◯件超え」は切り捨てた値にしか使わない。"""
-    text, allowed = approx_review_count(count, style)
-    if not text:
-        assert count < 50
-        return
-    amounts = [int(m.replace(",", "")) for m in re.findall(r"([\d,]+)件", text)]
-    for stated in amounts:
-        assert stated <= count, f"{count}件 を {text} と多く見せている"
-    for token in extract_numbers(text):
-        assert token in allowed, f"{text} の {token} が許可されていない"
-
-
-def test_small_review_counts_have_no_digits():
-    """数十件を「62件」と書かない。人はその桁を書かない。"""
-    text, allowed = approx_review_count(120)
-    assert text
-    assert not extract_numbers(text), text
-    assert not allowed
+# 件数の丸めを見ていた2本はここにあった。
+#
+# approx_review_count は「レビュー」という語を本文に出さない方針で
+# 消えたので、走査する対象が無い（CLAUDE.md §4-2）。
+# 語が戻っていないことは tests/test_no_review_word.py が見張る。
 
 
 def test_review_average_never_prints_a_number():

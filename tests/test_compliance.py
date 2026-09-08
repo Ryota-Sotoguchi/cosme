@@ -236,7 +236,6 @@ def test_every_template_passes_compliance(config, state, items):
     cases = [
         ("product", items[:1], ["objective", "short", "checklist", "band_focus"]),
         ("price_band", items, ["price_band"]),
-        ("review_heavy", items, ["review_heavy"]),
         ("postage_free", items, ["postage_free"]),
         ("comparison", items[:2], ["comparison"]),
         ("no_link", [], ["topic"]),
