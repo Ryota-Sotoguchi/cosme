@@ -172,10 +172,12 @@
       "dc_check"
     ],
     "essay": [
-      "body_soap"
+      "body_soap",
+      "cleansing"
     ],
     "essay_question": [
-      "eq_which"
+      "eq_which",
+      "eq_skip"
     ],
     "fact_intro": [
       "fi_plain",
@@ -334,13 +336,12 @@
     "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
-    "night": 1,
+    "night": 2,
     "noon": 2,
     "predinner": 6,
     "price_band_window": 1
   },
   "template_history": [
-    "topic_thread",
     "checklist",
     "topic_thread",
     "question",
@@ -359,7 +360,8 @@
     "casual",
     "question",
     "essay",
-    "casual"
+    "casual",
+    "essay"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
