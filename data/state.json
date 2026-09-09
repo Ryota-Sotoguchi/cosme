@@ -56,7 +56,8 @@
       "cm_everyone",
       "cm_heavy",
       "cm_buy_glad",
-      "cm_two_bottles"
+      "cm_two_bottles",
+      "cm_night_owl"
     ],
     "casual_brand": [
       "brand",
@@ -336,14 +337,13 @@
     "late": 6,
     "latemorning": 2,
     "midmorning": 0,
-    "morning": 3,
+    "morning": 4,
     "night": 2,
     "noon": 2,
     "predinner": 6,
     "price_band_window": 1
   },
   "template_history": [
-    "topic_thread",
     "question",
     "topic_thread",
     "casual",
@@ -362,7 +362,8 @@
     "essay",
     "casual",
     "essay",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
