@@ -57,7 +57,8 @@
       "cm_heavy",
       "cm_buy_glad",
       "cm_two_bottles",
-      "cm_night_owl"
+      "cm_night_owl",
+      "cm_lid"
     ],
     "casual_brand": [
       "brand",
@@ -350,11 +351,10 @@
     "morning": 4,
     "night": 2,
     "noon": 3,
-    "predinner": 6,
+    "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "question",
     "topic",
     "question",
@@ -373,7 +373,8 @@
     "question",
     "question",
     "price_band",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
