@@ -60,7 +60,8 @@
       "cm_night_owl",
       "cm_lid",
       "cm_too_many_tabs",
-      "cm_s_tired"
+      "cm_s_tired",
+      "cm_shelf_life"
     ],
     "casual_brand": [
       "brand",
@@ -242,7 +243,11 @@
       "q_season",
       "q_fail",
       "q_stock",
-      "q_sale"
+      "q_sale",
+      "q_night_care",
+      "q_change",
+      "q_bath_time",
+      "q_refill"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -352,7 +357,7 @@
     "autoreply_shape": 2,
     "earlynight": 2,
     "evening": 1,
-    "late": 6,
+    "late": 0,
     "latemorning": 3,
     "midmorning": 1,
     "morning": 4,
@@ -362,7 +367,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "topic_thread",
@@ -380,6 +384,7 @@
     "question",
     "casual",
     "topic_thread",
+    "casual",
     "casual",
     "casual"
   ],
