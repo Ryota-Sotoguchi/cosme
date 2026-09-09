@@ -234,7 +234,8 @@
       "q_hair_dry",
       "q_travel",
       "q_time_of_day",
-      "q_empty"
+      "q_empty",
+      "q_store_or_net"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -339,7 +340,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 2,
     "earlynight": 1,
     "evening": 0,
@@ -353,7 +354,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "band_focus",
     "topic",
     "question",
     "topic",
@@ -372,7 +372,8 @@
     "casual",
     "question",
     "question",
-    "price_band"
+    "price_band",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
