@@ -58,7 +58,8 @@
       "cm_buy_glad",
       "cm_two_bottles",
       "cm_night_owl",
-      "cm_lid"
+      "cm_lid",
+      "cm_too_many_tabs"
     ],
     "casual_brand": [
       "brand",
@@ -236,7 +237,11 @@
       "q_travel",
       "q_time_of_day",
       "q_empty",
-      "q_store_or_net"
+      "q_store_or_net",
+      "q_season",
+      "q_fail",
+      "q_stock",
+      "q_sale"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -344,7 +349,7 @@
   "rotation_cursor": {
     "afternoon": 1,
     "autoreply_shape": 2,
-    "earlynight": 1,
+    "earlynight": 2,
     "evening": 1,
     "late": 6,
     "latemorning": 3,
@@ -356,7 +361,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "question",
     "casual",
     "topic_thread",
@@ -375,7 +379,8 @@
     "price_band",
     "question",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
