@@ -59,7 +59,8 @@
       "cm_two_bottles",
       "cm_night_owl",
       "cm_lid",
-      "cm_too_many_tabs"
+      "cm_too_many_tabs",
+      "cm_s_tired"
     ],
     "casual_brand": [
       "brand",
@@ -355,13 +356,12 @@
     "latemorning": 3,
     "midmorning": 1,
     "morning": 4,
-    "night": 2,
+    "night": 3,
     "noon": 3,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "casual",
@@ -380,6 +380,7 @@
     "question",
     "casual",
     "topic_thread",
+    "casual",
     "casual"
   ],
   "threads_token": {
