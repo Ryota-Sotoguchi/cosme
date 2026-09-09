@@ -228,7 +228,11 @@
       "q_how_many",
       "q_page",
       "q_first_step",
-      "q_sunscreen"
+      "q_sunscreen",
+      "q_hair_dry",
+      "q_travel",
+      "q_time_of_day",
+      "q_empty"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -336,7 +340,7 @@
     "earlynight": 1,
     "evening": 0,
     "late": 6,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 1,
     "morning": 4,
     "night": 2,
@@ -345,7 +349,6 @@
     "price_band_window": 1
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "band_focus",
     "topic",
@@ -364,6 +367,7 @@
     "essay",
     "topic",
     "casual",
+    "question",
     "question"
   ],
   "threads_token": {
