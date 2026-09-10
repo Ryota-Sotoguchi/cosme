@@ -66,7 +66,8 @@
       "cm_borrow",
       "cm_cold_hands",
       "cm_wrong_shade",
-      "cm_before_bed"
+      "cm_before_bed",
+      "cm_endofday"
     ],
     "casual_brand": [
       "brand",
@@ -364,7 +365,7 @@
     "afternoon": 2,
     "autoreply_shape": 2,
     "earlynight": 2,
-    "evening": 1,
+    "evening": 2,
     "late": 0,
     "latemorning": 4,
     "midmorning": 2,
@@ -375,7 +376,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "casual",
     "essay",
     "topic",
@@ -393,6 +393,7 @@
     "casual",
     "casual",
     "band_focus",
+    "casual",
     "casual",
     "casual"
   ],
