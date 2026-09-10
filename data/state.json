@@ -62,7 +62,8 @@
       "cm_too_many_tabs",
       "cm_s_tired",
       "cm_shelf_life",
-      "cm_borrow"
+      "cm_borrow",
+      "cm_cold_hands"
     ],
     "casual_brand": [
       "brand",
@@ -361,7 +362,7 @@
     "earlynight": 2,
     "evening": 1,
     "late": 0,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 2,
     "morning": 5,
     "night": 3,
@@ -370,7 +371,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "longform",
     "casual",
     "question",
@@ -389,6 +389,7 @@
     "casual",
     "casual",
     "essay",
+    "casual",
     "casual"
   ],
   "threads_token": {
