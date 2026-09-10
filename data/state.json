@@ -23,7 +23,8 @@
       "self_relevant",
       "negative",
       "curiosity",
-      "loss_aversion"
+      "loss_aversion",
+      "surprise"
     ],
     "casual": [
       "cm_humid",
@@ -167,7 +168,8 @@
       "cta_later",
       "cta_check",
       "cta_today",
-      "cta_decide"
+      "cta_decide",
+      "cta_cart"
     ],
     "disclaimer": [
       "dc_point",
@@ -366,12 +368,11 @@
     "midmorning": 2,
     "morning": 5,
     "night": 3,
-    "noon": 3,
+    "noon": 4,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "longform",
     "casual",
     "question",
     "essay",
@@ -390,7 +391,8 @@
     "casual",
     "essay",
     "casual",
-    "casual"
+    "casual",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
