@@ -180,11 +180,13 @@
     ],
     "essay": [
       "body_soap",
-      "cleansing"
+      "cleansing",
+      "lotion"
     ],
     "essay_question": [
       "eq_which",
-      "eq_skip"
+      "eq_skip",
+      "eq_agree"
     ],
     "fact_intro": [
       "fi_plain",
@@ -360,14 +362,13 @@
     "late": 0,
     "latemorning": 3,
     "midmorning": 1,
-    "morning": 4,
+    "morning": 5,
     "night": 3,
     "noon": 3,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "topic_thread",
     "longform",
@@ -386,7 +387,8 @@
     "topic_thread",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "essay"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
