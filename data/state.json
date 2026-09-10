@@ -61,7 +61,8 @@
       "cm_lid",
       "cm_too_many_tabs",
       "cm_s_tired",
-      "cm_shelf_life"
+      "cm_shelf_life",
+      "cm_borrow"
     ],
     "casual_brand": [
       "brand",
@@ -361,7 +362,7 @@
     "evening": 1,
     "late": 0,
     "latemorning": 3,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 5,
     "night": 3,
     "noon": 3,
@@ -369,7 +370,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "longform",
     "casual",
@@ -388,7 +388,8 @@
     "casual",
     "casual",
     "casual",
-    "essay"
+    "essay",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
