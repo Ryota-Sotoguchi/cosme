@@ -65,7 +65,8 @@
       "cm_shelf_life",
       "cm_borrow",
       "cm_cold_hands",
-      "cm_wrong_shade"
+      "cm_wrong_shade",
+      "cm_before_bed"
     ],
     "casual_brand": [
       "brand",
@@ -370,11 +371,10 @@
     "morning": 5,
     "night": 3,
     "noon": 4,
-    "predinner": 0,
+    "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "essay",
     "casual",
     "essay",
@@ -393,6 +393,7 @@
     "casual",
     "casual",
     "band_focus",
+    "casual",
     "casual"
   ],
   "threads_token": {
