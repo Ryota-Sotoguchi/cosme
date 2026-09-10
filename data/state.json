@@ -67,7 +67,8 @@
       "cm_cold_hands",
       "cm_wrong_shade",
       "cm_before_bed",
-      "cm_endofday"
+      "cm_endofday",
+      "cm_pump_stuck"
     ],
     "casual_brand": [
       "brand",
@@ -371,13 +372,12 @@
     "latemorning": 4,
     "midmorning": 2,
     "morning": 5,
-    "night": 3,
+    "night": 4,
     "noon": 4,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "topic",
     "casual",
     "question",
@@ -396,7 +396,8 @@
     "casual",
     "casual",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
