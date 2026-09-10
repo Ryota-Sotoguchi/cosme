@@ -358,13 +358,14 @@
       "tt_stock",
       "tt_impulse",
       "tt_night_cart",
-      "tt_delivery_days"
+      "tt_delivery_days",
+      "tt_return_policy"
     ]
   },
   "rotation_cursor": {
     "afternoon": 2,
     "autoreply_shape": 2,
-    "earlynight": 2,
+    "earlynight": 3,
     "evening": 2,
     "late": 0,
     "latemorning": 4,
@@ -376,7 +377,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "essay",
     "topic",
     "casual",
@@ -395,7 +395,8 @@
     "band_focus",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
