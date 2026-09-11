@@ -72,7 +72,8 @@
       "cm_fri_cart",
       "cm_conveni",
       "cm_same_routine",
-      "cm_fri_care"
+      "cm_fri_care",
+      "cm_mirror_light"
     ],
     "casual_brand": [
       "brand",
@@ -390,7 +391,7 @@
   "rotation_cursor": {
     "afternoon": 3,
     "autoreply_shape": 2,
-    "earlynight": 3,
+    "earlynight": 4,
     "evening": 3,
     "late": 1,
     "latemorning": 5,
@@ -402,7 +403,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "essay",
@@ -419,6 +419,7 @@
     "topic",
     "essay",
     "longform",
+    "casual",
     "casual",
     "casual",
     "casual"
