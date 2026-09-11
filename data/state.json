@@ -70,7 +70,8 @@
       "cm_endofday",
       "cm_pump_stuck",
       "cm_fri_cart",
-      "cm_conveni"
+      "cm_conveni",
+      "cm_same_routine"
     ],
     "casual_brand": [
       "brand",
@@ -267,7 +268,11 @@
       "q_price_line",
       "q_lip_or_eye",
       "q_same_or_new",
-      "q_shampoo_freq"
+      "q_shampoo_freq",
+      "q_deciding",
+      "q_package",
+      "q_recommend",
+      "q_morning_night"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -388,11 +393,10 @@
     "morning": 6,
     "night": 4,
     "noon": 5,
-    "predinner": 1,
+    "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "casual",
@@ -411,6 +415,7 @@
     "topic",
     "essay",
     "longform",
+    "casual",
     "casual"
   ],
   "threads_token": {
