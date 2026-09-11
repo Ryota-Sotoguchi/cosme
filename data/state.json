@@ -342,7 +342,8 @@
       "nl_gift_self",
       "nl_sale_prep",
       "nl_texture_words",
-      "nl_ranking_doubt"
+      "nl_ranking_doubt",
+      "nl_delivery"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -376,7 +377,7 @@
     "evening": 2,
     "late": 1,
     "latemorning": 4,
-    "midmorning": 2,
+    "midmorning": 3,
     "morning": 6,
     "night": 4,
     "noon": 4,
@@ -384,7 +385,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "price_band",
     "question",
@@ -403,7 +403,8 @@
     "topic_thread",
     "casual",
     "topic",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
