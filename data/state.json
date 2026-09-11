@@ -71,7 +71,8 @@
       "cm_pump_stuck",
       "cm_fri_cart",
       "cm_conveni",
-      "cm_same_routine"
+      "cm_same_routine",
+      "cm_fri_care"
     ],
     "casual_brand": [
       "brand",
@@ -272,7 +273,11 @@
       "q_deciding",
       "q_package",
       "q_recommend",
-      "q_morning_night"
+      "q_morning_night",
+      "q_page",
+      "q_first_step",
+      "q_sunscreen",
+      "q_hair_dry"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -386,7 +391,7 @@
     "afternoon": 3,
     "autoreply_shape": 2,
     "earlynight": 3,
-    "evening": 2,
+    "evening": 3,
     "late": 1,
     "latemorning": 5,
     "midmorning": 3,
@@ -397,7 +402,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "casual",
     "casual",
@@ -415,6 +419,7 @@
     "topic",
     "essay",
     "longform",
+    "casual",
     "casual",
     "casual"
   ],
