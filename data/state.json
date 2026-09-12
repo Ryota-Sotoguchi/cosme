@@ -78,7 +78,8 @@
       "cm_holiday_stock",
       "cm_half_thought",
       "cm_p_dry_skin",
-      "cm_p_slow_again"
+      "cm_p_slow_again",
+      "cm_bath_time"
     ],
     "casual_brand": [
       "brand",
@@ -411,7 +412,7 @@
     "afternoon": 4,
     "autoreply_shape": 2,
     "earlynight": 4,
-    "evening": 3,
+    "evening": 4,
     "late": 2,
     "latemorning": 6,
     "midmorning": 4,
@@ -422,7 +423,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "topic",
@@ -441,7 +441,8 @@
     "casual",
     "postage_free",
     "topic_thread",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
