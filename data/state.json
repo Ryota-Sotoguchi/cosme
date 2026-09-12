@@ -297,7 +297,8 @@
       "q_sale",
       "q_night_care",
       "q_change",
-      "q_bath_time"
+      "q_bath_time",
+      "q_how_many"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -416,7 +417,7 @@
     "autoreply_shape": 2,
     "earlynight": 5,
     "evening": 4,
-    "late": 2,
+    "late": 3,
     "latemorning": 6,
     "midmorning": 4,
     "morning": 0,
@@ -426,7 +427,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "topic",
     "essay",
@@ -445,7 +445,8 @@
     "topic",
     "casual",
     "question",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
