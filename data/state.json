@@ -76,7 +76,8 @@
       "cm_mirror_light",
       "cm_weekend_nomakeup",
       "cm_holiday_stock",
-      "cm_half_thought"
+      "cm_half_thought",
+      "cm_p_dry_skin"
     ],
     "casual_brand": [
       "brand",
@@ -285,7 +286,11 @@
       "q_travel",
       "q_time_of_day",
       "q_empty",
-      "q_store_or_net"
+      "q_store_or_net",
+      "q_fail",
+      "q_stock",
+      "q_sale",
+      "q_night_care"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -402,7 +407,7 @@
     "evening": 3,
     "late": 2,
     "latemorning": 5,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 5,
     "noon": 5,
@@ -410,7 +415,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "band_focus",
     "casual",
@@ -423,6 +427,7 @@
     "topic",
     "essay",
     "longform",
+    "casual",
     "casual",
     "casual",
     "casual",
