@@ -77,7 +77,8 @@
       "cm_weekend_nomakeup",
       "cm_holiday_stock",
       "cm_half_thought",
-      "cm_p_dry_skin"
+      "cm_p_dry_skin",
+      "cm_p_slow_again"
     ],
     "casual_brand": [
       "brand",
@@ -406,7 +407,7 @@
     "earlynight": 4,
     "evening": 3,
     "late": 2,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 4,
     "morning": 0,
     "night": 5,
@@ -415,7 +416,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "band_focus",
     "casual",
     "casual",
@@ -427,6 +427,7 @@
     "topic",
     "essay",
     "longform",
+    "casual",
     "casual",
     "casual",
     "casual",
