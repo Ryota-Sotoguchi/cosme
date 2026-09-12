@@ -75,7 +75,8 @@
       "cm_fri_care",
       "cm_mirror_light",
       "cm_weekend_nomakeup",
-      "cm_holiday_stock"
+      "cm_holiday_stock",
+      "cm_half_thought"
     ],
     "casual_brand": [
       "brand",
@@ -402,14 +403,13 @@
     "late": 2,
     "latemorning": 5,
     "midmorning": 3,
-    "morning": 6,
+    "morning": 0,
     "night": 5,
     "noon": 5,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "casual",
     "casual",
     "band_focus",
@@ -423,6 +423,7 @@
     "topic",
     "essay",
     "longform",
+    "casual",
     "casual",
     "casual",
     "casual",
