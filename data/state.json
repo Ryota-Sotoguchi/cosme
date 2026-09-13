@@ -82,7 +82,8 @@
       "cm_bath_time",
       "cm_s_done",
       "cm_p_bathroom",
-      "cm_s_empty"
+      "cm_s_empty",
+      "cm_l_pouch"
     ],
     "casual_brand": [
       "brand",
@@ -431,11 +432,10 @@
     "morning": 1,
     "night": 6,
     "noon": 0,
-    "predinner": 3,
+    "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -454,7 +454,8 @@
     "casual",
     "question",
     "comparison",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
