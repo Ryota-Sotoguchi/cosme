@@ -83,7 +83,8 @@
       "cm_s_done",
       "cm_p_bathroom",
       "cm_s_empty",
-      "cm_l_pouch"
+      "cm_l_pouch",
+      "cm_l_refill"
     ],
     "casual_brand": [
       "brand",
@@ -425,7 +426,7 @@
     "afternoon": 5,
     "autoreply_shape": 2,
     "earlynight": 5,
-    "evening": 4,
+    "evening": 5,
     "late": 3,
     "latemorning": 0,
     "midmorning": 5,
@@ -436,7 +437,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -455,6 +455,7 @@
     "question",
     "comparison",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
