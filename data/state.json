@@ -81,7 +81,8 @@
       "cm_p_slow_again",
       "cm_bath_time",
       "cm_s_done",
-      "cm_p_bathroom"
+      "cm_p_bathroom",
+      "cm_s_empty"
     ],
     "casual_brand": [
       "brand",
@@ -420,7 +421,7 @@
     "evening": 4,
     "late": 3,
     "latemorning": 6,
-    "midmorning": 4,
+    "midmorning": 5,
     "morning": 1,
     "night": 6,
     "noon": 6,
@@ -428,7 +429,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "essay",
     "longform",
     "casual",
@@ -447,6 +447,7 @@
     "question",
     "casual",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
