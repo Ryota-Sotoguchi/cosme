@@ -420,7 +420,9 @@
       "tt_night_cart",
       "tt_delivery_days",
       "tt_return_policy",
-      "tt_sale"
+      "tt_sale",
+      "tt_same_brand",
+      "tt_cheapest_trap"
     ]
   },
   "rotation_cursor": {
@@ -432,13 +434,12 @@
     "latemorning": 0,
     "midmorning": 5,
     "morning": 1,
-    "night": 6,
+    "night": 0,
     "noon": 0,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -457,7 +458,8 @@
     "question",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
