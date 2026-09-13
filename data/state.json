@@ -80,7 +80,8 @@
       "cm_p_dry_skin",
       "cm_p_slow_again",
       "cm_bath_time",
-      "cm_s_done"
+      "cm_s_done",
+      "cm_p_bathroom"
     ],
     "casual_brand": [
       "brand",
@@ -420,14 +421,13 @@
     "late": 3,
     "latemorning": 6,
     "midmorning": 4,
-    "morning": 0,
+    "morning": 1,
     "night": 6,
     "noon": 6,
     "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic",
     "essay",
     "longform",
@@ -446,7 +446,8 @@
     "casual",
     "question",
     "casual",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
