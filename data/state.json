@@ -303,7 +303,8 @@
       "q_change",
       "q_bath_time",
       "q_how_many",
-      "q_price_line"
+      "q_price_line",
+      "q_season"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -420,7 +421,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 4,
+    "afternoon": 5,
     "autoreply_shape": 2,
     "earlynight": 5,
     "evening": 4,
@@ -442,7 +443,6 @@
     "casual",
     "casual",
     "casual",
-    "casual",
     "postage_free",
     "topic_thread",
     "topic",
@@ -453,7 +453,8 @@
     "casual",
     "casual",
     "question",
-    "comparison"
+    "comparison",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
