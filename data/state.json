@@ -85,7 +85,8 @@
       "cm_s_empty",
       "cm_l_pouch",
       "cm_l_refill",
-      "cm_l_color"
+      "cm_l_color",
+      "cm_l_wishlist"
     ],
     "casual_brand": [
       "brand",
@@ -422,7 +423,11 @@
       "tt_return_policy",
       "tt_sale",
       "tt_same_brand",
-      "tt_cheapest_trap"
+      "tt_cheapest_trap",
+      "tt_color",
+      "tt_size",
+      "tt_refill_first",
+      "tt_stock_expiry"
     ]
   },
   "rotation_cursor": {
@@ -430,7 +435,7 @@
     "autoreply_shape": 2,
     "earlynight": 6,
     "evening": 5,
-    "late": 3,
+    "late": 4,
     "latemorning": 0,
     "midmorning": 5,
     "morning": 1,
@@ -440,7 +445,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -459,7 +463,8 @@
     "casual",
     "casual",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-05T20:11:04.815532+00:00",
