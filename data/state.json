@@ -24,7 +24,8 @@
       "negative",
       "curiosity",
       "loss_aversion",
-      "surprise"
+      "surprise",
+      "discovery"
     ],
     "casual": [
       "cm_humid",
@@ -195,7 +196,8 @@
       "cta_cart",
       "cta_terms",
       "cta_detail",
-      "cta_now"
+      "cta_now",
+      "cta_size"
     ],
     "disclaimer": [
       "dc_point",
@@ -447,12 +449,11 @@
     "midmorning": 6,
     "morning": 2,
     "night": 0,
-    "noon": 0,
+    "noon": 1,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "postage_free",
     "topic_thread",
     "topic",
     "casual",
@@ -471,7 +472,8 @@
     "casual",
     "question",
     "topic_thread",
-    "casual"
+    "casual",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
