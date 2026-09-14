@@ -446,7 +446,7 @@
   },
   "rotation_cursor": {
     "afternoon": 6,
-    "autoreply_shape": 2,
+    "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 5,
     "late": 5,
