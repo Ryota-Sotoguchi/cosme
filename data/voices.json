@@ -6,6 +6,16 @@
       "容器が使いやすい"
     ]
   },
+  "arianakosume:10002013": {
+    "counts": {
+      "しっとり": 2
+    },
+    "reviews_seen": 88,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "しっとり"
+    ]
+  },
   "asuraito:10000024": {
     "counts": {
       "しっとり": 3,
@@ -46,11 +56,31 @@
       "さっぱり"
     ]
   },
+  "helena:10000373": {
+    "counts": {
+      "少量で足りる": 2
+    },
+    "reviews_seen": 65,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "少量で足りる"
+    ]
+  },
   "inter-c:10000921": {
     "reviews_seen": 4,
     "updated_at": "2026-08-31",
     "voices": [
       "泡立ちがいい"
+    ]
+  },
+  "kirei-mitsuketa:10005718": {
+    "counts": {
+      "しっとり": 2
+    },
+    "reviews_seen": 5,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "しっとり"
     ]
   },
   "o-live:10000477": {
@@ -61,12 +91,62 @@
       "べたつかない"
     ]
   },
+  "rakuten24:10943133": {
+    "counts": {
+      "しっとり": 2,
+      "もちもちする": 2
+    },
+    "reviews_seen": 5,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "しっとり",
+      "もちもちする"
+    ]
+  },
+  "ru-collagen:10000058": {
+    "counts": {
+      "しっとり": 4,
+      "べたつかない": 2
+    },
+    "reviews_seen": 8,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "しっとり",
+      "べたつかない"
+    ]
+  },
+  "stayfree:10023036": {
+    "counts": {
+      "べたつかない": 2
+    },
+    "reviews_seen": 7,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "べたつかない"
+    ]
+  },
   "tvert:10000292": {
     "reviews_seen": 6,
     "updated_at": "2026-09-03",
     "voices": [
       "しっとり",
       "べたつかない"
+    ]
+  },
+  "yayoi-cosme:10011593": {
+    "counts": {
+      "しっとり": 14,
+      "とろみがある": 3,
+      "もちもちする": 2,
+      "容器が使いやすい": 4
+    },
+    "reviews_seen": 85,
+    "updated_at": "2026-09-14",
+    "voices": [
+      "しっとり",
+      "容器が使いやすい",
+      "とろみがある",
+      "もちもちする"
     ]
   },
   "yayoi-cosme:10011604": {
