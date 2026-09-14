@@ -88,7 +88,8 @@
       "cm_l_refill",
       "cm_l_color",
       "cm_l_wishlist",
-      "cm_mon_skip"
+      "cm_mon_skip",
+      "cm_l_shelf"
     ],
     "casual_brand": [
       "brand",
@@ -448,7 +449,7 @@
     "autoreply_shape": 2,
     "earlynight": 6,
     "evening": 5,
-    "late": 4,
+    "late": 5,
     "latemorning": 1,
     "midmorning": 6,
     "morning": 2,
@@ -458,7 +459,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "question",
@@ -477,7 +477,8 @@
     "casual",
     "band_focus",
     "topic",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
