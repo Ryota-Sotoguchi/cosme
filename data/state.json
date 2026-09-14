@@ -431,7 +431,9 @@
       "tt_color",
       "tt_size",
       "tt_refill_first",
-      "tt_stock_expiry"
+      "tt_stock_expiry",
+      "tt_shelf_first",
+      "tt_cheap_vs_value"
     ]
   },
   "rotation_cursor": {
@@ -441,7 +443,7 @@
     "evening": 5,
     "late": 4,
     "latemorning": 0,
-    "midmorning": 5,
+    "midmorning": 6,
     "morning": 2,
     "night": 0,
     "noon": 0,
@@ -449,7 +451,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "postage_free",
     "topic_thread",
@@ -468,7 +469,8 @@
     "casual",
     "topic_thread",
     "casual",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
