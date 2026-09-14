@@ -30,12 +30,29 @@ jobs:
           python-version: '3.12'
           cache: pip
 
-      # 本体の requirements には入れない。
-      # 投稿パイプラインはブラウザを必要としないので、依存を混ぜたくない。
-      - name: Install Playwright
+      # **本体の依存（requirements.txt）も入れる。**
+      #
+      # collect_reviews.py は src.content.voices を import し、パッケージの
+      # __init__ 経由で src.http → requests まで読み込む。playwright だけ入れて
+      # いたので 2026-09-06 から毎日 ModuleNotFoundError で落ち、
+      # data/voices.json が1週間更新されていなかった（Commit も走らなかった）。
+      #
+      # playwright は requirements-browser.txt から入れる（本体とは分けたまま）。
+      # test_workflows.py が「src/ を読むワークフローは requirements.txt を入れる」
+      # ことを見張る。
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-browser.txt
+
+      # apt のミラーが一時的に落ちると exit 100 で失敗する（2026-09-09 に発生）。
+      # 投稿とは無関係な一時障害なので、少し待って2回まで試し直す。
+      - name: Install Chromium
         run: |
-          pip install playwright
-          playwright install --with-deps chromium
+          for i in 1 2 3; do
+            python -m playwright install --with-deps chromium && exit 0
+            echo "::warning::Chromium の導入に失敗（${i}回目）。30秒後に再試行します"
+            sleep 30
+          done
+          exit 1
 
       - name: Collect
         run: python scripts/collect_threads.py
@@ -76,7 +93,13 @@ jobs:
           retention-days: 90
           if-no-files-found: ignore
 
+      # **収集の1工程が落ちても、ほかの工程の結果はコミットする。**
+      #
+      # ここの仕事は取りこぼさないこと。以前は collect_reviews だけが落ちても
+      # Commit まで飛ばされ、成功していた他の収集結果も捨てていた。
+      # ジョブ自体は失敗のまま終わるので、通知は届く（黙って握りつぶさない）。
       - name: Commit
+        if: always()
         run: |
           if [ -z "$(git status --porcelain research/ data/voices.json)" ]; then
             echo "変化なし"; exit 0
