@@ -22,6 +22,7 @@ from .voices import load_voice_counts, load_voices
 from .templates import (
     LINK_FIRST,
     LINK_LAST,
+    PR_TAG,
     Block,
     RenderContext,
     Template,
@@ -188,10 +189,25 @@ class ContentBuilder:
                 return self._hard_trim(text, affiliate_url)
             dropped.add(remaining[0])
 
+    def _clip(self, text: str) -> str:
+        """上限まで詰める。**末尾の #PR の行だけは削らない。**
+
+        #PR は投稿の最後の行に置くので、後ろから切ると真っ先に消える。
+        消えれば compliance が弾くので誤投稿にはならないが、
+        長い投稿ほど毎回その商品をスキップすることになる。
+        """
+        if len(text) <= self.max_length:
+            return text
+        suffix = f"\n\n{PR_TAG}"
+        if text.endswith(suffix):
+            head = text[: -len(suffix)]
+            return head[: self.max_length - len(suffix)].rstrip() + suffix
+        return text[: self.max_length].rstrip()
+
     def _hard_trim(self, text: str, affiliate_url: str | None) -> str:
         """最終手段。URLだけは絶対に壊さずに末尾から詰める。"""
         if not affiliate_url or affiliate_url not in text:
-            return text[: self.max_length].rstrip()
+            return self._clip(text)
 
         head, _, tail = text.partition(affiliate_url)
         budget = self.max_length - len(affiliate_url) - len(tail)
@@ -296,9 +312,7 @@ class ContentBuilder:
         if rendered.segments:
             # スレッドは1本ずつ文字数を守る。連結してから切ると
             # 分割位置がずれるので、ブロック結合は使わない。
-            segments = [
-                seg.strip()[: self.max_length] for seg in rendered.segments if seg.strip()
-            ]
+            segments = [self._clip(seg.strip()) for seg in rendered.segments if seg.strip()]
             text = "\n\n".join(segments)
         else:
             text = self._assemble(rendered.blocks, affiliate_url)

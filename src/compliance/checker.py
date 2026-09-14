@@ -5,7 +5,8 @@
 
 検査項目:
   1. NG表現（薬機法/効果保証/架空体験/架空口コミ/誇張/禁止カテゴリー）
-  2. PR表記（アフィリエイトリンクを含むなら冒頭付近に【PR】）
+  2. PR表記（アフィリエイトリンクを含むなら、商品を紹介する投稿の最後の行に #PR。
+     位置は [compliance] pr_marker_position で冒頭にも戻せる）
   3. URL（allowlist のホストのみ・本数上限）
   4. データ整合性（本文の数値が商品データ由来か）
   5. 重複（itemCode / URLハッシュ / 再投稿クールダウン）
@@ -87,6 +88,11 @@ class ComplianceChecker:
     def __init__(self, compliance: dict[str, Any], dedup: dict[str, Any], max_length: int = 500) -> None:
         self.pr_marker: str = compliance.get("pr_marker", "【PR】")
         self.pr_max_offset: int = int(compliance.get("pr_marker_max_offset", 20))
+        # 未指定なら従来どおり冒頭。設定を書いていない config.toml で
+        # 判定がゆるむ方向に変わらないようにする。
+        self.pr_position: str = str(compliance.get("pr_marker_position", "start"))
+        if self.pr_position not in ("start", "end"):
+            raise ValueError(f"pr_marker_position は start / end のどちらか: {self.pr_position!r}")
         self.allowed_hosts: set[str] = set(compliance.get("allowed_url_hosts", []))
         self.max_urls: int = int(compliance.get("max_urls", 1))
         self.max_length = max_length
@@ -183,18 +189,19 @@ class ComplianceChecker:
 
         segments = draft.segments or [text]
 
-        # 広告表示が冒頭にある投稿を探す
+        # 広告表示が決められた位置（冒頭 or 末尾）にある投稿を探す
         marked = [
             index
             for index, segment in enumerate(segments)
-            if 0 <= segment.find(self.pr_marker) <= self.pr_max_offset
+            if self._marker_in_place(segment)
         ]
         if not marked:
             if any(self.pr_marker in segment for segment in segments):
+                where = "最後の行" if self.pr_position == "end" else "冒頭"
                 return [
                     Violation(
                         "pr",
-                        f"{self.pr_marker} はありますが、投稿の冒頭にありません",
+                        f"{self.pr_marker} はありますが、投稿の{where}にありません",
                     )
                 ]
             return [
@@ -221,6 +228,25 @@ class ComplianceChecker:
                 )
             ]
         return []
+
+    def _marker_in_place(self, segment: str) -> bool:
+        """その投稿の中で、広告表示が決められた位置にあるか。
+
+        **末尾のときは「最後の行」まで要求する。** 文字数だけで見ると
+        「…\\n#PR\\n楽天市場 → URL」のように、後ろに行を続けて表示を
+        埋もれさせる書き方が通ってしまう。
+        """
+        body = segment.strip()
+        if self.pr_position == "start":
+            return 0 <= body.find(self.pr_marker) <= self.pr_max_offset
+
+        # 最後の行が #PR で始まること。「#美容 #コスメ #PR」のように
+        # ハッシュタグの羅列へ混ぜると、広告表示として読まれない。
+        last_line = body.rsplit("\n", 1)[-1].strip()
+        if not last_line.startswith(self.pr_marker):
+            return False
+        tail = last_line[len(self.pr_marker):]
+        return len(tail.strip()) <= self.pr_max_offset
 
     def _check_data_integrity(self, text: str, draft: Draft) -> list[Violation]:
         """本文に現れる数値がすべて商品データ由来かを検証する。

@@ -72,10 +72,30 @@ def test_longform_is_one_post(tmp_path, group):
     assert len(draft.segments) == 1
 
 
+def test_trimming_to_the_limit_never_drops_the_pr_line(tmp_path):
+    """**上限で削るときも #PR の行は残す。**
+
+    #PR を末尾に移したので、後ろから切ると真っ先に消える。
+    消えれば compliance が弾くので誤投稿にはならないが、長い投稿ほど
+    毎回その商品をスキップすることになる。
+    """
+    builder = ContentBuilder(State(tmp_path / "state.json"))
+    text = ("あ" * 700) + f"\n\n{PR_TAG}"
+    clipped = builder._clip(text)
+    assert len(clipped) <= builder.max_length
+    assert clipped.endswith(f"\n\n{PR_TAG}")
+
+    # URL を守る最終手段の経路でも同じ
+    hard = builder._hard_trim(text, affiliate_url=None)
+    assert hard.endswith(f"\n\n{PR_TAG}") and len(hard) <= builder.max_length
+
+
 @pytest.mark.parametrize("group", GROUPS)
-def test_longform_marks_the_ad_at_the_top(tmp_path, group):
+def test_longform_marks_the_ad_on_the_last_line(tmp_path, group):
+    """いちばん長い型なので、上限で削られても #PR の行は残ること。"""
     draft, _ = build(tmp_path, group)
-    assert draft.text.startswith(PR_TAG)
+    assert draft.text.rstrip().endswith(f"\n{PR_TAG}")
+    assert len(draft.text) <= 500
 
 
 @pytest.mark.parametrize("group", GROUPS)

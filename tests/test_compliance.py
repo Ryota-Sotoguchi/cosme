@@ -92,11 +92,11 @@ def test_detects_prohibited_categories(text):
 
 def test_clean_objective_text_passes(checker, item):
     text = (
-        "#PR\n\n2,000円前後でスキンケアを探してる人向けのメモ。\n\n"
+        "2,000円前後でスキンケアを探してる人向けのメモ。\n\n"
         "モイストクレンジングバーム 90g\n\n"
         "・1,980円\n・レビュー1,284件／平均4.4\n・送料無料\n・ポイント2倍\n\n"
         "この価格帯で探してるなら、比較候補には入れやすい。\n\n"
-        f"楽天市場 → {item.affiliate_url}\n\n※価格等は投稿時点"
+        f"楽天市場 → {item.affiliate_url}\n\n※価格等は投稿時点\n\n#PR"
     )
     assert checker.check(draft_of(text, [item])).passed
 
@@ -111,7 +111,8 @@ def test_rejects_affiliate_link_without_pr_marker(checker, item):
     assert any(v.category == "pr" for v in result.violations)
 
 
-def test_rejects_pr_marker_placed_too_late(checker, item):
+def test_rejects_pr_marker_that_is_not_on_the_last_line(checker, item):
+    """表示の後ろに行を続けて埋もれさせる書き方を通さない。"""
     filler = "あ" * 60
     text = f"{filler}\n#PR\n楽天市場 → {item.affiliate_url}"
     result = checker.check(draft_of(text, [item]))
@@ -167,7 +168,7 @@ def test_rejects_review_average_that_does_not_match(checker, item):
 
 def test_accepts_numbers_present_in_item_name(checker, item):
     """商品名に含まれる容量などは事実なので許可する。"""
-    text = f"#PR\n\nメモ。\n\nモイストクレンジングバーム 90g\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    text = f"メモ。\n\nモイストクレンジングバーム 90g\n・1,980円\n\n楽天市場 → {item.affiliate_url}\n\n#PR"
     assert checker.check(draft_of(text, [item])).passed
 
 
@@ -370,20 +371,51 @@ def _thread_draft(segments, items, link=None):
 
 
 def test_pr_marker_may_sit_on_the_post_where_the_product_appears(checker, item):
-    """1本目に商品を出さない構成では、2本目の冒頭に表示があればよい。
+    """1本目に商品を出さない構成では、商品を出す投稿の最後の行に表示があればよい。
 
-    連結した全文の先頭だけを見ると、この構成を弾いてしまう。
+    連結した全文の末尾だけを見ると、この構成を弾いてしまう。
     """
     draft = _thread_draft(
         [
             "ヘアケアって減りが早いから、値段の差がじわじわ効いてくる。",
-            f"#PR\n\nで、いま候補にしてるのがこれ！\n\n{item.display_name(38)}\n1,980円。",
+            f"で、いま候補にしてるのがこれ！\n\n{item.display_name(38)}\n1,980円。\n\n#PR",
             "リンクは下に置いとくね👇",
         ],
         [item],
         link=item.affiliate_url,
     )
     assert checker.check(draft).passed, checker.check(draft).summary()
+
+
+def test_pr_marker_at_the_top_is_rejected_when_the_end_is_required(checker, item):
+    """**位置の設定が本当に効いていること。** 冒頭に戻ったら止める。"""
+    assert checker.pr_position == "end"
+    text = f"#PR\n\nメモ。\n\n{item.display_name(38)}\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    result = checker.check(draft_of(text, [item]))
+    assert any(v.category == "pr" and "最後の行" in v.detail for v in result.violations)
+
+
+def test_pr_marker_mixed_into_hashtags_is_rejected(checker, item):
+    """「#美容 #コスメ #PR」のように羅列へ混ぜると、広告表示として読まれない。"""
+    text = f"メモ。\n\n{item.display_name(38)}\n・1,980円\n\n楽天市場 → {item.affiliate_url}\n\n#美容 #コスメ #PR"
+    result = checker.check(draft_of(text, [item]))
+    assert any(v.category == "pr" for v in result.violations)
+
+
+def test_the_start_position_still_works_when_configured(config, item):
+    """設定で冒頭へ戻せること。未指定なら冒頭（判定がゆるむ方向に変わらない）。"""
+    compliance = {**config.compliance, "pr_marker_position": "start"}
+    start_checker = ComplianceChecker(compliance, config.dedup)
+    text = f"#PR\n\nメモ。\n\n{item.display_name(38)}\n・1,980円\n\n楽天市場 → {item.affiliate_url}"
+    assert start_checker.check(draft_of(text, [item])).passed
+
+    unset = {k: v for k, v in config.compliance.items() if k != "pr_marker_position"}
+    assert ComplianceChecker(unset, config.dedup).pr_position == "start"
+
+
+def test_an_unknown_pr_position_is_a_config_error(config):
+    with pytest.raises(ValueError):
+        ComplianceChecker({**config.compliance, "pr_marker_position": "middle"}, config.dedup)
 
 
 def test_pr_marker_after_the_product_is_rejected(checker, item):

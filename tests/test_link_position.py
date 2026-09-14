@@ -68,15 +68,17 @@ def test_link_first_shows_the_product_in_the_timeline(tmp_path, template_id):
 
 @pytest.mark.parametrize("template_id", PRODUCT_TEMPLATES)
 def test_link_first_marks_the_ad_where_people_see_it(tmp_path, template_id):
-    """#PR が、実際に人が見る本文の冒頭にあること。
+    """#PR が、実際に人が見る本文の最後の独立行にあること。
 
     景表法（ステマ規制）が求めるのは、広告と判別できる表示が
     その投稿を見た人に見えること。タイムラインに出る本人が広告なのだから、
-    表示もそこに要る。
+    表示もそこに要る。位置は冒頭から末尾へ変えた（2026-09-14）。
     """
     draft, _ = build(tmp_path, template_id, LINK_FIRST)
     timeline = draft.segments[0]
-    assert timeline.startswith(PR_TAG), f"{template_id}: 冒頭に {PR_TAG} が無い"
+    assert timeline.rstrip().endswith(f"\n{PR_TAG}"), f"{template_id}: 最後の行に {PR_TAG} が無い"
+    assert not timeline.startswith(PR_TAG), f"{template_id}: 冒頭に戻っている"
+    assert timeline.count(PR_TAG) == 1
 
 
 @pytest.mark.parametrize("template_id", PRODUCT_TEMPLATES)
@@ -114,7 +116,7 @@ def test_link_last_still_works(tmp_path, template_id):
     """従来の形も壊れていないこと。A/B の対照側なので消さない。"""
     draft, _ = build(tmp_path, template_id, LINK_LAST)
     assert len(draft.segments) >= 2, f"{template_id}: 連投になっていない"
-    assert draft.segments[-1].startswith(PR_TAG)
+    assert draft.segments[-1].rstrip().endswith(f"\n{PR_TAG}")
     assert PR_TAG not in draft.segments[0], "前振りに広告表示が混ざっている"
 
 
@@ -215,7 +217,7 @@ def test_roundup_link_first_is_a_single_post(tmp_path, post_type, count):
     draft = build_roundup(tmp_path, post_type, count, LINK_FIRST)
     assert len(draft.segments) == 1
     timeline = draft.segments[0]
-    assert timeline.startswith(PR_TAG)
+    assert timeline.rstrip().endswith(f"\n{PR_TAG}")
     assert "テスト美容液0" in timeline, "商品名が出ていない"
     assert "※リンクは1つ目のものです" in timeline, "どれのリンクか明示していない"
 

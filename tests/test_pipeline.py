@@ -71,8 +71,8 @@ def test_no_link_slots_never_contain_urls(config, tmp_path):
 def test_product_slot_includes_pr_marker_and_link(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path)
     draft = pipeline.run("noon").draft
-    # 広告表示・商品名・リンクは、すべて最後の1本に集約する
-    assert draft.segments[-1].startswith("#PR")
+    # 広告表示は、商品を載せた投稿の最後の行に置く
+    assert draft.segments[-1].rstrip().endswith("\n#PR")
     # URLは本文ではなくリンクカードとして添付する（500文字を消費しないため）
     assert draft.link_attachment
     assert "hb.afl.rakuten.co.jp" in draft.link_attachment
@@ -494,7 +494,7 @@ def test_product_info_is_confined_to_the_last_post(config, tmp_path):
         # リンク投稿では容量を落とした名前を使う
         name = draft.items[0].display_name_without_volume(38)
 
-        assert draft.segments[-1].startswith("#PR"), template_id
+        assert draft.segments[-1].rstrip().endswith("\n#PR"), template_id
         assert name in draft.segments[-1], template_id
 
         for index, segment in enumerate(draft.segments[:-1]):

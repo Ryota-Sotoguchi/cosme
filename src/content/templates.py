@@ -139,13 +139,19 @@ class RenderContext:
 
 # 広告であることの表示。
 # 景表法（ステマ規制）が求めるのは「一般消費者が広告と判別できること」で、
-# 表記の形は自由。【PR】は硬いので #PR を冒頭の独立行に置く。
+# 表記の形も位置も指定は無い。【PR】は硬いので #PR を使う。
+#
+# **商品を紹介する投稿の、最後の独立行に置く。**（2026-09-14 に冒頭から変更）
+# 行頭の #PR は1行目で広告と宣言してしまい、おすすめ欄で読まれる前に流される。
+# 判別できることは checker が見る（リンクの付く投稿の最後の行・独立行）。
+# 上限で本文を削るときも、この行だけは削らない（builder._clip）。
+#
 # アフィリエイトリンクが無い投稿には付けない。
 PR_TAG = "#PR"
 
 
 def _pr(ctx: "RenderContext", body: str) -> str:
-    return f"{PR_TAG}\n\n{body}" if ctx.affiliate_url else body
+    return f"{body}\n\n{PR_TAG}" if ctx.affiliate_url else body
 
 
 # ----------------------------------------------------------------------
@@ -371,7 +377,7 @@ def _split_for_thread(
 
     # 最後の1本。押す理由はCTAだけなので、注記で埋もれさせない。
     # 容量・入数の数値も出さない方針なので、名前から落とす
-    final = f"{PR_TAG}\n\n{ctx.item.display_name_without_volume(38)}\n\n{cta.text}"
+    final = f"{ctx.item.display_name_without_volume(38)}\n\n{cta.text}\n\n{PR_TAG}"
 
     rendered.segments = [*body, final]
     rendered.blocks = [Block(seg, 0) for seg in rendered.segments]
@@ -395,12 +401,12 @@ def _render_link_first(
     表示中央値は 277 で、含まない投稿の 172 を上回る。
     「スペック羅列は読まれない」という想定は実測と逆だった。
 
-    ## #PR を先頭に置く理由
+    ## #PR をこの投稿の末尾に置く理由
 
     景表法（ステマ規制）が求めるのは、広告と判別できる表示が
     **その投稿を見た人に見えること**。タイムラインに出る本人が
-    広告なのだから、表示もそこに要る。冒頭に置けば
-    pr_marker_max_offset の中にも収まる。
+    広告なのだから、表示もそこに要る。連投の別の本に逃がさず、
+    この1本の最後の独立行に置く（冒頭だと読まれる前に流される）。
 
     ## 型ごとの長さは残す
 
@@ -439,12 +445,12 @@ def _render_link_first(
         voice = ""
 
     rendered.blocks = [
-        Block(PR_TAG, 0),
         Block(lead, 2),
         Block(middle, 4),
         Block(item_block, 0),
         Block(voice, 3),
         Block(cta.text, 1),
+        Block(PR_TAG, 0),
     ]
     # 単発投稿。segments は builder が blocks から組み立てる。
     rendered.segments = []
@@ -531,7 +537,6 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
     headline = opening.text.format(
         category=ctx.category, band=band_range, band_range=band_range
     )
-    # アフィリエイトリンクがある場合は【PR】を見出しの先頭に付ける（冒頭付近に置く）
     r.blocks.append(Block(headline, 0))
 
     lines: list[str] = []
@@ -557,10 +562,10 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
             # 2本目へ送ると、その強みがタイムラインから消える。1本にまとめる。
             body = "\n\n".join(b.text.strip() for b in r.blocks if b.text.strip())
             r.blocks = [
-                Block(PR_TAG, 0),
                 Block(body, 0),
                 Block(f"{note}\n{cta.text}", 1),
                 Block(disclaimer.text, 3),
+                Block(PR_TAG, 0),
             ]
             r.segments = []
             return r
@@ -642,7 +647,6 @@ def render_longform(ctx: RenderContext) -> Rendered:
     pain = benefit.pain if benefit is not None else ""
 
     r.blocks = [
-        Block(PR_TAG if ctx.affiliate_url else "", 0),
         Block(pain, 4),
         Block(headline, 0),
         Block(tips, 3),
@@ -659,6 +663,7 @@ def render_longform(ctx: RenderContext) -> Rendered:
         r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
         r.blocks.append(Block(f"※リンクは1つ目のものです\n{cta.text}", 1))
         r.blocks.append(Block(disclaimer.text, 2))
+        r.blocks.append(Block(PR_TAG, 0))
 
     # 書ききる型なので連投にしない。1本で読み切ってもらう。
     # リンクは必ずタイムラインに出る本文にあるので、A/B にはそう記録する。
