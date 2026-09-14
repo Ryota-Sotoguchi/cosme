@@ -202,3 +202,38 @@ def test_high_performing_replies_are_offered_as_examples(config, store):
     llm = FakeLlm([GOOD])
     ReplyWriter(config, llm, store=store).write(CANDIDATE)
     assert "反応が良かった返信" in llm.prompts[0]
+
+
+# ======================================================================
+# 敬語（2026-09-14 から返信はすべて です・ます）
+# ======================================================================
+def test_retries_past_a_casual_reply(config):
+    """タメ口の案は LLM の審査を待たずに書き直させる。"""
+    casual = "わたしも布団の中で見てる…5時起きって考えただけで眠くなってきた"
+    llm = FakeLlm([casual, GOOD])
+    draft = ReplyWriter(config, llm).write(CANDIDATE)
+    assert draft is not None and draft.text == GOOD
+    assert draft.attempts == 2
+    assert "敬語" in llm.prompts[1], "落ちた理由が書き直しに渡っていない"
+
+
+def test_casual_past_replies_are_not_offered_as_style_examples(config, store):
+    """**タメ口の過去返信を «文体の参考» に渡さない。** 引き戻される。
+
+    2026-09-14 より前の返信はすべてタメ口だった。
+    """
+    casual = "糖化研究26年ってさらっと書いてあるけど地味にすごい数字…迷っちゃう"
+    hit = store.record_reply(shortcode="OLD", username="a", reply_text=casual,
+                             our_reply_url="https://example.test/old")
+    store.update_outcome(hit, likes=90, replies=12)
+    polite = store.record_reply(shortcode="NEW", username="b", reply_text=ANOTHER_GOOD,
+                                our_reply_url="https://example.test/new")
+    store.update_outcome(polite, likes=10, replies=1)
+
+    llm = FakeLlm([GOOD])
+    ReplyWriter(config, llm, store=store).write(CANDIDATE)
+    # «似た言い回しを避ける» 一覧には出てよい（避けるための材料なので）。
+    # 見るのは «文体の参考» の節だけ。
+    examples = llm.prompts[0].split("反応が良かった返信", 1)[1].split("書き方:", 1)[0]
+    assert casual not in examples
+    assert ANOTHER_GOOD in examples

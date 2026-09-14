@@ -193,3 +193,42 @@ def test_the_judge_sees_both_the_post_and_the_reply():
 def test_every_prompt_demands_bare_json(prompt):
     assert "JSON だけを出力" in prompt
     assert "コードフェンスを付けないこと" in prompt
+
+
+# ======================================================================
+# 敬語（2026-09-14 から返信はすべて です・ます）
+# ======================================================================
+def test_the_reply_prompt_requires_polite_speech(any_shape):
+    prompt = prompts.reply_prompt(CANDIDATE, shape=any_shape)
+    assert "敬語" in prompt and "です・ます" in prompt
+    assert "丁寧すぎない" not in prompt, "敬語を避ける古い指示が残っている"
+    assert "話し言葉" not in prompts._voice_block()
+
+
+def test_the_judge_penalises_casual_speech_not_politeness():
+    """**審査が敬語を減点したら、全部の返信が落ちる。**
+
+    以前の審査は「不自然な敬語」を減点していた。いま減点するのはタメ口。
+    """
+    prompt = prompts.judge_prompt(CANDIDATE, "朝はぎりぎりなので続かなくなっちゃいますよね")
+    assert "タメ口" in prompt
+    assert "不自然な敬語" not in prompt
+
+
+def test_the_polite_examples_in_the_prompt_pass_the_machine_check():
+    """プロンプトで «○» として見せている例が、機械の検査で落ちないこと。
+
+    見本と検査が食い違うと、見本どおりに書いた返信が毎回落ちる。
+    """
+    import re
+
+    from src.engage.review import impolite_fragment
+
+    block = prompts._voice_block()
+    good = re.findall(r"○「([^」]+)」", block)
+    bad = re.findall(r"×「([^」]+)」", block)
+    assert good and bad
+    for text in good:
+        assert not impolite_fragment(text), text
+    for text in bad:
+        assert impolite_fragment(text), f"× の例が検査を通ってしまう: {text}"

@@ -37,6 +37,44 @@ SELF_PROMO = (
 
 MAX_LENGTH = 120
 
+# **返信はすべて敬語（です・ます）で書く。**（2026-09-14）
+#
+# 投稿（src/content/）はやわらかい話し言葉のまま。返信は知らない人の
+# コメント欄に書くので、タメ口は馴れ馴れしく見える。
+# プロンプトにも書いてあるが LLM は守り切らないので、機械側でも止める。
+#
+# 文ごとに、文末が次の形で終わっているかを見る:
+#     です / ます / でした / ました / ません / ましょう / でしょう / ください / ございます
+#     + 終助詞（か・ね・よ・よね…）は付いてよい
+_POLITE_END = re.compile(
+    r"(です|ます|でした|ました|ません|ませんでした|ましょう|でしょう"
+    r"|ください|下さい|ございます|ございました)"
+    # 「ますかね」「ですもんね」「ありましたっけ」のように重なってよい
+    r"(か|ね|よ|な|わ|っけ|もの|もん|けど|けれど|が|し|から|ので|のに|って)*$"
+)
+# 文末に付く飾り。これを落としてから判定する。
+_TRAILING_NOISE = re.compile(
+    r"[\s〜～ー…・。、，．！!？?（）()「」『』\"'wｗ笑"
+    r"\U0001F300-\U0001FAFF☀-➿️‍]+$"
+)
+# 「…」も文の切れ目として扱う。「見てる…眠くなりますね」の前半のように、
+# タメ口の節を「…」でつないで最後だけ敬語にする書き方を通さない。
+_SENTENCE_BREAK = re.compile(r"[。！!？?\n…‥]+")
+
+
+def impolite_fragment(text: str) -> str:
+    """敬語で終わっていない文を1つ返す。全部敬語なら空文字。
+
+    「わ！」「え？」のような2文字以下の感嘆は文として数えない。
+    """
+    for raw in _SENTENCE_BREAK.split(text or ""):
+        sentence = _TRAILING_NOISE.sub("", raw.strip())
+        if len(sentence) <= 2:
+            continue
+        if not _POLITE_END.search(sentence):
+            return sentence
+    return ""
+
 # **このアカウントは「レビュー」という言葉を使わない。**
 #
 # 投稿文と同じ方針（tests/test_no_review_word.py に理由がある）。
@@ -102,6 +140,12 @@ def review(text: str, *, include_experience: bool = False) -> ReviewResult:
         if word in body:
             problems.append(f"レビューの語は使わない: {word}")
             break
+
+    # 人が書く返信（/reply → engage --text）も機械が書く返信も同じ。
+    # 返信の文体は1つに揃える。
+    fragment = impolite_fragment(body)
+    if fragment:
+        problems.append(f"敬語（です・ます）で終わっていません: 「{fragment[-20:]}」")
 
     # テンプレ判定。定型句を抜いて、中身が残らなければ弾く。
     stripped = body

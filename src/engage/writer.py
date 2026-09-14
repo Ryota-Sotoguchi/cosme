@@ -33,7 +33,7 @@ from ..config import Config
 from ..errors import TransientError
 from . import prompts
 from .llm import LlmClient
-from .review import review
+from .review import impolite_fragment, review
 
 logger = logging.getLogger(__name__)
 
@@ -87,13 +87,19 @@ class ReplyWriter:
         return self.store.recent_reply_texts(limit=self.similarity_window)
 
     def _examples(self) -> list[str]:
-        """反応の良かった返信。まだ成果を取っていなければ空。"""
+        """反応の良かった返信。まだ成果を取っていなければ空。
+
+        **敬語のものだけを参考に渡す。** 2026-09-14 より前の返信はタメ口で、
+        «文体の参考» として渡すとタメ口に引き戻される。
+        """
         if self.store is None:
             return []
         try:
-            return [row.reply_text for row in self.store.best_replies(limit=3)]
+            rows = self.store.best_replies(limit=10)
         except AttributeError:
             return []
+        polite = [row.reply_text for row in rows if not impolite_fragment(row.reply_text)]
+        return polite[:3]
 
     # ------------------------------------------------------------------
     def _local_check(self, text: str, recent: list[str]) -> list[str]:

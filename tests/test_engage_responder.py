@@ -18,7 +18,7 @@ def responder(config, tmp_path):
     return Responder(config, log)
 
 
-GOOD = "無印だけでも十分だと思います〜。敏感肌だと足すほど荒れることあるので"
+GOOD = "無印だけでも十分だと思います〜。敏感肌だと足すほど荒れることもありますので"
 POST_ID = "17908396266285102"
 
 

@@ -281,7 +281,7 @@ def test_a_normal_reply_still_passes():
     """語を禁じたせいで、ふつうの返信まで落ちないこと。"""
     from src.engage.review import review
 
-    assert review("詰め替えあるかどうかで結構変わりますよね、わかる〜",
+    assert review("詰め替えがあるかどうかで結構変わりますよね、わかります〜",
                   include_experience=True).ok
 
 

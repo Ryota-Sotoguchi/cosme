@@ -79,14 +79,58 @@ def test_empty_is_rejected():
 # 通ってよい返信
 # ======================================================================
 @pytest.mark.parametrize("text", [
-    "無印だけでも十分だと思います〜。敏感肌だと足すほど荒れることあるので",
+    "無印だけでも十分だと思います〜。敏感肌だと足すほど荒れることもありますので",
     "これ気になってました！乾燥する時期でも使いやすそうですか？",
     "わかります、名前で選べないやつ多すぎますよね😌",
     "同じの探してました。詰め替えってありましたっけ",
+    "朝と夜で使い分けるの、けっこう大事ですもんね",
 ])
 def test_specific_replies_pass(text):
     result = review(text)
     assert result.ok, result.summary()
+
+
+# ======================================================================
+# 敬語（2026-09-14 から返信はすべて です・ます）
+# ======================================================================
+@pytest.mark.parametrize("text", [
+    "夜のその2本、肌美精が先でソフィーナiPが後?",
+    "わたしも布団の中で見てる…5時起きって考えただけで眠くなってきた",
+    "朝派と夜派どっちが多いんだろ",
+    "いいですね。でもそれって高くない？",
+    # タメ口の節を「…」でつないで、最後だけ敬語にする書き方
+    "わたしも見てる…眠くなりますね",
+])
+def test_casual_replies_are_rejected(text):
+    """**実際に出ていた返信（上の3つ）がタメ口だった。** 同じものを通さない。"""
+    result = review(text)
+    assert not result.ok
+    assert "敬語" in result.summary()
+
+
+@pytest.mark.parametrize("text", [
+    "わ！その2色だと、それは迷っちゃいますよね🥺",
+    "え…5時起きなんですね、それは眠くなりますね",
+    "無印の組み合わせで十分だと思います…",
+])
+def test_polite_replies_with_interjections_pass(text):
+    """「わ！」「え…」のような短い感嘆まで咎めない。"""
+    assert review(text).ok, review(text).summary()
+
+
+def test_the_politeness_rule_applies_to_hand_written_replies_too():
+    """人が /reply で書く返信にも同じ規則が効くこと。**返信の文体は1つに揃える。**"""
+    assert not review("それわかる〜、わたしも迷ってる").ok
+    assert not review("それわかる〜、わたしも迷ってる", include_experience=True).ok
+
+
+def test_the_canned_comment_replies_are_polite():
+    """自分の投稿に付いたコメントへの定型返信（threads/replies.py）も敬語であること。"""
+    from src.engage.review import impolite_fragment
+    from src.threads import replies
+
+    for text in (*replies._ANSWER_REPLIES, *replies._THANKS_REPLIES):
+        assert not impolite_fragment(text), text
 
 
 def test_template_words_are_fine_with_substance():
