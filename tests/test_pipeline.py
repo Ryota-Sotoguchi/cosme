@@ -45,6 +45,34 @@ def pool(n=12):
     return items
 
 
+# ======================================================================
+# 楽天の商品投稿エンジンの検査に使う設定
+#
+# 2026-09-14 に発信ジャンルを「コスメ・美容」→「転職・年収・キャリア」へ変え、
+# 本番の config.toml は noon のリンク投稿を休止した（allow_affiliate = false）。
+# このファイルは商品投稿の配管（除外・クールダウン・ランプ・PR表記・DRY_RUN）を
+# 検査しているので、**リンク枠を有効にした設定**で動かし続ける。
+# エンジンを再開したときに壊れていないことを、休止中も見張るため。
+#
+# 本番の設定がリンク0枠であることは tests/test_genre.py が見ている。
+# ======================================================================
+PRODUCT_ROTATION = [
+    "product", "longform", "price_band", "product", "longform", "postage_free", "comparison",
+]
+
+
+@pytest.fixture
+def config(config):
+    import dataclasses
+
+    config.schedule = [
+        dataclasses.replace(s, allow_affiliate=True) if s.slot == "noon" else s
+        for s in config.schedule
+    ]
+    config.raw["rotation"] = {**config.raw["rotation"], "noon": list(PRODUCT_ROTATION)}
+    return config
+
+
 def make_pipeline(config, tmp_path, items=None):
     history = History(tmp_path / "history.jsonl")
     state = State(tmp_path / "state.json")
@@ -798,6 +826,14 @@ def test_link_posts_hide_volume_numbers(config, tmp_path):
     assert "サロンプレミアム" in draft.segments[-1]
 
 
+@pytest.fixture
+def cosme_murmurs(monkeypatch):
+    """有効な表は空（2026-09-14 に発信ジャンルを転職へ変更）。配管の検査にはコスメの表を差し込む。"""
+    import src.content.brand_murmurs as bm
+
+    monkeypatch.setattr(bm, "BRAND_MURMURS", bm.COSME_BRAND_MURMURS)
+
+
 def _seed_brand_murmur_source(pipeline):
     """商品由来のつぶやきを作れる投稿を1件、履歴に置く。"""
     pipeline.history.append(
@@ -812,7 +848,7 @@ def _seed_brand_murmur_source(pipeline):
     pipeline.history._records = None
 
 
-def test_brand_murmur_falls_back_when_it_keeps_failing(config, tmp_path):
+def test_brand_murmur_falls_back_when_it_keeps_failing(config, tmp_path, cosme_murmurs):
     """商品由来のつぶやきが弾かれたら、通常のつぶやきに戻ること。
 
     2026-08-31 に発覚した実害。_brand_hint が毎回まったく同じ1本を返し、
@@ -839,7 +875,7 @@ def test_brand_murmur_falls_back_when_it_keeps_failing(config, tmp_path):
     assert result.draft.text.strip() != hint
 
 
-def test_brand_hint_advances_with_each_attempt(config, tmp_path):
+def test_brand_hint_advances_with_each_attempt(config, tmp_path, cosme_murmurs):
     """再試行のたびに別の文になること（同じなら再生成の意味が無い）。"""
     pipeline = make_pipeline(config, tmp_path)
     _seed_brand_murmur_source(pipeline)

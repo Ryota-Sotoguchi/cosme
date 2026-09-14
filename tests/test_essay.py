@@ -17,6 +17,7 @@ from src.compliance.checker import ComplianceChecker
 from src.compliance.rules import scan
 from src.content.benefits import (
     BENEFITS,
+    CAREER_SUBJECTS,
     PITFALLS,
     TIP_NOTES,
     pitfall_line,
@@ -72,7 +73,9 @@ def test_essay_rotates_subjects(tmp_path):
     カーソル任せにしていたときは、連続4本とも同じ剤形になった。
     """
     subjects = [d.part_ids.get("essay") for d in essays(tmp_path)]
-    assert len(set(subjects)) >= len(BENEFITS) - 2, f"剤形が偏っている: {subjects}"
+    # 2026-09-14 から題材は転職・キャリア（CAREER_SUBJECTS）
+    assert len(set(subjects)) >= len(CAREER_SUBJECTS) - 2, f"題材が偏っている: {subjects}"
+    assert set(subjects) <= {b.id for b in CAREER_SUBJECTS}, "剤形（コスメ）の題材が出ている"
     for a, b in zip(subjects, subjects[1:]):
         assert a != b, f"同じ剤形が連続した: {subjects}"
 
@@ -121,7 +124,7 @@ def test_every_criterion_has_a_reason():
     一部だけだと、理由のある行と無い行が混ざって不揃いに見える。
     """
     missing = [
-        (b.id, tip) for b in BENEFITS for tip in b.tips
+        (b.id, tip) for b in (*BENEFITS, *CAREER_SUBJECTS) for tip in b.tips
         if tip not in TIP_NOTES.get(b.id, {})
     ]
     assert not missing, f"理由が無い観点: {missing}"
@@ -129,7 +132,7 @@ def test_every_criterion_has_a_reason():
 
 def test_no_stale_reasons():
     """観点から消した語の理由が残っていないこと。"""
-    known = {b.id: set(b.tips) for b in BENEFITS}
+    known = {b.id: set(b.tips) for b in (*BENEFITS, *CAREER_SUBJECTS)}
     stale = [
         (bid, tip) for bid, notes in TIP_NOTES.items()
         for tip in notes if tip not in known.get(bid, set())
@@ -138,7 +141,7 @@ def test_no_stale_reasons():
 
 
 def test_every_benefit_has_a_pitfall():
-    missing = [b.id for b in BENEFITS if b.id not in PITFALLS]
+    missing = [b.id for b in (*BENEFITS, *CAREER_SUBJECTS) if b.id not in PITFALLS]
     assert not missing, f"よくある外し方が無い剤形: {missing}"
 
 
@@ -161,7 +164,7 @@ def test_reasons_pass_the_ng_dictionary():
             assert not scan(why, has_link=True), f"{bid}/{tip}: {why}"
     for bid, body in PITFALLS.items():
         assert not scan(body, has_link=True), f"{bid}: {body}"
-    for benefit in BENEFITS:
+    for benefit in (*BENEFITS, *CAREER_SUBJECTS):
         for cursor in range(5):
             line = pitfall_line(benefit, cursor)
             assert not scan(line, has_link=True), line

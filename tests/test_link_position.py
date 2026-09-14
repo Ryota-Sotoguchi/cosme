@@ -238,8 +238,15 @@ def test_roundup_link_last_still_works(tmp_path, post_type, count):
 
 
 def test_the_only_affiliate_slot_can_reach_the_roundups(config):
-    """リンク枠を1つに絞ったときに、実績の良い型を落とさないこと。"""
+    """リンク枠を1つに絞ったときに、実績の良い型を落とさないこと。
+
+    2026-09-14 に発信ジャンルを転職へ変え、楽天（コスメ）のリンク投稿は休止した。
+    **休止中（リンク枠0）はこの検査を飛ばす。** 再開したときにまた効く。
+    休止中にリンク枠が0であることは tests/test_genre.py が見ている。
+    """
     affiliate_slots = [s for s in config.schedule if s.allow_affiliate]
+    if not affiliate_slots:
+        pytest.skip("リンク投稿は休止中（2026-09-14 発信ジャンルの変更）")
     assert len(affiliate_slots) == 1, "クリックの帰属にはリンク投稿が1日1本であること"
 
     options = config.rotation.get(affiliate_slots[0].slot, [])

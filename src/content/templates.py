@@ -19,6 +19,7 @@ from . import facts as F
 from .appeals import build_appeal
 from .benefits import (
     BENEFITS,
+    CAREER_SUBJECTS,
     TIPS_HEADINGS,
     benefit_by_cursor,
     benefit_for,
@@ -708,8 +709,10 @@ def render_thread(ctx: RenderContext) -> Rendered:
     return r
 
 # 書ききる型で扱う剤形。pick で回してクールダウンを効かせる。
-ESSAY_SUBJECTS: tuple[Part, ...] = tuple(Part(b.id, b.id) for b in BENEFITS)
-BENEFIT_BY_ID = {b.id: b for b in BENEFITS}
+# 書ききる型の題材。2026-09-14 に発信ジャンルを転職・年収・キャリアへ変えたので、
+# 剤形（BENEFITS）ではなく転職の題材から選ぶ。剤形は休止中の商品投稿だけが使う。
+ESSAY_SUBJECTS: tuple[Part, ...] = tuple(Part(b.id, b.id) for b in CAREER_SUBJECTS)
+BENEFIT_BY_ID = {b.id: b for b in (*BENEFITS, *CAREER_SUBJECTS)}
 
 
 def render_essay(ctx: RenderContext) -> Rendered:

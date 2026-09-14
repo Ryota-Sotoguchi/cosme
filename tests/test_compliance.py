@@ -252,15 +252,18 @@ def test_every_no_link_topic_passes_compliance(config, state):
     """すべてのリンクなしトピックが NG表現に触れないこと。"""
     from src.content.parts import NO_LINK_TOPICS
 
+    from src.content.facts import extract_numbers
+
     checker_ = ComplianceChecker(config.compliance, config.dedup)
     for topic in NO_LINK_TOPICS:
-        result = checker_.check(draft_of(topic.text))
+        # render_topic と同じく、本文の数字は例えとして許可する（統計の断定は下で見る）
+        result = checker_.check(draft_of(topic.text, allowed=set(extract_numbers(topic.text))))
         assert result.passed, f"{topic.id}: {result.summary()}"
         assert len(topic.text) <= 500, f"{topic.id} が長すぎます"
-        # 商品データを持たない投稿なので、数値の裏取りができない。
-        # トピック文には数値を書かせない方針にして、データ整合性チェックの
-        # 抜け道を作らないようにする。
-        assert not any(ch.isdigit() for ch in topic.text), f"{topic.id} に数値が含まれています"
+        # 数字は例え・問いかけとして使ってよい。統計の断定は書かない（2026-09-14 決定）。
+        assert not [r for r in scan(topic.text, has_link=False) if r.category == "statistic"], (
+            f"{topic.id} が統計を断定している"
+        )
 
 
 def test_every_phrase_part_is_free_of_ng_expressions():
@@ -458,13 +461,14 @@ def test_pr_marker_buried_mid_post_is_rejected(checker, item):
 # だから買い物・選び方の話をする投稿は、1行目に対象を書く。
 # 対象語はコスメ一辺倒にせず、内容に合う具体語（シャンプー・化粧水・
 # リップなど）に散らしてある。ここはその語彙の一覧。
+# 1行目で「何の話か」が分かる語。発信ジャンル（転職・年収・キャリア）の語。
 SUBJECT_WORDS = (
-    "コスメ", "化粧品", "スキンケア", "メイク", "ヘアケア", "ボディ", "美容",
-    "化粧水", "美容液", "乳液", "クリーム", "シャンプー", "トリートメント",
-    "コンディショナー", "ヘアオイル", "日焼け止め", "リップ", "口紅", "洗顔",
-    "クレンジング", "パック", "マスク", "ファンデ", "下地", "アイシャドウ",
-    "チーク", "マスカラ", "ブラシ", "ネイル", "香水", "香り", "ポーチ",
-    "肌", "髪",
+    "転職", "年収", "給料", "給与", "手取り", "昇給", "ボーナス", "賞与",
+    "仕事", "職場", "会社", "上司", "部下", "同僚", "面接", "求人",
+    "履歴書", "職務経歴書", "志望動機", "自己PR", "内定", "退職", "エージェント",
+    "キャリア", "スキル", "資格", "副業", "残業", "有給", "福利厚生",
+    "リモート", "在宅", "管理職", "市場価値", "働き方", "会社員", "オファー",
+    "未経験", "採用", "人事", "評価", "異動", "出社", "定時", "応募",
 )
 
 

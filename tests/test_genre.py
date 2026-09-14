@@ -92,3 +92,102 @@ def test_the_schedule_timing_is_unchanged(config):
     }
     actual = {s.slot: (s.time_jst, s.cron_utc) for s in config.schedule}
     assert actual == expected
+
+
+# ======================================================================
+# 2. 投稿にコスメ・美容が戻ってこないこと
+# ======================================================================
+# 投稿に出てはいけない語（コスメ・美容の発信の名残）
+COSME_WORDS = (
+    "コスメ", "美容", "スキンケア", "化粧", "メイク", "ヘアケア", "ボディケア",
+    "シャンプー", "トリートメント", "日焼け止め", "リップ", "クレンジング", "美容液",
+    "乳液", "ファンデ", "アイシャドウ", "マスカラ", "ポーチ", "詰め替え", "プチプラ",
+    "デパコス", "肌", "楽天", "送料",
+)
+PRODUCT_TYPES = {"product", "price_band", "postage_free", "comparison", "longform"}
+
+
+def _cosme_hits(text: str) -> list[str]:
+    return [w for w in COSME_WORDS if w in text]
+
+
+def test_no_slot_posts_affiliate_links(config):
+    """**リンク投稿（楽天・コスメ）は休止中。**
+
+    発信ジャンルと合わないアフィリエイトを混ぜない（2026-09-14 決定）。
+    再開するときは、このテストごと見直すこと。
+    """
+    assert [s.slot for s in config.schedule if s.allow_affiliate] == []
+
+
+def test_no_rotation_contains_a_product_type(config):
+    for slot, options in config.rotation.items():
+        assert not (set(options) & PRODUCT_TYPES), f"{slot} に商品投稿の型が残っている: {options}"
+
+
+def test_every_slot_still_has_seven_options(config):
+    """構成は変えていない（どの枠も7要素、1日10本）。"""
+    assert len(config.schedule) == 10
+    for slot, options in config.rotation.items():
+        assert len(options) == 7, f"{slot}: {options}"
+
+
+def test_brand_murmurs_from_product_names_are_off():
+    """直近の投稿履歴の商品名からコスメのつぶやきを作らないこと。"""
+    from src.content.brand_murmurs import BRAND_MURMURS
+
+    assert BRAND_MURMURS == ()
+
+
+@pytest.mark.parametrize("pool_name", [
+    "CASUAL_MURMURS", "QUESTION_POSTS", "NO_LINK_TOPICS", "HOWTO_POSTS",
+    "THREAD_TOPICS", "ESSAY_QUESTIONS",
+])
+def test_link_free_pools_are_career_content(pool_name):
+    from src.content import parts as P
+
+    for part in getattr(P, pool_name):
+        hits = _cosme_hits(part.text)
+        assert not hits, f"{pool_name}.{part.id} にコスメの語: {hits}\n  {part.text}"
+
+
+def test_essay_subjects_are_career_content():
+    from src.content.benefits import CAREER_SUBJECTS, PITFALLS, TIP_NOTES
+
+    for subject in CAREER_SUBJECTS:
+        texts = [subject.concern, subject.pain, subject.future, *subject.tips,
+                 *TIP_NOTES[subject.id].values(), PITFALLS[subject.id]]
+        for text in texts:
+            assert not _cosme_hits(text), f"{subject.id}: {text}"
+
+
+def test_generated_posts_carry_no_cosme_words(config, tmp_path):
+    """**実際に組み上がった投稿**を、全リンクなし型 × 複数日で見る。
+
+    プールだけ見ていると、テンプレート側の見出しや既定値（トピックタグ、
+    書ききる型の見出し）から混ざる分を取りこぼす。
+    """
+    from datetime import date, datetime, timedelta
+
+    from src.content.builder import ContentBuilder
+    from src.content.templates import TEMPLATES
+    from src.storage.state import State
+    from src.storage.history import JST
+
+    link_free = sorted({t.post_types[0] for t in TEMPLATES if t.item_count == 0})
+    assert {"casual", "question", "no_link", "thread_topic", "howto", "essay"} <= set(link_free)
+
+    builder = ContentBuilder(State(tmp_path / "state.json"), voices_path=tmp_path / "voices.json")
+    start = date(2026, 9, 14)
+    for day in range(14):
+        today = start + timedelta(days=day)
+        for hour in (7, 12, 18, 22):
+            now = datetime(today.year, today.month, today.day, hour, tzinfo=JST)
+            for post_type in link_free:
+                draft = builder.build(post_type, [], with_affiliate_link=False,
+                                      today=today, now=now)
+                builder.commit(draft)
+                for text in (draft.text, *draft.segments):
+                    assert not _cosme_hits(text), f"{post_type}: {_cosme_hits(text)}\n{text}"
+                if draft.topic_tag:
+                    assert not _cosme_hits(draft.topic_tag), f"{post_type} のタグ: {draft.topic_tag}"

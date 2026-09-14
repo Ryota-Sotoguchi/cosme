@@ -85,7 +85,7 @@ def test_exact_price_is_not_dressed_up():
 #
 # approx_review_count は「レビュー」という語を本文に出さない方針で
 # 消えたので、走査する対象が無い（CLAUDE.md §4-2）。
-# 語が戻っていないことは tests/test_no_review_word.py が見張る。
+# （その後 2026-09-14 に発信ジャンルを転職へ変え、語自体は解禁した）
 
 
 def test_review_average_never_prints_a_number():

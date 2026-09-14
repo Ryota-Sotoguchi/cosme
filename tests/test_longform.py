@@ -209,9 +209,13 @@ def test_ties_are_not_called_the_best():
 
 # ======================================================================
 def test_longform_is_in_the_affiliate_rotation(config):
-    """書ききる型が実際に出る枠に入っていること。"""
+    """書ききる型が実際に出る枠に入っていること。
+
+    楽天（コスメ）のリンク投稿は 2026-09-14 から休止中なので、リンク枠が無い間は飛ばす。
+    """
     affiliate = [s for s in config.schedule if s.allow_affiliate]
-    assert affiliate, "リンク枠が無い"
+    if not affiliate:
+        pytest.skip("リンク投稿は休止中（2026-09-14 発信ジャンルの変更）")
     options = config.rotation.get(affiliate[0].slot, [])
     assert "longform" in options, f"longform が枠に入っていない: {options}"
 

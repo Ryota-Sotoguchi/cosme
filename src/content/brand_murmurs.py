@@ -44,7 +44,7 @@ class BrandMurmur:
 
 # trigger は商品名に対する単純な包含判定。
 # **推測で増やさない。** 商品名を見れば誰でも確かめられる語だけ。
-BRAND_MURMURS: tuple[BrandMurmur, ...] = (
+COSME_BRAND_MURMURS: tuple[BrandMurmur, ...] = (
     BrandMurmur("refill", "詰め替え", (
         "{brand}、詰め替えあるんだ",
         "{brand}に詰め替えあるの、いま知った",
@@ -83,6 +83,18 @@ BRAND_MURMURS: tuple[BrandMurmur, ...] = (
         "{brand}、敏感肌向けって書いてある",
     )),
 )
+
+
+# **いま使う表。空にしてある。**（2026-09-14）
+#
+# 発信ジャンルを「コスメ・美容」→「転職・年収・キャリア」へ変えた。
+# ここに上のコスメの表を入れていると、直近の投稿履歴に残っている商品名から
+# 「○○、詰め替えあるんだ」のようなつぶやきが、切り替えた後も数日出続ける
+# （pipeline._brand_hint が直近30投稿の商品名を読むため）。
+# 空なら murmur_for は None を返し、呼び出し側は通常のつぶやきに戻る（既存の挙動）。
+#
+# 楽天の商品投稿を再開するときは、ジャンルに合う表を作ってここに入れる。
+BRAND_MURMURS: tuple[BrandMurmur, ...] = ()
 
 
 def murmur_for(item: RakutenItem, *, cursor: int = 0) -> str | None:

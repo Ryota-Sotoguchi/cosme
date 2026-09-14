@@ -22,7 +22,7 @@ import pytest
 from src.storage.history import JST
 
 from src.compliance.rules import scan
-from src.content.brand_murmurs import BRAND_MURMURS, murmur_for
+from src.content.brand_murmurs import COSME_BRAND_MURMURS, murmur_for
 from src.content.builder import ContentBuilder
 from src.content.parts import CASUAL_MURMURS, time_band_for
 from src.storage.state import State
@@ -134,13 +134,26 @@ def test_brand_key_is_left_alone():
 # ======================================================================
 # ブランド由来のつぶやき
 # ======================================================================
-def test_murmur_needs_a_verifiable_fact():
+@pytest.fixture
+def cosme_murmurs(monkeypatch):
+    """**商品名つぶやきの論理を検査するための表。**
+
+    2026-09-14 に発信ジャンルを転職へ変え、有効な表（BRAND_MURMURS）は空にした。
+    論理（事実が無ければ作らない・ブランドが無ければ作らない）は、
+    休止中のコスメの表を差し込んで見続ける。
+    """
+    import src.content.brand_murmurs as bm
+
+    monkeypatch.setattr(bm, "BRAND_MURMURS", bm.COSME_BRAND_MURMURS)
+
+
+def test_murmur_needs_a_verifiable_fact(cosme_murmurs):
     """商品名から確かめられる事実が無ければ作らないこと。"""
     item = make_item(item_name="【公式】キールズ 美容液")
     assert murmur_for(item) is None, "根拠が無いのにつぶやきを作っている"
 
 
-def test_murmur_uses_only_what_the_name_says():
+def test_murmur_uses_only_what_the_name_says(cosme_murmurs):
     item = make_item(item_name="【アテニア 公式】シャンプー 詰め替え")
     murmur = murmur_for(item)
     assert murmur is not None
@@ -148,7 +161,7 @@ def test_murmur_uses_only_what_the_name_says():
     assert "詰め替え" in murmur
 
 
-def test_murmur_is_none_without_a_brand():
+def test_murmur_is_none_without_a_brand(cosme_murmurs):
     """ブランドが取れなければ、事実があっても作らない。"""
     item = make_item(item_name="メール便 送料無料 シャンプー 詰め替え 大容量")
     assert murmur_for(item) is None
@@ -162,7 +175,7 @@ def test_murmurs_never_claim_usage_or_quality():
     """
     banned = ("使っ", "良か", "よかった", "おすすめ", "コスパ", "しっとり",
               "効く", "人気", "神", "最強")
-    for spec in BRAND_MURMURS:
+    for spec in COSME_BRAND_MURMURS:
         for template in spec.templates:
             text = template.format(brand="テストブランド")
             hits = [w for w in banned if w in text]
@@ -170,20 +183,20 @@ def test_murmurs_never_claim_usage_or_quality():
 
 
 def test_murmurs_pass_compliance():
-    for spec in BRAND_MURMURS:
+    for spec in COSME_BRAND_MURMURS:
         for template in spec.templates:
             text = template.format(brand="キールズ")
             assert not scan(text, has_link=False), text
 
 
 def test_murmurs_contain_no_digits():
-    for spec in BRAND_MURMURS:
+    for spec in COSME_BRAND_MURMURS:
         for template in spec.templates:
             assert not any(c.isdigit() for c in template)
 
 
 def test_murmurs_are_short():
-    for spec in BRAND_MURMURS:
+    for spec in COSME_BRAND_MURMURS:
         for template in spec.templates:
             assert len(template.format(brand="オルナオーガニック")) <= 40
 
@@ -299,9 +312,9 @@ def test_benefit_tips_respect_the_persona():
 
     実際に「家族で使うなら容量」が入っていた。
     """
-    from src.content.benefits import BENEFITS
+    from src.content.benefits import BENEFITS, CAREER_SUBJECTS
 
-    for benefit in BENEFITS:
+    for benefit in (*BENEFITS, *CAREER_SUBJECTS):
         for tip in benefit.tips:
             assert not contradicts(tip), f"{benefit.id}: {tip}"
 

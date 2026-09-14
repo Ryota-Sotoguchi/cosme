@@ -75,14 +75,11 @@ def impolite_fragment(text: str) -> str:
             return sentence
     return ""
 
-# **このアカウントは「レビュー」という言葉を使わない。**
+# 「レビュー」「口コミ」の語を止める検査はここにあった（REVIEW_WORDS）。
 #
-# 投稿文と同じ方針（tests/test_no_review_word.py に理由がある）。
-# プロンプトにも書いてあるが、LLM は書いてあることを守り切らないので
-# 機械側でも止める。「口コミ」は fake_review の規則と重なるが、
-# あちらは「口コミでは○○という声」の形しか見ないので、
-# 単独で出てきた場合はここで拾う。
-REVIEW_WORDS = ("レビュー", "レヴュー", "口コミ", "クチコミ")
+# 2026-09-14 に発信ジャンルを転職・年収・キャリアへ変えたとき解禁した。
+# 「会社の口コミサイト」は転職の定番の話題なので、語そのものは使ってよい。
+# 架空の口コミ（「口コミでは○○という声が多い」）は FAKE_REVIEW_RULES が引き続き止める。
 
 
 @dataclass
@@ -134,11 +131,6 @@ def review(text: str, *, include_experience: bool = False) -> ReviewResult:
     for word in SELF_PROMO:
         if word in body:
             problems.append(f"自分への誘導: {word}")
-            break
-
-    for word in REVIEW_WORDS:
-        if word in body:
-            problems.append(f"レビューの語は使わない: {word}")
             break
 
     # 人が書く返信（/reply → engage --text）も機械が書く返信も同じ。

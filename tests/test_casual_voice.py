@@ -173,10 +173,16 @@ def test_no_link_pools_pass_compliance(pool_name):
 
 
 @pytest.mark.parametrize("pool_name", ["CASUAL_MURMURS", "QUESTION_POSTS"])
-def test_no_digits_in_short_pools(pool_name):
-    """商品データを持たないので数値の裏取りができない。"""
+def test_no_statistics_are_asserted_in_short_pools(pool_name):
+    """**数字は例え・問いかけとして使ってよい。統計の断定はしない。**（2026-09-14 決定）
+
+    「30歳で年収500万円って実際どう？」は書いてよい。
+    「平均年収は○万円」「○割の人が〜」は出典を確かめられないので書かない。
+    rules.py の STATISTIC_RULES がリンクの有無に関係なく止める。
+    """
     for part in NO_LINK_POOLS[pool_name]:
-        assert not any(c.isdigit() for c in part.text), f"{part.id} に数値"
+        hits = [r.label for r in scan(part.text, has_link=False) if r.category == "statistic"]
+        assert not hits, f"{part.id} が統計を断定している: {hits}"
 
 
 def test_part_ids_are_unique_across_the_new_pools():

@@ -93,13 +93,18 @@ def test_thread_topics_pass_compliance_for_no_link_posts():
         assert not hits, f"{part.id}: {[h.label for h in hits]}"
 
 
-def test_thread_topics_contain_no_digits():
-    """商品データを持たないので、数値の裏取りができない。
+def test_thread_topics_assert_no_statistics():
+    """**数字は例え・問いかけとして使ってよい。統計の断定はしない。**（2026-09-14 決定）
 
-    データ整合性チェックの抜け道を作らないため、数値は書かせない。
+    「30歳で年収500万円って実際どう？」は書いてよい。
+    「平均年収は○万円」「○割の人が〜」は出典を確かめられないので書かない。
+    rules.py の STATISTIC_RULES がリンクの有無に関係なく止める。
     """
+    from src.compliance.rules import scan
+
     for part in THREAD_TOPICS:
-        assert not any(c.isdigit() for c in part.text), f"{part.id} に数値"
+        hits = [r.label for r in scan(part.text, has_link=False) if r.category == "statistic"]
+        assert not hits, f"{part.id} が統計を断定している: {hits}"
 
 
 def test_thread_topic_ids_are_unique():
