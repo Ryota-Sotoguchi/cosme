@@ -504,3 +504,63 @@ def test_casual_murmurs_are_not_required_to_name_a_subject():
         "つぶやきが全部「対象名入り」になっている。"
         "機械的に主語を足していないか確認すること"
     )
+
+
+# ======================================================================
+# 発信ジャンル「転職・年収・キャリア」（2026-09-14 から）
+# ======================================================================
+@pytest.mark.parametrize("text", [
+    "職場環境の改善を求めても、結局何も変わらなかった",
+    "動画の再生回数みたいに、応募数も見えたらいいのに",
+    "有給消化率100%の会社って本当にあるのかな",
+    "一生もののスキルって、結局なんなんだろう",
+    "クリニックの医療事務に転職した友人の話",
+    "医薬品業界のMRって年収どうなんだろう",
+    "30歳で年収500万円って実際どうなんだろう",
+    "年収100万円上がる転職より、残業が月30時間減る転職の方が満足度高い人も多そう",
+    "副業って会社にバレるのかな",
+    "35歳限界説って、今もあるのかな",
+    "転職エージェントって何社くらい使う？",
+    "口コミサイトの評価、どこまで信じてる？",
+])
+def test_career_posts_are_not_blocked_by_cosmetics_rules(text):
+    """**化粧品向けのルールが、転職の普通の文章を止めないこと。**
+
+    改善・再生・100%・一生もの・クリニック・医薬品は、転職の文脈で普通に使う。
+    """
+    hits = scan(text, has_link=False)
+    assert not hits, f"{text}: {[h.label for h in hits]}"
+
+
+@pytest.mark.parametrize("text,category", [
+    ("必ず内定が出ます", "career_guarantee"),
+    ("絶対に年収が上がる転職のコツ", "career_guarantee"),
+    ("誰でも年収アップできる方法", "career_guarantee"),
+    ("平均年収は443万円", "statistic"),
+    ("年収の中央値は400万円くらい", "statistic"),
+    ("8割の人が転職で後悔している", "statistic"),
+    ("調査によると転職者の30%が年収ダウン", "statistic"),
+    ("権利収入で会社に縛られない生き方", "solicitation"),
+    ("スマホだけで月10万稼げる副業", "solicitation"),
+    ("35歳を過ぎたら転職は無理", "discrimination"),
+    ("女性だから昇進できない", "discrimination"),
+    ("絶対に残業代が取れます", "legal"),
+    ("それは違法です、訴えれば勝てます", "legal"),
+])
+def test_career_risks_are_blocked_even_without_a_link(text, category):
+    """読んだ人の判断を誤らせるものは、リンクの有無に関係なく止める。
+
+    統計の断定は 2026-09-14 の決定（数字は例え・問いかけだけ）による。
+    """
+    assert category in {r.category for r in scan(text, has_link=False)}, text
+
+
+def test_career_success_stories_are_blocked_only_on_link_posts():
+    """転職サービスの成功談は、**リンク投稿でだけ**止める。
+
+    中の人は転職経験のある会社員なので、リンクなしの一人称の経験談は書いてよい
+    （2026-09-14 決定）。ただし広告に捏造した体験を使わせない。
+    """
+    text = "エージェントを使って年収が上がりました"
+    assert not scan(text, has_link=False)
+    assert "experience" in {r.category for r in scan(text, has_link=True)}
