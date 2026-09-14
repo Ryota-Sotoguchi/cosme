@@ -86,7 +86,8 @@
       "cm_l_pouch",
       "cm_l_refill",
       "cm_l_color",
-      "cm_l_wishlist"
+      "cm_l_wishlist",
+      "cm_mon_skip"
     ],
     "casual_brand": [
       "brand",
@@ -442,7 +443,7 @@
     "earlynight": 6,
     "evening": 5,
     "late": 4,
-    "latemorning": 0,
+    "latemorning": 1,
     "midmorning": 6,
     "morning": 2,
     "night": 0,
@@ -451,7 +452,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "postage_free",
     "topic_thread",
     "topic",
@@ -470,7 +470,8 @@
     "topic_thread",
     "casual",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
