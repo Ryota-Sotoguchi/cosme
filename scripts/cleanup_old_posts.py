@@ -18,6 +18,12 @@
 
 切り替え後（`--before` 以降）の投稿は候補にしない。投稿日時が分からない投稿も消さない。
 
+## ユーザー名
+
+2026-09-15 に @cosme_memo_jp → @career_powerup へ変えた。履歴のパーマリンクは旧名のまま残るので、
+投稿のURLは**今のユーザー名と短縮ID**から組み立て直す（`--username` → state.json の
+`threads_username` → 履歴のパーマリンク、の順で決める）。
+
 ## 実削除の歯止め
 
 - 1回あたり既定 20件（`--limit`、上限 50）。削除の間は 30〜90秒あける
@@ -53,7 +59,7 @@ import re
 import sys
 import time
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -65,6 +71,7 @@ JST = timezone(timedelta(hours=9))
 
 ENV_FLAG = "DELETE_OLD_THREADS_POSTS"
 HISTORY_PATH = ROOT / "data" / "history.jsonl"
+STATE_PATH = ROOT / "data" / "state.json"
 # data/engage/ は gitignore 済み。自分の投稿の本文が入るが、公開リポジトリには載らない。
 OUT_DIR = ROOT / "data" / "engage" / "cleanup"
 DELETED_LOG = "deleted.jsonl"
@@ -167,6 +174,25 @@ def username_from(posts: Iterable[Post]) -> str | None:
     return names.most_common(1)[0][0] if names else None
 
 
+def current_username(override: str | None, state_path: Path, history: Iterable[Post]) -> str | None:
+    """今のユーザー名。`--username` → state.json の `threads_username` → 履歴のパーマリンク。
+
+    履歴のパーマリンクはユーザー名を変える前の名前のまま残るので、最後の手段にする。
+    """
+    if override:
+        return override.lstrip("@")
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        state = {}
+    cached = str(state.get("threads_username") or "").lstrip("@")
+    return cached or username_from(history)
+
+
+def post_url(username: str, shortcode: str) -> str:
+    return f"https://www.threads.com/@{username}/post/{shortcode}"
+
+
 def profile_posts(rows: list[dict[str, Any]], username: str) -> list[Post]:
     """プロフィールから取り出した行を Post にする。**本人の投稿だけ**残す。"""
     from src.engage.browser.extract import parse_rows
@@ -186,7 +212,7 @@ def profile_posts(rows: list[dict[str, Any]], username: str) -> list[Post]:
                 posted_at = ""
         posts.append(Post(
             shortcode=candidate.shortcode,
-            url=f"https://www.threads.com/@{candidate.username}/post/{candidate.shortcode}",
+            url=post_url(candidate.username, candidate.shortcode),
             posted_at=posted_at,
             text=candidate.text,
             source="profile",
@@ -491,13 +517,18 @@ def collect_profile_rows(session: Any, username: str, *, scrolls: int) -> list[d
     return list(rows.values())
 
 
-def delete_one(session: Any, entry: dict[str, Any]) -> str:
-    """1件消す。戻り値は deleted / already_gone。確かめられなければ例外で止める。"""
+def delete_one(session: Any, entry: dict[str, Any], username: str) -> str:
+    """1件消す。戻り値は deleted / already_gone。確かめられなければ例外で止める。
+
+    開くURLは今のユーザー名で組み立てる。候補ファイルのURLは旧名のことがあり、
+    開けなかったのを「すでに無い」と記録すると、その投稿は二度と消されない。
+    """
     from src.engage.browser import selectors
     from src.errors import SelectorMissError, ThrottledError
 
     code = entry["shortcode"]
-    page = session.goto(entry["url"])
+    url = post_url(username, code)
+    page = session.goto(url)
     page.wait_for_timeout(2000)
     if _throttled(page):
         raise ThrottledError("Threads が投稿ページの表示を拒否しました。")
@@ -529,12 +560,12 @@ def delete_one(session: Any, entry: dict[str, Any]) -> str:
     page.wait_for_timeout(4000)
 
     # 4. 開き直して、消えたことを確かめる
-    page = session.goto(entry["url"])
+    page = session.goto(url)
     page.wait_for_timeout(2000)
     if _throttled(page):
         raise ThrottledError("削除後の確認で Threads に拒否されました。削除できたかは手で確認してください。")
     if _post_is_present(page, code):
-        raise RuntimeError(f"削除を確認できません（{entry['url']}）。ここで止めます。")
+        raise RuntimeError(f"削除を確認できません（{url}）。ここで止めます。")
     return "deleted"
 
 
@@ -582,12 +613,14 @@ def _acquire_lock() -> Any:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="過去のコスメ・美容の投稿を削除する（既定は Dry Run）")
     parser.add_argument("--history", type=Path, default=HISTORY_PATH)
+    parser.add_argument("--state", type=Path, default=STATE_PATH)
     parser.add_argument("--out-dir", type=Path, default=OUT_DIR)
     parser.add_argument("--before", default=GENRE_SWITCHED_AT.isoformat(),
                         help="この時刻より前の投稿だけを候補にする（ISO8601）")
     parser.add_argument("--profile", action="store_true",
                         help="ログイン済みブラウザで自分のプロフィールも読む（手動投稿も拾う）")
-    parser.add_argument("--username", help="自分のユーザー名（既定: 履歴のパーマリンクから）")
+    parser.add_argument("--username",
+                        help="自分のユーザー名（既定: state.json の threads_username → 履歴のパーマリンク）")
     parser.add_argument("--scrolls", type=int, default=120)
     parser.add_argument("--include-ambiguous", action="store_true",
                         help="C（あいまい）も削除対象に含める。既定では含めない")
@@ -611,9 +644,12 @@ def _dry_run(args: argparse.Namespace) -> int:
         return 2
 
     history = load_history_posts(args.history)
+    username = current_username(args.username, args.state, history)
+    if username:
+        # 履歴のパーマリンクは旧ユーザー名のことがある。一覧から開けるように今の名前にそろえる
+        history = [replace(p, url=post_url(username, p.shortcode)) for p in history]
     posts = history
     if args.profile:
-        username = args.username or username_from(history)
         if not username:
             print("ユーザー名が分かりません。--username で指定してください")
             return 2
@@ -661,6 +697,11 @@ def _execute(args: argparse.Namespace) -> int:
         print("--include-ambiguous が Dry Run のときと食い違っています。Dry Run からやり直してください")
         return 1
 
+    username = current_username(args.username, args.state, load_history_posts(args.history))
+    if not username:
+        print("ユーザー名が分かりません。--username で指定してください")
+        return 1
+
     plan = plan_execution(candidates, deleted=load_deleted(args.out_dir), limit=args.limit,
                           confirm_measured=measured["delete_confirm_button"])
     if not plan:
@@ -677,7 +718,7 @@ def _execute(args: argparse.Namespace) -> int:
     from src.engage.browser.session import ThreadsSession
     from src.errors import SelectorMissError, ThrottledError
 
-    print(f"\n候補ファイル: {path}\n今回消す: {len(plan)}件\n")
+    print(f"\n候補ファイル: {path}\nユーザー名: @{username}\n今回消す: {len(plan)}件\n")
     done = 0
     try:
         with ThreadsSession(config, headless=not args.headed) as session:
@@ -687,11 +728,11 @@ def _execute(args: argparse.Namespace) -> int:
                     wait = random.randint(*INTERVAL_SECONDS)
                     print(f"  … {wait}秒あけます")
                     time.sleep(wait)
-                outcome = delete_one(session, entry)
+                outcome = delete_one(session, entry, username)
                 append_deleted(args.out_dir, entry, outcome)
                 done += 1
                 label = "削除しました" if outcome == "deleted" else "すでにありません"
-                print(f"  [{entry['class']}] {label}: {entry['excerpt']}  {entry['url']}")
+                print(f"  [{entry['class']}] {label}: {entry['excerpt']}  {post_url(username, entry['shortcode'])}")
     except ThrottledError as exc:
         print(f"\n⛔ 絞られています。ここで止めます: {exc}")
         return 1

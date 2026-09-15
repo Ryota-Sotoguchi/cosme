@@ -264,6 +264,8 @@ DELETE_OLD_THREADS_POSTS=true python3 scripts/cleanup_old_posts.py --execute --l
 - 分類: A 商品データ由来（リンク・#PR・商品の型・商品名のつぶやき）／B コスメの語あり／
   C あいまい（**削除しない**。`--include-ambiguous` を Dry Run と実削除の両方で付けたときだけ対象）
 - 連投の2本目以降は1本目と同じ判定。切り替え後（`GENRE_SWITCHED_AT` 以降）と日時不明の投稿は消さない
+- ユーザー名は 2026-09-15 に @cosme_memo_jp → @career_powerup。履歴のパーマリンクは旧名のままなので、
+  開くURLは今の名前（state.json の `threads_username`）と短縮IDから組み立てる
 - 実削除は `DELETE_OLD_THREADS_POSTS=true` **と** `--execute` の両方が要る。Dry Run の候補ファイル
   （`data/engage/cleanup/`、gitignore 済み）に載ったものだけを消す
 - 1回20件まで・30〜90秒間隔・絞られたら停止・消えたことを開き直して確認・`deleted.jsonl` で再実行を飛ばす

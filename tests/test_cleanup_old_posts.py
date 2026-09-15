@@ -288,6 +288,71 @@ def test_the_dry_run_writes_a_file_and_never_opens_a_browser(cleanup, tmp_path, 
     assert "何も消していません" in capsys.readouterr().out
 
 
+def _history_with_old_name(tmp_path):
+    history = tmp_path / "history.jsonl"
+    history.write_text(json.dumps({
+        "status": "success", "permalink": "https://www.threads.com/@cosme_memo_jp/post/X1",
+        "posted_at": "2026-09-01T10:00:00+09:00", "text": "ポーチの中", "post_type": "casual",
+    }, ensure_ascii=False), encoding="utf-8")
+    return history
+
+
+def test_the_current_username_wins_over_the_old_permalinks(cleanup, tmp_path):
+    """2026-09-15 に @cosme_memo_jp → @career_powerup。履歴のパーマリンクは旧名のまま残る。"""
+    posts = cleanup.load_history_posts(_history_with_old_name(tmp_path))
+    state = tmp_path / "state.json"
+    state.write_text(json.dumps({"threads_username": "career_powerup"}), encoding="utf-8")
+
+    assert cleanup.current_username(None, state, posts) == "career_powerup"
+    assert cleanup.current_username("@someone", state, posts) == "someone"
+    assert cleanup.current_username(None, tmp_path / "missing.json", posts) == "cosme_memo_jp"
+
+
+def test_the_dry_run_lists_urls_under_the_current_username(cleanup, tmp_path):
+    state = tmp_path / "state.json"
+    state.write_text(json.dumps({"threads_username": "career_powerup"}), encoding="utf-8")
+    out = tmp_path / "cleanup"
+    assert cleanup.main(["--history", str(_history_with_old_name(tmp_path)),
+                         "--state", str(state), "--out-dir", str(out)]) == 0
+
+    data = json.loads(cleanup.latest_candidates(out).read_text(encoding="utf-8"))
+    assert [e["url"] for e in data["targets"]] == ["https://www.threads.com/@career_powerup/post/X1"]
+
+
+def test_delete_opens_the_post_under_the_given_username(cleanup):
+    """候補ファイルのURLが旧名でも、開くのは今の名前のURL。
+
+    旧名のURLが開けず「すでに無い」と記録されると、その投稿は二度と消されない。
+    """
+    class Page:
+        url = ""
+
+        def wait_for_timeout(self, ms):
+            pass
+
+        def query_selector(self, css):
+            return None
+
+        def get_by_role(self, *args, **kwargs):
+            raise RuntimeError("no role")
+
+    class Session:
+        def __init__(self):
+            self.opened = []
+
+        def goto(self, url):
+            self.opened.append(url)
+            return Page()
+
+        def is_logged_in(self, page):
+            return True
+
+    session = Session()
+    entry = {"shortcode": "X1", "url": "https://www.threads.com/@cosme_memo_jp/post/X1"}
+    assert cleanup.delete_one(session, entry, "career_powerup") == "already_gone"
+    assert session.opened == ["https://www.threads.com/@career_powerup/post/X1"]
+
+
 def test_execute_without_the_env_flag_stops_before_the_browser(cleanup, tmp_path, monkeypatch, capsys):
     monkeypatch.delenv("DELETE_OLD_THREADS_POSTS", raising=False)
     assert cleanup.main(["--execute", "--out-dir", str(tmp_path)]) == 1
