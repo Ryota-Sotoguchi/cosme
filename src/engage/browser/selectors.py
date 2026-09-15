@@ -292,13 +292,15 @@ _DELETE = (
             "**文言は「削除」ではなく「削除する」。** 押すと確認が出る想定（下）。",
        measured=True, where=WHERE_OWN_POST),
     _s("delete_confirm_button",
-       css='div[role="dialog"] [role="button"]:text-is("削除")',
-       fallbacks=('div[role="dialog"] button:text-is("削除")',
-                  'div[role="alertdialog"] [role="button"]:text-is("削除")'),
-       note="削除の確認ダイアログのボタン。**要実測。** 実測するには削除メニューを押すしかないので、"
-            "まだ測っていない。ダイアログの中に限定し、1個に絞れなければ止める。"
-            "未実測のあいだ cleanup_old_posts.py は1回に1件しか消さない。",
-       where=WHERE_OWN_POST),
+       css='div[role="dialog"] [role="button"]:has-text("削除する")',
+       role=("button", "削除する"), exact=True,
+       note="削除の確認ダイアログのボタン。2026-09-15 実測: div[role=dialog][aria-modal=true] に"
+            "「投稿を削除しますか？」「この投稿を削除すると、復元できなくなります。」と、"
+            "div[role=button] の「キャンセル」「削除する」。**文言は「削除」ではなく「削除する」**"
+            "（推測で「削除」と書いていて引けなかった）。文字は button の中の span にあるので "
+            ":text-is() は当たらない（直下の文字だけを見る）。:has-text() か role で引く。"
+            "ダイアログの中に限定し、1個に絞れなければ止める。",
+       measured=True, where=WHERE_OWN_POST),
 )
 
 

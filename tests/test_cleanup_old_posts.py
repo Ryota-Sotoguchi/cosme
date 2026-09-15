@@ -333,6 +333,9 @@ def test_delete_opens_the_post_under_the_given_username(cleanup):
         def query_selector(self, css):
             return None
 
+        def wait_for_selector(self, css, **kwargs):
+            raise TimeoutError(css)
+
         def get_by_role(self, *args, **kwargs):
             raise RuntimeError("no role")
 
@@ -351,6 +354,20 @@ def test_delete_opens_the_post_under_the_given_username(cleanup):
     entry = {"shortcode": "X1", "url": "https://www.threads.com/@cosme_memo_jp/post/X1"}
     assert cleanup.delete_one(session, entry, "career_powerup") == "already_gone"
     assert session.opened == ["https://www.threads.com/@career_powerup/post/X1"]
+
+
+def test_a_slow_page_is_not_mistaken_for_an_already_deleted_post(cleanup):
+    """描画が遅れて後から出たパーマリンクは「ある」。数秒で見切って already_gone にしない。"""
+    class SlowPage:
+        def __init__(self):
+            self.waited = []
+
+        def wait_for_selector(self, css, *, timeout, state):
+            self.waited.append((css, timeout))
+
+    page = SlowPage()
+    assert cleanup._post_is_present(page, "X1") is True
+    assert page.waited[0][0] == 'a[href*="/post/X1"]' and page.waited[0][1] >= 10000
 
 
 def test_execute_without_the_env_flag_stops_before_the_browser(cleanup, tmp_path, monkeypatch, capsys):

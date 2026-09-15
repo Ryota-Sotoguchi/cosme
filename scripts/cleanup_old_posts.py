@@ -480,8 +480,17 @@ CARD_ELEMENT_JS = """
 """
 
 
-def _post_is_present(page: Any, shortcode: str) -> bool:
-    return page.query_selector(f'a[href*="/post/{shortcode}"]') is not None
+def _post_is_present(page: Any, shortcode: str, *, timeout_ms: int = 15000) -> bool:
+    """その投稿のパーマリンクがページにあるか。**出るまで待ってから**「無い」と言う。
+
+    Threads は描画が遅い。固定の数秒で見切ると、描画が遅れただけの投稿を「すでに無い」と
+    記録してしまい、その投稿は二度と消されない。
+    """
+    try:
+        page.wait_for_selector(f'a[href*="/post/{shortcode}"]', timeout=timeout_ms, state="attached")
+    except Exception:  # noqa: BLE001 — 待っても出なければ無い
+        return False
+    return True
 
 
 def _throttled(page: Any) -> bool:
@@ -554,8 +563,17 @@ def delete_one(session: Any, entry: dict[str, Any], username: str) -> str:
     menu_item.click()
     page.wait_for_timeout(1500)
 
-    # 3. 確認ダイアログの「削除」
-    confirm = _resolve_in_page(page, "delete_confirm_button")
+    # 3. 確認ダイアログの「削除」（出るまで少し待つ。引けなければ何も押さずに、画面の様子を残して止める）
+    confirm = None
+    for attempt in range(5):
+        try:
+            confirm = _resolve_in_page(page, "delete_confirm_button")
+            break
+        except SelectorMissError:
+            if attempt == 4:
+                _dump_confirm_dialog(page)
+                raise
+            page.wait_for_timeout(1000)
     confirm.click()
     page.wait_for_timeout(4000)
 
@@ -567,6 +585,48 @@ def delete_one(session: Any, entry: dict[str, Any], username: str) -> str:
     if _post_is_present(page, code):
         raise RuntimeError(f"削除を確認できません（{url}）。ここで止めます。")
     return "deleted"
+
+
+# 確認ダイアログのボタンが引けなかったときに、実測の材料を残す（押さない。読むだけ）
+DIALOG_DUMP_JS = """
+() => {
+  const out = {containers: [], buttons: []};
+  document.querySelectorAll('[role=dialog],[role=alertdialog],[aria-modal=true]').forEach(d => {
+    out.containers.push({role: d.getAttribute('role'), modal: d.getAttribute('aria-modal'),
+                         text: (d.innerText || '').slice(0, 300)});
+  });
+  for (const el of document.querySelectorAll('body *')) {
+    if (el.children.length > 3) continue;
+    const text = (el.innerText || '').trim();
+    if (!['削除', '削除する', 'キャンセル'].includes(text)) continue;
+    const chain = [];
+    let node = el;
+    for (let i = 0; i < 10 && node; i++) {
+      const role = node.getAttribute && node.getAttribute('role');
+      chain.push(node.tagName.toLowerCase() + (role ? '[role=' + role + ']' : ''));
+      node = node.parentElement;
+    }
+    const rect = el.getBoundingClientRect();
+    out.buttons.push({text, tag: el.tagName.toLowerCase(), role: el.getAttribute('role'),
+                      visible: rect.width > 0 && rect.height > 0, chain});
+  }
+  return out;
+}
+"""
+
+
+def _dump_confirm_dialog(page: Any) -> None:
+    diag = OUT_DIR / "diag"
+    diag.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(JST).strftime("%Y%m%d-%H%M%S")
+    try:
+        data = page.evaluate(DIALOG_DUMP_JS)
+        (diag / f"confirm-{stamp}.json").write_text(
+            json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
+        page.screenshot(path=str(diag / f"confirm-{stamp}.png"))
+        print(f"  確認ダイアログの様子を残しました: {diag}/confirm-{stamp}.*", flush=True)
+    except Exception as exc:  # noqa: BLE001 — 記録に失敗しても止まる判断は変えない
+        print(f"  確認ダイアログの様子を残せませんでした: {exc}", flush=True)
 
 
 def _resolve_in_page(page: Any, key: str) -> Any:
@@ -584,6 +644,9 @@ def _resolve_in_page(page: Any, key: str) -> Any:
             continue
         visible = [f for f in found if f.is_visible()]
         if len(visible) == 1:
+            if not spec.measured:
+                # 未実測のセレクタは、どの候補で当たったかを残す（selectors.py に実測として書き戻すため）
+                print(f"  （実測）{key}: {css}", flush=True)
             return visible[0]
         if len(visible) > 1:
             raise SelectorMissError(key, [f"{css}（{len(visible)}個に当たった。1個に絞れない）"])
@@ -592,6 +655,8 @@ def _resolve_in_page(page: Any, key: str) -> Any:
         tried.append(f'role={role} name="{name}"')
         locator = page.get_by_role(role, name=name, exact=spec.exact)
         if locator.count() == 1:
+            if not spec.measured:
+                print(f"  （実測）{key}: {tried[-1]}", flush=True)
             return locator.first
         if locator.count() > 1:
             raise SelectorMissError(key, [f"{tried[-1]}（{locator.count()}個に当たった）"])
