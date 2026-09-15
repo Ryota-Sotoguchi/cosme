@@ -441,7 +441,8 @@
       "tt_refill_first",
       "tt_stock_expiry",
       "tt_shelf_first",
-      "tt_cheap_vs_value"
+      "tt_cheap_vs_value",
+      "tt_sankagetsu"
     ]
   },
   "rotation_cursor": {
@@ -452,14 +453,13 @@
     "late": 5,
     "latemorning": 1,
     "midmorning": 6,
-    "morning": 2,
+    "morning": 3,
     "night": 1,
     "noon": 1,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "casual",
@@ -478,7 +478,8 @@
     "band_focus",
     "topic",
     "question",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
