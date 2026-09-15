@@ -444,7 +444,8 @@
       "tt_shelf_first",
       "tt_cheap_vs_value",
       "tt_sankagetsu",
-      "tt_shanai_ido"
+      "tt_shanai_ido",
+      "tt_jiku_mittsu"
     ]
   },
   "rotation_cursor": {
@@ -457,12 +458,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 1,
-    "noon": 1,
+    "noon": 2,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "comparison",
@@ -481,6 +481,7 @@
     "casual",
     "topic_thread",
     "question",
+    "topic_thread",
     "topic_thread"
   ],
   "threads_token": {
