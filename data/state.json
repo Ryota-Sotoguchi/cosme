@@ -319,7 +319,8 @@
       "q_morning_night",
       "q_lip_or_eye",
       "q_same_or_new",
-      "q_shampoo_freq"
+      "q_shampoo_freq",
+      "q_senpai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -452,7 +453,7 @@
     "evening": 5,
     "late": 5,
     "latemorning": 1,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 3,
     "night": 1,
     "noon": 1,
@@ -460,7 +461,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "casual",
@@ -479,7 +479,8 @@
     "topic",
     "question",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
