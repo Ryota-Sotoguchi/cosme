@@ -7,7 +7,7 @@
   1. NG表現（薬機法/効果保証/架空体験/架空口コミ/誇張/禁止カテゴリー）
   2. PR表記（アフィリエイトリンクを含むなら、商品を紹介する投稿の最後の行に #PR。
      位置は [compliance] pr_marker_position で冒頭にも戻せる）
-  3. URL（allowlist のホストのみ・本数上限）
+  3. URL（allowlist のホストのみ・本数上限。本文のURLは商品のURLか、own_site_urls と完全一致）
   4. データ整合性（本文の数値が商品データ由来か）
   5. 重複（itemCode / URLハッシュ / 再投稿クールダウン）
   6. 文章類似度（直近投稿との類似）
@@ -94,6 +94,11 @@ class ComplianceChecker:
         if self.pr_position not in ("start", "end"):
             raise ValueError(f"pr_marker_position は start / end のどちらか: {self.pr_position!r}")
         self.allowed_hosts: set[str] = set(compliance.get("allowed_url_hosts", []))
+        # 自分のサイト（2026-09-14 追加）。商品のアフィリエイトURLと同じく本文に置いてよい。
+        # **完全一致だけ**許可する（パス違い・別ドメインは通さない）。
+        self.own_site_urls: set[str] = set(compliance.get("own_site_urls", []))
+        # サイトに広告・アフィリエイトを載せたら true にする。#PR が要るようになる。
+        self.own_site_needs_pr: bool = bool(compliance.get("own_site_needs_pr", True))
         self.max_urls: int = int(compliance.get("max_urls", 1))
         self.max_length = max_length
         self.max_similarity: float = float(dedup.get("max_similarity", 0.72))
@@ -165,9 +170,10 @@ class ComplianceChecker:
             if host not in self.allowed_hosts:
                 violations.append(Violation("url", f"許可されていないURLホスト: {host}"))
 
-        # 本文中のURLが、実際に選んだ商品の affiliate URL と一致しているか
+        # 本文中のURLが、実際に選んだ商品の affiliate URL か、許可した自分のサイトと一致しているか
         if urls:
             known = {item.affiliate_url for item in draft.items if item.affiliate_url}
+            known |= self.own_site_urls
             for url in urls:
                 if url not in known:
                     violations.append(
@@ -185,6 +191,14 @@ class ComplianceChecker:
         has_url = bool(URL_PATTERN.search(text)) or bool(draft.link_attachment)
         if not has_url:
             # リンクなし投稿にPR表記は不要（付いていても害はないので許容）
+            return []
+
+        # 自分のサイトだけにリンクしていて、そのサイトが広告でないなら #PR は要らない。
+        # 広告も宣伝報酬も無い無料ツールに #PR を付けると、かえって誤解を招く。
+        # サイトに広告を載せたら own_site_needs_pr = true にする。
+        urls = URL_PATTERN.findall(text)
+        if (urls and not draft.link_attachment and not self.own_site_needs_pr
+                and all(url in self.own_site_urls for url in urls)):
             return []
 
         segments = draft.segments or [text]

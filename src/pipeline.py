@@ -42,6 +42,7 @@ ITEMS_NEEDED = {
     "casual": 0,
     "howto": 0,
     "essay": 0,
+    "site_link": 0,
 }
 
 

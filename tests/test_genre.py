@@ -28,11 +28,14 @@ ROOT = Path(__file__).resolve().parent.parent
 #
 # 例外として決めたもの（ここに入れていない）:
 #   compliance/checker.py … 自作サイトのURLを許可する2か所
+#   pipeline.py           … 型ごとの必要商品数の表（ITEMS_NEEDED）に "site_link": 0 を1行
+#                           （新しい投稿型をローテーションに入れるのに必要。処理は変えていない。
+#                             下のハッシュはこの1行を足した後のもの）
 #   engage/review.py      … 「レビュー」「口コミ」の禁止を撤回
 #   engage/browser/selectors.py … 過去投稿の削除に使うセレクタの追加
 # ======================================================================
 UNCHANGED_MECHANISM = {
-    "src/pipeline.py": "b4f0bbd8405aadd7704e0e4d07e86ded640575dd",
+    "src/pipeline.py": "cb553ce7c70b8d4e53f4b786479005916fbdf0e1",
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "7baf13b2c12f6ff03baf25796c5f0c20a196fd69",
@@ -141,7 +144,7 @@ def test_brand_murmurs_from_product_names_are_off():
 
 @pytest.mark.parametrize("pool_name", [
     "CASUAL_MURMURS", "QUESTION_POSTS", "NO_LINK_TOPICS", "HOWTO_POSTS",
-    "THREAD_TOPICS", "ESSAY_QUESTIONS",
+    "THREAD_TOPICS", "ESSAY_QUESTIONS", "SITE_LINK_POSTS",
 ])
 def test_link_free_pools_are_career_content(pool_name):
     from src.content import parts as P

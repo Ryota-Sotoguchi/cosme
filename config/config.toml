@@ -345,6 +345,8 @@ allow_affiliate = false
 # 人がふだんThreadsに書くのは結論のない一行や答えのない疑問なので、
 # casual と question を主役にして、整った型は少数派にする。
 [rotation]
+# 2026-09-14: site_link（年収相場チェッカーを置く投稿）を afternoon / earlynight / late に1つずつ入れた。
+# 各枠7要素なので、それぞれ週1回前後 ＝ 合計で週3回前後。毎回は出さない。
 # 2026-09-03: 8/31 の組み替えを差し戻して組み直した。
 #
 # ## 8/31 の判断が間違っていた理由
@@ -404,7 +406,7 @@ latemorning = [
 afternoon = [
     "question",
     "casual",
-    "casual",
+    "site_link",
     "thread_topic",
     "question",
     "no_link",
@@ -432,7 +434,7 @@ earlynight = [
     "casual",
     "question",
     "thread_topic",
-    "casual",
+    "site_link",
     "question",
     "casual",
     "no_link",
@@ -467,7 +469,7 @@ late = [
     "casual",
     "question",
     "thread_topic",
-    "casual",
+    "site_link",
     "no_link",
     "question",
 ]
@@ -537,7 +539,13 @@ pr_marker = "#PR"
 pr_marker_position = "end"
 # 冒頭から（start）／末尾まで（end）この文字数以内に無ければ不合格
 pr_marker_max_offset = 20
-allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp"]
+allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp", "business-3hy.pages.dev"]
+# 自分のサイト「年収相場チェッカー」（2026-09-14 追加）。本文に置いてよいURL。**完全一致だけ**。
+# 厚労省「令和6年賃金構造基本統計調査」を出典つきで使う、広告なしの非営利ツール。
+# 投稿型 site_link だけが載せる（ローテーションで週3回前後）。src/content/parts.py の SITE_URL と一致させる。
+own_site_urls = ["https://business-3hy.pages.dev/"]
+# サイトに広告・アフィリエイトを載せたら true にする（投稿に #PR が要るようになる）。
+own_site_needs_pr = false
 # 1投稿あたりのURL上限
 max_urls = 1
 # 生成をやり直す最大回数

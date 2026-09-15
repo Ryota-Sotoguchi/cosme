@@ -36,6 +36,8 @@ from .parts import (
     HOWTO_POSTS,
     NO_LINK_TOPICS,
     QUESTION_POSTS,
+    SITE_LINK_POSTS,
+    SITE_URL,
     PRODUCT_CLOSINGS,
     PRODUCT_OPENINGS,
     RECOMMEND_CLOSINGS,
@@ -825,6 +827,25 @@ def render_question(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_site_link(ctx: RenderContext) -> Rendered:
+    """年収相場チェッカーを置く投稿（2026-09-14 追加）。
+
+    年収の話の流れで、道具として淡々と置く。作者には触れない。
+    商品を持たないのでアフィリエイトリンク扱いにはならず、楽天のリンク枠にも数えない。
+    URL を本文に置けるのは config の [compliance] own_site_urls と完全一致するときだけ。
+
+    毎回このサイトに誘導すると怪しいので、頻度はローテーションで絞る。
+    この型以外の投稿にはURLを出さない。
+    """
+    r = Rendered(blocks=[])
+    post = ctx.pick("site_link", SITE_LINK_POSTS, **ctx.flags())
+    r.part_ids["site_link"] = post.id
+    r.blocks.append(Block(post.text, 0))
+    r.blocks.append(Block(SITE_URL, 0))
+    r.allowed_numbers |= set(F.extract_numbers(post.text))
+    return r
+
+
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     topic = ctx.pick("topic", NO_LINK_TOPICS, **ctx.flags())
@@ -883,6 +904,8 @@ TEMPLATES: tuple[Template, ...] = (
              requires_affiliate=False),
     Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),
     Template("essay", render_essay, ("essay",), item_count=0, requires_affiliate=False),
+    Template("site_link", render_site_link, ("site_link",), item_count=0,
+             requires_affiliate=False),
 )
 
 TEMPLATES_BY_ID: dict[str, Template] = {t.id: t for t in TEMPLATES}
