@@ -269,8 +269,11 @@ DELETE_OLD_THREADS_POSTS=true python3 scripts/cleanup_old_posts.py --execute --l
 - 実削除は `DELETE_OLD_THREADS_POSTS=true` **と** `--execute` の両方が要る。Dry Run の候補ファイル
   （`data/engage/cleanup/`、gitignore 済み）に載ったものだけを消す
 - 1回20件まで・30〜90秒間隔・絞られたら停止・消えたことを開き直して確認・`deleted.jsonl` で再実行を飛ばす
-- 削除の確認ダイアログのセレクタ（`delete_confirm_button`）は**未実測**。実測するには削除を押すしかないため。
-  未実測のあいだは1回1件しか消さない。最初の1件で確かめてから `measured=True` にする
+- 削除の確認ダイアログのセレクタ（`delete_confirm_button`）は 2026-09-15 に実測済み。ボタンは「削除する」で、
+  文字が中の span にあるため `:text-is()` は当たらない（`:has-text()` か role で引く）。
+  セレクタが未実測のあいだは1回1件しか消さない仕組みは残してある
+- 1日の上限は仕組みでは強制していない（`--limit` を人が調整する運用）。
+  公式 API の削除上限は100件/24時間なので、1日に回すのはそれ以内に収める
 - 自動返信の cron と同じロック（`/tmp/cosme-autoreply.lock`）を取る
 - Threads のメニューには「アーカイブ」もある（消さずに非表示にできる）。このスクリプトは使っていない
 
