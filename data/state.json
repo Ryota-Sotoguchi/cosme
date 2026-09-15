@@ -321,7 +321,8 @@
       "q_lip_or_eye",
       "q_same_or_new",
       "q_shampoo_freq",
-      "q_senpai"
+      "q_senpai",
+      "q_kyuujin_mitemiru"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -454,7 +455,7 @@
     "afternoon": 0,
     "autoreply_shape": 3,
     "earlynight": 6,
-    "evening": 5,
+    "evening": 6,
     "late": 5,
     "latemorning": 2,
     "midmorning": 0,
@@ -465,7 +466,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "comparison",
     "question",
     "casual",
     "casual",
@@ -484,7 +484,8 @@
     "topic_thread",
     "topic_thread",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
