@@ -119,9 +119,14 @@ def test_only_the_chosen_shape_is_described(any_shape):
 
 
 def test_the_experience_shape_forbids_product_experience():
-    """このアカウントは商品を使っていない。「経験」型でも書けるのは暮らしの側だけ。"""
+    """「経験」型でも、年収の自慢と使ってもいないサービスの体験談は書かない。
+
+    2026-09-14 から中の人は転職を二回した会社員で、自分の転職・面接・職場の経験は
+    話してよい（決定事項）。ただし広告に使える形の体験談は作らない。
+    """
     prompt = prompts.reply_prompt(CANDIDATE, shape="経験")
-    assert "商品を使った話は絶対に書かない" in prompt
+    assert "このエージェントで内定しました" in prompt
+    assert "自慢" in prompt
 
 
 def test_every_shape_has_a_guide():

@@ -1355,7 +1355,7 @@ def _print_report(report, *, dry_run: bool, collect_only: bool = False) -> None:
             print(f"\n  {i}. @{candidate.username}  buzz {score.total:.2f}")
             print(f"     {candidate.permalink}")
             print(f"     ♥{candidate.likes} 💬{candidate.replies} / {age}"
-                  f" / {'美容' if candidate.is_beauty else 'その他'}")
+                  f" / {'ジャンル内' if candidate.is_beauty else 'その他'}")
             print(f"     {score.explain()}")
             print(f"     {candidate.text[:70]}")
 

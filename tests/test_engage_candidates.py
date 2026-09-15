@@ -107,7 +107,11 @@ def test_short_posts_are_skipped():
 
 
 def test_ordinary_beauty_post_is_repliable():
-    c = _c("新作の化粧水、乾燥する時期に良さそうだったので気になってる。使った人いる？")
+    """発信ジャンルの普通の投稿は返信対象になること。
+
+    名前の beauty は当初のジャンルの名残。2026-09-14 から中身は転職・年収・キャリア。
+    """
+    c = _c("転職活動を始めて三か月、職務経歴書の書き方がまだ分からない。みんなどうしてる？")
     assert c.is_repliable
     assert c.is_beauty
 
@@ -120,25 +124,25 @@ def test_replies_count_more_than_likes():
 
     自分の返信が読まれるのは、people が既に会話している投稿。
     """
-    quiet = _c("コスメの新作、気になってるんだけど誰か使った？", likes=300, replies=0, age_hours=5)
-    lively = _c("コスメの新作、気になってるんだけど誰か使った？", likes=100, replies=40, age_hours=5)
+    quiet = _c("転職エージェント、何社くらい使うのが普通なんだろう？", likes=300, replies=0, age_hours=5)
+    lively = _c("転職エージェント、何社くらい使うのが普通なんだろう？", likes=100, replies=40, age_hours=5)
     assert score(lively) > score(quiet)
 
 
 def test_fresh_posts_outrank_stale_ones():
-    fresh = _c("スキンケアの話。乾燥がつらい季節ですね", likes=200, replies=10, age_hours=3)
-    stale = _c("スキンケアの話。乾燥がつらい季節ですね", likes=200, replies=10, age_hours=200)
+    fresh = _c("年収交渉の話。言い出すタイミングが難しいですね", likes=200, replies=10, age_hours=3)
+    stale = _c("年収交渉の話。言い出すタイミングが難しいですね", likes=200, replies=10, age_hours=200)
     assert score(fresh) > score(stale)
 
 
 def test_beauty_posts_outrank_unrelated_ones():
-    beauty = _c("コスメのメイク、スキンケアの話。今日の購入品です", likes=50, replies=5, age_hours=5)
+    beauty = _c("転職の面接で年収の話をされた。求人の条件と違って迷ってる", likes=50, replies=5, age_hours=5)
     other = _c("今日のランチがおいしかったという話をします。とてもよかった", likes=50, replies=5, age_hours=5)
     assert score(beauty) > score(other)
 
 
 def test_score_records_its_breakdown():
-    c = _c("コスメの話をします。新作の化粧水が気になっている", likes=10, replies=2, age_hours=2)
+    c = _c("転職の話をします。今の年収が相場と比べてどうなのか気になっている", likes=10, replies=2, age_hours=2)
     score(c)
     assert set(c.scores) == {"beauty", "momentum", "freshness"}
 
@@ -147,7 +151,7 @@ def test_score_records_its_breakdown():
 # 並べ替えと比率
 # ======================================================================
 def _many(n: int, *, beauty: bool) -> list[Candidate]:
-    word = "コスメの新作が気になってる話" if beauty else "今日の天気と電車の遅延の話"
+    word = "転職活動で面接が続いて疲れてきた話" if beauty else "今日の天気と電車の遅延の話"
     tag = "b" if beauty else "o"
     return [
         Candidate(username=f"{tag}user{i}", shortcode=f"{tag.upper()}{i}",
@@ -162,18 +166,18 @@ def test_beauty_ratio_is_respected():
                              limit=10, beauty_ratio=0.8)
     beauty = [c for c in picked if c.is_beauty]
     assert len(picked) == 10
-    assert len(beauty) == 8, f"美容が {len(beauty)}件。8割になっていない"
+    assert len(beauty) == 8, f"ジャンル内が {len(beauty)}件。8割になっていない"
 
 
 def test_other_topics_are_included():
-    """美容だけに固定しない。露出先を狭めすぎないため。"""
+    """発信ジャンルだけに固定しない。露出先を狭めすぎないため。"""
     picked = rank_candidates(_many(20, beauty=True) + _many(20, beauty=False),
                              limit=10, beauty_ratio=0.8)
     assert any(not c.is_beauty for c in picked)
 
 
 def test_beauty_fills_in_when_other_topics_run_out():
-    """美容以外が足りなければ美容で埋める。逆はしない（軸を守る）。"""
+    """ジャンル外が足りなければジャンル内で埋める。逆はしない（軸を守る）。"""
     picked = rank_candidates(_many(20, beauty=True), limit=10, beauty_ratio=0.8)
     assert len(picked) == 10
     assert all(c.is_beauty for c in picked)

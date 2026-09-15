@@ -40,12 +40,14 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36"
 )
 
-# 探すキーワード。美容を主にしつつ、少しだけ外も見る。
+# 探すキーワード。発信ジャンルを主にしつつ、少しだけ外も見る。
+# 2026-09-14 に「コスメ・美容」→「転職・年収・キャリア」へ変えた。
+# 名前の BEAUTY_KEYWORDS は当初のジャンルの名残（candidates.BEAUTY_WORDS と揃えてある）。
 BEAUTY_KEYWORDS: tuple[str, ...] = (
-    "コスメ", "スキンケア", "メイク", "プチプラコスメ", "デパコス",
-    "韓国コスメ", "新作コスメ", "購入品", "垢抜け", "ヘアケア",
+    "転職", "転職活動", "年収", "年収交渉", "面接",
+    "職務経歴書", "退職", "キャリア", "未経験転職", "転職エージェント",
 )
-OTHER_KEYWORDS: tuple[str, ...] = ("自分磨き", "買い物", "ファッション")
+OTHER_KEYWORDS: tuple[str, ...] = ("働き方", "仕事の悩み", "副業")
 
 # 投稿要素を取り出す。パーマリンクを持つ a を起点に、投稿全体の親までさかのぼる。
 EXTRACT_JS = """
@@ -119,7 +121,7 @@ def render(picked: list[Candidate], errors: dict[str, str], today: str) -> str:
     lines += [f"## 候補 {len(picked)}件", ""]
     for i, c in enumerate(picked, 1):
         age = f"{c.age_hours:.0f}時間前" if c.age_hours is not None else "時期不明"
-        kind = "美容" if c.is_beauty else "その他"
+        kind = "ジャンル内" if c.is_beauty else "その他"
         lines += [
             f"### {i}. @{c.username}　[{kind}]",
             "",
@@ -172,7 +174,7 @@ def main() -> int:
     beauty = sum(1 for c in picked if c.is_beauty)
     print(f"書き出し: {out}", file=sys.stderr)
     print(f"  取得 {len(all_found)}件 → 候補 {len(picked)}件"
-          f"（美容 {beauty} / その他 {len(picked) - beauty}）", file=sys.stderr)
+          f"（ジャンル内 {beauty} / その他 {len(picked) - beauty}）", file=sys.stderr)
     # 全滅しても異常終了しない。翌日また試せばいい。
     return 0
 

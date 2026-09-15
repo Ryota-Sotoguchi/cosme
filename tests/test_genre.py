@@ -191,3 +191,66 @@ def test_generated_posts_carry_no_cosme_words(config, tmp_path):
                     assert not _cosme_hits(text), f"{post_type}: {_cosme_hits(text)}\n{text}"
                 if draft.topic_tag:
                     assert not _cosme_hits(draft.topic_tag), f"{post_type} のタグ: {draft.topic_tag}"
+
+
+# ======================================================================
+# 3. 返信にコスメ・美容が戻ってこないこと
+# ======================================================================
+def test_the_reply_prompts_carry_no_cosme_words():
+    """中の人の説明・例文・禁止事項・話題の前提に、コスメの語が残っていないこと。"""
+    from dataclasses import dataclass
+
+    from src.engage import prompts
+
+    @dataclass
+    class Post:
+        username: str = "someone"
+        text: str = "転職活動三か月目。面接で年収の希望を聞かれて固まった"
+        likes: int = 40
+        replies: int = 6
+        age_hours: float = 3.0
+
+    texts = [
+        prompts.target_prompt(Post()),
+        prompts.judge_prompt(Post(), "希望を聞かれると身構えますよね"),
+        *(prompts.reply_prompt(Post(), shape=shape) for shape in prompts.REPLY_SHAPES),
+    ]
+    for text in texts:
+        assert not _cosme_hits(text), _cosme_hits(text)
+
+
+def test_the_persona_is_the_career_one():
+    from src.content.persona import TRAITS
+
+    joined = " ".join(f"{k}: {v}" for k, v in TRAITS.items())
+    assert "転職" in joined and "面接官" in joined
+    assert not _cosme_hits(joined)
+
+
+def test_the_reply_search_words_are_career_words(config):
+    import importlib.util
+
+    from src.engage.candidates import BEAUTY_WORDS
+    from src.engage.sources.search import DEFAULT_KEYWORDS
+
+    spec = importlib.util.spec_from_file_location("cc", ROOT / "scripts" / "collect_candidates.py")
+    script = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(script)
+
+    for name, words in (
+        ("config search_keywords", config.autoreply_section("sources")["search_keywords"]),
+        ("DEFAULT_KEYWORDS", DEFAULT_KEYWORDS),
+        ("BEAUTY_WORDS（名前は当初のジャンルの名残）", BEAUTY_WORDS),
+        ("collect_candidates", (*script.BEAUTY_KEYWORDS, *script.OTHER_KEYWORDS)),
+    ):
+        hits = [w for w in words if _cosme_hits(w)]
+        assert not hits, f"{name} にコスメの語: {hits}"
+        assert any("転職" in w or "年収" in w for w in words), f"{name} に転職の語が無い"
+
+
+def test_side_jobs_are_a_topic_but_solicitation_is_still_avoided():
+    """副業は発信ジャンルの話題。稼げる系の勧誘は触らない。"""
+    from src.engage.candidates import SENSITIVE_WORDS
+
+    assert "副業" not in SENSITIVE_WORDS
+    assert {"稼げ", "情報商材"} <= set(SENSITIVE_WORDS)
