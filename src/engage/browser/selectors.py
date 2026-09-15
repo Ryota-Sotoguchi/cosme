@@ -44,6 +44,9 @@ OBFUSCATED_CLASS = re.compile(r"\.x[0-9a-z]{5,}")
 WHERE_FEED = "feed"    # タイムラインに常にある。**無ければ異常**
 WHERE_MODAL = "modal"  # 返信ダイアログを開くと現れる
 WHERE_RARE = "rare"    # 該当する投稿にだけ現れる。**無いのが正常**
+# 自分の投稿のメニューを開くと現れる。過去投稿の削除（scripts/cleanup_old_posts.py）だけが使う。
+# **点検（--selfcheck）では探さない。** 点検のためにメニューを開きたくない
+WHERE_OWN_POST = "own_post"
 
 
 @dataclass(frozen=True)
@@ -268,8 +271,39 @@ _STATE = (
 )
 
 
+# ======================================================================
+# 自分の投稿を削除する（2026-09-15 追加。scripts/cleanup_old_posts.py だけが使う）
+#
+# 自動返信は使わない。発信ジャンルを切り替えたときの片付け用で、手で実行する。
+# 実測はメニューを開いて閉じただけ。**削除は押していない。**
+# ======================================================================
+_DELETE = (
+    _s("post_more_button", css='svg[aria-label="もっと見る"]',
+       note="2026-09-15 実測: 自分の投稿の詳細ページで、対象の投稿カード"
+            "（data-pressable-container）の中に1個。押すと投稿のメニューが開く。"
+            "**ページ全体では9個ある**（返信欄の投稿にも付く）ので、必ず対象カードの中で引く。"
+            "「その他」という aria-label は0個だった。",
+       measured=True, where=WHERE_OWN_POST),
+    _s("delete_menu_item", css='div[role="menu"] [role="menuitem"]:text-is("削除する")',
+       role=("menuitem", "削除する"), exact=True,
+       note="2026-09-15 実測: メニューは div[role=menu]、項目は role=menuitem が9個"
+            "（インサイト / 保存 / プロフィールにピン留め / アーカイブ / 「いいね！」数とシェア数を非表示 /"
+            " 返信オプション / 削除する / リンクをコピー / 埋め込みコードを取得）。"
+            "**文言は「削除」ではなく「削除する」。** 押すと確認が出る想定（下）。",
+       measured=True, where=WHERE_OWN_POST),
+    _s("delete_confirm_button",
+       css='div[role="dialog"] [role="button"]:text-is("削除")',
+       fallbacks=('div[role="dialog"] button:text-is("削除")',
+                  'div[role="alertdialog"] [role="button"]:text-is("削除")'),
+       note="削除の確認ダイアログのボタン。**要実測。** 実測するには削除メニューを押すしかないので、"
+            "まだ測っていない。ダイアログの中に限定し、1個に絞れなければ止める。"
+            "未実測のあいだ cleanup_old_posts.py は1回に1件しか消さない。",
+       where=WHERE_OWN_POST),
+)
+
+
 REGISTRY: dict[str, Selector] = {
-    s.key: s for s in (*_POST, *_METRICS, *_REPLY, *_STATE)
+    s.key: s for s in (*_POST, *_METRICS, *_REPLY, *_STATE, *_DELETE)
 }
 
 
