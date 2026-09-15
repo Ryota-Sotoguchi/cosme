@@ -446,7 +446,8 @@
       "tt_cheap_vs_value",
       "tt_sankagetsu",
       "tt_shanai_ido",
-      "tt_jiku_mittsu"
+      "tt_jiku_mittsu",
+      "tt_nenshu_moru"
     ]
   },
   "rotation_cursor": {
@@ -460,11 +461,10 @@
     "morning": 3,
     "night": 1,
     "noon": 2,
-    "predinner": 4,
+    "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "comparison",
     "question",
     "casual",
@@ -483,7 +483,8 @@
     "question",
     "topic_thread",
     "topic_thread",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
