@@ -329,7 +329,8 @@
       "q_kyuujin_mitemiru",
       "q_seichou",
       "q_tenkin",
-      "q_first_tensyoku_age"
+      "q_first_tensyoku_age",
+      "q_fukurikousei"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -471,11 +472,10 @@
     "morning": 4,
     "night": 2,
     "noon": 3,
-    "predinner": 5,
+    "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "band_focus",
     "topic",
     "question",
@@ -494,6 +494,7 @@
     "question",
     "question",
     "casual",
+    "question",
     "question"
   ],
   "threads_token": {
