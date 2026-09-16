@@ -92,7 +92,8 @@
       "cm_l_shelf",
       "cm_kaigi_hatsugen",
       "cm_ido",
-      "cm_owari_jikan"
+      "cm_owari_jikan",
+      "cm_kotoba"
     ],
     "casual_brand": [
       "brand",
@@ -466,7 +467,7 @@
   "rotation_cursor": {
     "afternoon": 1,
     "autoreply_shape": 3,
-    "earlynight": 0,
+    "earlynight": 1,
     "evening": 0,
     "late": 6,
     "latemorning": 3,
@@ -478,7 +479,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "question",
     "casual",
     "topic_thread",
@@ -497,7 +497,8 @@
     "casual",
     "question",
     "question",
-    "essay"
+    "essay",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
