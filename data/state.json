@@ -91,7 +91,8 @@
       "cm_mon_skip",
       "cm_l_shelf",
       "cm_kaigi_hatsugen",
-      "cm_ido"
+      "cm_ido",
+      "cm_owari_jikan"
     ],
     "casual_brand": [
       "brand",
@@ -468,12 +469,11 @@
     "midmorning": 1,
     "morning": 4,
     "night": 2,
-    "noon": 2,
+    "noon": 3,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "casual",
     "band_focus",
@@ -492,7 +492,8 @@
     "topic",
     "casual",
     "question",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
