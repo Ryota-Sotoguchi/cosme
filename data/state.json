@@ -334,7 +334,8 @@
       "q_seichou",
       "q_tenkin",
       "q_first_tensyoku_age",
-      "q_fukurikousei"
+      "q_fukurikousei",
+      "q_shikaku_benkyou"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -470,7 +471,7 @@
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 0,
-    "late": 6,
+    "late": 0,
     "latemorning": 3,
     "midmorning": 1,
     "morning": 4,
@@ -480,7 +481,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "question",
     "topic_thread",
@@ -499,7 +499,8 @@
     "question",
     "essay",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
