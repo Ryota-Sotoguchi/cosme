@@ -328,7 +328,8 @@
       "q_senpai",
       "q_kyuujin_mitemiru",
       "q_seichou",
-      "q_tenkin"
+      "q_tenkin",
+      "q_first_tensyoku_age"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -460,7 +461,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 0,
     "evening": 6,
@@ -474,7 +475,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "band_focus",
     "topic",
@@ -493,7 +493,8 @@
     "casual",
     "question",
     "question",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
