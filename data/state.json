@@ -90,7 +90,8 @@
       "cm_l_wishlist",
       "cm_mon_skip",
       "cm_l_shelf",
-      "cm_kaigi_hatsugen"
+      "cm_kaigi_hatsugen",
+      "cm_ido"
     ],
     "casual_brand": [
       "brand",
@@ -463,14 +464,13 @@
     "late": 6,
     "latemorning": 2,
     "midmorning": 0,
-    "morning": 3,
+    "morning": 4,
     "night": 2,
     "noon": 2,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "question",
@@ -489,7 +489,8 @@
     "question",
     "topic",
     "essay",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
