@@ -93,7 +93,8 @@
       "cm_kaigi_hatsugen",
       "cm_ido",
       "cm_owari_jikan",
-      "cm_kotoba"
+      "cm_kotoba",
+      "cm_kaisha_kanji"
     ],
     "casual_brand": [
       "brand",
@@ -473,13 +474,12 @@
     "latemorning": 3,
     "midmorning": 1,
     "morning": 4,
-    "night": 2,
+    "night": 3,
     "noon": 3,
     "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "question",
@@ -498,6 +498,7 @@
     "question",
     "question",
     "essay",
+    "casual",
     "casual"
   ],
   "threads_token": {
