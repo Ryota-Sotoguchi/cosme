@@ -222,14 +222,16 @@
       "cleansing",
       "lotion",
       "emulsion",
-      "career_taishoku"
+      "career_taishoku",
+      "career_agent"
     ],
     "essay_question": [
       "eq_which",
       "eq_skip",
       "eq_agree",
       "eq_first",
-      "eq_add"
+      "eq_add",
+      "eq_priority"
     ],
     "fact_intro": [
       "fi_plain",
@@ -465,7 +467,7 @@
     "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 0,
-    "evening": 6,
+    "evening": 0,
     "late": 6,
     "latemorning": 3,
     "midmorning": 1,
@@ -476,7 +478,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "band_focus",
     "topic",
     "question",
     "casual",
@@ -495,7 +496,8 @@
     "question",
     "casual",
     "question",
-    "question"
+    "question",
+    "essay"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
