@@ -225,7 +225,8 @@
       "lotion",
       "emulsion",
       "career_taishoku",
-      "career_agent"
+      "career_agent",
+      "career_kaisha_erabi"
     ],
     "essay_question": [
       "eq_which",
@@ -233,7 +234,8 @@
       "eq_agree",
       "eq_first",
       "eq_add",
-      "eq_priority"
+      "eq_priority",
+      "eq_which"
     ],
     "fact_intro": [
       "fi_plain",
@@ -474,14 +476,13 @@
     "late": 0,
     "latemorning": 3,
     "midmorning": 1,
-    "morning": 4,
+    "morning": 5,
     "night": 3,
     "noon": 3,
     "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "topic_thread",
     "topic_thread",
@@ -500,7 +501,8 @@
     "essay",
     "casual",
     "casual",
-    "question"
+    "question",
+    "essay"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
