@@ -96,7 +96,8 @@
       "cm_kotoba",
       "cm_kaisha_kanji",
       "cm_short_tensyoku",
-      "cm_short_kyuuyo"
+      "cm_short_kyuuyo",
+      "cm_mayoi"
     ],
     "casual_brand": [
       "brand",
@@ -472,7 +473,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 1,
+    "afternoon": 2,
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 0,
@@ -486,7 +487,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "question",
     "topic",
@@ -505,7 +505,8 @@
     "essay",
     "casual",
     "casual",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
