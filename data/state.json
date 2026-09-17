@@ -98,7 +98,8 @@
       "cm_short_tensyoku",
       "cm_short_kyuuyo",
       "cm_mayoi",
-      "cm_zangyou"
+      "cm_zangyou",
+      "cm_yoru_kyuujin"
     ],
     "casual_brand": [
       "brand",
@@ -484,13 +485,12 @@
     "latemorning": 4,
     "midmorning": 2,
     "morning": 5,
-    "night": 3,
+    "night": 4,
     "noon": 4,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "topic",
     "casual",
     "question",
@@ -509,7 +509,8 @@
     "casual",
     "casual",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
