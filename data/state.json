@@ -435,7 +435,8 @@
       "nl_spec_change",
       "nl_nenshu_hikaku",
       "nl_kyuujin_nenshu",
-      "nl_koushou_timing"
+      "nl_koushou_timing",
+      "nl_gyakushitsumon"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -481,7 +482,7 @@
     "autoreply_shape": 3,
     "earlynight": 2,
     "evening": 1,
-    "late": 0,
+    "late": 1,
     "latemorning": 4,
     "midmorning": 2,
     "morning": 5,
@@ -491,7 +492,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "question",
     "question",
@@ -510,7 +510,8 @@
     "casual",
     "topic_thread",
     "question",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
