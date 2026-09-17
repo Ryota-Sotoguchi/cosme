@@ -94,7 +94,8 @@
       "cm_ido",
       "cm_owari_jikan",
       "cm_kotoba",
-      "cm_kaisha_kanji"
+      "cm_kaisha_kanji",
+      "cm_short_tensyoku"
     ],
     "casual_brand": [
       "brand",
@@ -475,7 +476,7 @@
     "evening": 0,
     "late": 0,
     "latemorning": 3,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 5,
     "night": 3,
     "noon": 3,
@@ -483,7 +484,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "topic_thread",
     "casual",
@@ -502,7 +502,8 @@
     "casual",
     "casual",
     "question",
-    "essay"
+    "essay",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
