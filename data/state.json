@@ -95,7 +95,8 @@
       "cm_owari_jikan",
       "cm_kotoba",
       "cm_kaisha_kanji",
-      "cm_short_tensyoku"
+      "cm_short_tensyoku",
+      "cm_short_kyuuyo"
     ],
     "casual_brand": [
       "brand",
@@ -475,7 +476,7 @@
     "earlynight": 1,
     "evening": 0,
     "late": 0,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 2,
     "morning": 5,
     "night": 3,
@@ -485,7 +486,6 @@
   },
   "template_history": [
     "topic_thread",
-    "topic_thread",
     "casual",
     "topic_thread",
     "question",
@@ -503,6 +503,7 @@
     "casual",
     "question",
     "essay",
+    "casual",
     "casual"
   ],
   "threads_token": {
