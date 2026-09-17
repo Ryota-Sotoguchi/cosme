@@ -97,7 +97,8 @@
       "cm_kaisha_kanji",
       "cm_short_tensyoku",
       "cm_short_kyuuyo",
-      "cm_mayoi"
+      "cm_mayoi",
+      "cm_zangyou"
     ],
     "casual_brand": [
       "brand",
@@ -483,11 +484,10 @@
     "morning": 5,
     "night": 3,
     "noon": 4,
-    "predinner": 6,
+    "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "topic",
     "essay",
@@ -506,6 +506,7 @@
     "casual",
     "casual",
     "topic",
+    "casual",
     "casual"
   ],
   "threads_token": {
