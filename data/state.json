@@ -484,13 +484,14 @@
       "tt_shanai_ido",
       "tt_jiku_mittsu",
       "tt_nenshu_moru",
-      "tt_yametai_sankagetsu"
+      "tt_yametai_sankagetsu",
+      "tt_rireki_shashin"
     ]
   },
   "rotation_cursor": {
     "afternoon": 3,
     "autoreply_shape": 3,
-    "earlynight": 2,
+    "earlynight": 3,
     "evening": 2,
     "late": 1,
     "latemorning": 5,
@@ -502,7 +503,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "essay",
@@ -521,7 +521,8 @@
     "question",
     "site_link",
     "casual",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
