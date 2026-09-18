@@ -101,7 +101,8 @@
       "cm_zangyou",
       "cm_yoru_kyuujin",
       "cm_friday_night",
-      "cm_dm_boss"
+      "cm_dm_boss",
+      "cm_ashita"
     ],
     "casual_brand": [
       "brand",
@@ -494,7 +495,7 @@
     "autoreply_shape": 3,
     "earlynight": 3,
     "evening": 2,
-    "late": 1,
+    "late": 2,
     "latemorning": 5,
     "midmorning": 3,
     "morning": 6,
@@ -504,7 +505,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "essay",
     "casual",
     "casual",
@@ -523,7 +523,8 @@
     "casual",
     "casual",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
