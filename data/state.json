@@ -392,6 +392,9 @@
     "roundup_review_heavy": [
       "ru_rev_1"
     ],
+    "site_link": [
+      "site_takai_hikui"
+    ],
     "thread_bridge": [
       "br_found"
     ],
@@ -483,7 +486,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 2,
+    "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 2,
     "evening": 1,
@@ -497,7 +500,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "essay",
     "casual",
@@ -516,7 +518,8 @@
     "question",
     "topic",
     "essay",
-    "question"
+    "question",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
