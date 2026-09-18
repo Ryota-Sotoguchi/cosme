@@ -346,7 +346,8 @@
       "q_fukurikousei",
       "q_shikaku_benkyou",
       "q_teinen",
-      "q_nenshu_or_zangyou"
+      "q_nenshu_or_zangyou",
+      "q_mensetsu_shitsumon"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -491,12 +492,11 @@
     "midmorning": 3,
     "morning": 6,
     "night": 4,
-    "noon": 4,
+    "noon": 5,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "essay",
@@ -515,7 +515,8 @@
     "topic",
     "question",
     "topic",
-    "essay"
+    "essay",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
