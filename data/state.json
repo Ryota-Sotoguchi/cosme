@@ -99,7 +99,8 @@
       "cm_short_kyuuyo",
       "cm_mayoi",
       "cm_zangyou",
-      "cm_yoru_kyuujin"
+      "cm_yoru_kyuujin",
+      "cm_friday_night"
     ],
     "casual_brand": [
       "brand",
@@ -496,11 +497,10 @@
     "morning": 6,
     "night": 4,
     "noon": 5,
-    "predinner": 0,
+    "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "essay",
     "casual",
     "casual",
@@ -519,7 +519,8 @@
     "topic",
     "essay",
     "question",
-    "site_link"
+    "site_link",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
