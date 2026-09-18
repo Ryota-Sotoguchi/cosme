@@ -100,7 +100,8 @@
       "cm_mayoi",
       "cm_zangyou",
       "cm_yoru_kyuujin",
-      "cm_friday_night"
+      "cm_friday_night",
+      "cm_dm_boss"
     ],
     "casual_brand": [
       "brand",
@@ -490,7 +491,7 @@
     "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 2,
-    "evening": 1,
+    "evening": 2,
     "late": 1,
     "latemorning": 5,
     "midmorning": 3,
@@ -501,7 +502,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "casual",
     "casual",
     "question",
@@ -520,6 +520,7 @@
     "essay",
     "question",
     "site_link",
+    "casual",
     "casual"
   ],
   "threads_token": {
