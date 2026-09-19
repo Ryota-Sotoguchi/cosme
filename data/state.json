@@ -359,7 +359,8 @@
       "q_kuchikomi",
       "q_shokumukeirekisho",
       "q_shukkin",
-      "q_kanrishoku"
+      "q_kanrishoku",
+      "q_40_tensyoku"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -505,7 +506,7 @@
     "autoreply_shape": 3,
     "earlynight": 4,
     "evening": 3,
-    "late": 2,
+    "late": 3,
     "latemorning": 6,
     "midmorning": 4,
     "morning": 0,
@@ -515,7 +516,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "question",
     "topic",
     "essay",
@@ -534,7 +534,8 @@
     "question",
     "question",
     "site_link",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
