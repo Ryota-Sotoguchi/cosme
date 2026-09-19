@@ -102,7 +102,8 @@
       "cm_yoru_kyuujin",
       "cm_friday_night",
       "cm_dm_boss",
-      "cm_ashita"
+      "cm_ashita",
+      "cm_sunday_job_site"
     ],
     "casual_brand": [
       "brand",
@@ -498,14 +499,13 @@
     "late": 2,
     "latemorning": 5,
     "midmorning": 3,
-    "morning": 6,
+    "morning": 0,
     "night": 5,
     "noon": 5,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "casual",
     "casual",
     "topic",
@@ -524,6 +524,7 @@
     "casual",
     "topic_thread",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
