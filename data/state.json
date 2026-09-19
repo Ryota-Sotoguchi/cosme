@@ -357,7 +357,8 @@
       "q_mensetsu_shitsumon",
       "q_kuchikomi",
       "q_shokumukeirekisho",
-      "q_shukkin"
+      "q_shukkin",
+      "q_kanrishoku"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -501,7 +502,7 @@
     "afternoon": 4,
     "autoreply_shape": 3,
     "earlynight": 3,
-    "evening": 2,
+    "evening": 3,
     "late": 2,
     "latemorning": 6,
     "midmorning": 4,
@@ -512,7 +513,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "topic",
@@ -531,6 +531,7 @@
     "casual",
     "essay",
     "topic_thread",
+    "question",
     "question"
   ],
   "threads_token": {
