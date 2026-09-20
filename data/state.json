@@ -507,7 +507,8 @@
       "tt_yametai_sankagetsu",
       "tt_rireki_shashin",
       "tt_yaritakunai",
-      "tt_scout_mendan"
+      "tt_scout_mendan",
+      "tt_nenshu_down"
     ]
   },
   "rotation_cursor": {
@@ -515,7 +516,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 4,
-    "late": 3,
+    "late": 4,
     "latemorning": 0,
     "midmorning": 5,
     "morning": 1,
@@ -525,7 +526,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "casual",
@@ -544,6 +544,7 @@
     "topic",
     "casual",
     "question",
+    "topic_thread",
     "topic_thread"
   ],
   "threads_token": {
