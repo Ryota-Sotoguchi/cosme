@@ -366,7 +366,8 @@
       "q_kanrishoku",
       "q_40_tensyoku",
       "q_mensetsu_kinchou",
-      "q_keirekisho_kakikata"
+      "q_keirekisho_kakikata",
+      "q_mensetsu_shippai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -511,7 +512,7 @@
   "rotation_cursor": {
     "afternoon": 5,
     "autoreply_shape": 3,
-    "earlynight": 4,
+    "earlynight": 5,
     "evening": 4,
     "late": 3,
     "latemorning": 0,
@@ -523,7 +524,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "casual",
@@ -542,7 +542,8 @@
     "casual",
     "question",
     "topic",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
