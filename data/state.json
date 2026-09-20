@@ -107,7 +107,8 @@
       "cm_resume_night",
       "cm_slack",
       "cm_remote_day",
-      "cm_job_site"
+      "cm_job_site",
+      "cm_yuukyu"
     ],
     "casual_brand": [
       "brand",
@@ -514,12 +515,11 @@
     "midmorning": 5,
     "morning": 1,
     "night": 6,
-    "noon": 6,
+    "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "site_link",
     "casual",
     "casual",
@@ -538,7 +538,8 @@
     "question",
     "casual",
     "casual",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
