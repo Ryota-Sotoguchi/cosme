@@ -106,7 +106,8 @@
       "cm_sunday_job_site",
       "cm_resume_night",
       "cm_slack",
-      "cm_remote_day"
+      "cm_remote_day",
+      "cm_job_site"
     ],
     "casual_brand": [
       "brand",
@@ -509,7 +510,7 @@
     "evening": 3,
     "late": 3,
     "latemorning": 6,
-    "midmorning": 4,
+    "midmorning": 5,
     "morning": 1,
     "night": 6,
     "noon": 6,
@@ -517,7 +518,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "essay",
     "question",
     "site_link",
@@ -536,6 +536,7 @@
     "site_link",
     "casual",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
