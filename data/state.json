@@ -108,7 +108,8 @@
       "cm_slack",
       "cm_remote_day",
       "cm_job_site",
-      "cm_yuukyu"
+      "cm_yuukyu",
+      "cm_sunday_night"
     ],
     "casual_brand": [
       "brand",
@@ -511,7 +512,7 @@
     "afternoon": 5,
     "autoreply_shape": 3,
     "earlynight": 4,
-    "evening": 3,
+    "evening": 4,
     "late": 3,
     "latemorning": 0,
     "midmorning": 5,
@@ -522,7 +523,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "question",
     "casual",
@@ -541,7 +541,8 @@
     "question",
     "casual",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
