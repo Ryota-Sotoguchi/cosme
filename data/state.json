@@ -463,7 +463,8 @@
       "nl_kyuujin_nenshu",
       "nl_koushou_timing",
       "nl_gyakushitsumon",
-      "nl_jikopr"
+      "nl_jikopr",
+      "nl_agent_tsukaikata"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -517,11 +518,10 @@
     "morning": 1,
     "night": 6,
     "noon": 0,
-    "predinner": 2,
+    "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "topic_thread",
     "question",
@@ -540,7 +540,8 @@
     "casual",
     "question",
     "casual",
-    "question"
+    "question",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-12T20:30:48.966403+00:00",
