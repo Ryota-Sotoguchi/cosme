@@ -370,7 +370,8 @@
       "q_keirekisho_kakikata",
       "q_mensetsu_shippai",
       "q_tensyoku_soudan",
-      "q_monday"
+      "q_monday",
+      "q_boss_type"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -525,13 +526,12 @@
     "latemorning": 1,
     "midmorning": 6,
     "morning": 2,
-    "night": 0,
+    "night": 1,
     "noon": 1,
     "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "site_link",
     "casual",
@@ -550,7 +550,8 @@
     "topic_thread",
     "casual",
     "question",
-    "topic"
+    "topic",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
