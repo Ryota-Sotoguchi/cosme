@@ -418,7 +418,8 @@
     ],
     "site_link": [
       "site_takai_hikui",
-      "site_kyuujinhyou"
+      "site_kyuujinhyou",
+      "site_touroku_nashi"
     ],
     "thread_bridge": [
       "br_found"
@@ -522,7 +523,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 4,
-    "late": 4,
+    "late": 5,
     "latemorning": 1,
     "midmorning": 6,
     "morning": 2,
@@ -532,7 +533,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "site_link",
     "casual",
     "question",
@@ -551,7 +551,8 @@
     "casual",
     "question",
     "topic",
-    "question"
+    "question",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
