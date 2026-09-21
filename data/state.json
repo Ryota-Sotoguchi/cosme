@@ -509,7 +509,8 @@
       "tt_rireki_shashin",
       "tt_yaritakunai",
       "tt_scout_mendan",
-      "tt_nenshu_down"
+      "tt_nenshu_down",
+      "tt_referral"
     ]
   },
   "rotation_cursor": {
@@ -519,7 +520,7 @@
     "evening": 4,
     "late": 4,
     "latemorning": 0,
-    "midmorning": 5,
+    "midmorning": 6,
     "morning": 2,
     "night": 0,
     "noon": 0,
@@ -527,7 +528,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "essay",
     "topic_thread",
@@ -546,7 +546,8 @@
     "question",
     "topic_thread",
     "topic_thread",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
