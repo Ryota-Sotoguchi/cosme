@@ -517,7 +517,8 @@
       "tt_scout_mendan",
       "tt_nenshu_down",
       "tt_referral",
-      "tt_teitaijin"
+      "tt_teitaijin",
+      "tt_saishuu"
     ]
   },
   "rotation_cursor": {
@@ -526,7 +527,7 @@
     "earlynight": 5,
     "evening": 4,
     "late": 5,
-    "latemorning": 1,
+    "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
     "night": 1,
@@ -535,7 +536,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "casual",
     "question",
@@ -554,7 +554,8 @@
     "question",
     "site_link",
     "topic_thread",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
