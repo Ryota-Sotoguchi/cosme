@@ -250,7 +250,8 @@
       "career_agent",
       "career_kaisha_erabi",
       "career_kyuujinhyou",
-      "career_mensetsu"
+      "career_mensetsu",
+      "career_hyouka"
     ],
     "essay_question": [
       "eq_which",
@@ -261,7 +262,8 @@
       "eq_priority",
       "eq_which",
       "eq_agree",
-      "eq_first"
+      "eq_first",
+      "eq_add"
     ],
     "fact_intro": [
       "fi_plain",
@@ -537,13 +539,12 @@
     "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
-    "night": 1,
+    "night": 2,
     "noon": 2,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "question",
     "topic_thread",
@@ -562,7 +563,8 @@
     "casual",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "essay"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
