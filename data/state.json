@@ -111,7 +111,8 @@
       "cm_yuukyu",
       "cm_sunday_night",
       "cm_teiji",
-      "cm_coffee"
+      "cm_coffee",
+      "cm_rejected"
     ],
     "casual_brand": [
       "brand",
@@ -534,11 +535,10 @@
     "morning": 3,
     "night": 1,
     "noon": 2,
-    "predinner": 3,
+    "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "topic",
@@ -557,6 +557,7 @@
     "question",
     "topic_thread",
     "topic_thread",
+    "casual",
     "casual"
   ],
   "threads_token": {
