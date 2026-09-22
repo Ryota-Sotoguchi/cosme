@@ -481,7 +481,8 @@
       "nl_gyakushitsumon",
       "nl_jikopr",
       "nl_agent_tsukaikata",
-      "nl_tedori"
+      "nl_tedori",
+      "nl_mikeiken"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -535,7 +536,7 @@
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 5,
-    "late": 5,
+    "late": 6,
     "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
@@ -545,7 +546,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "topic_thread",
@@ -564,7 +564,8 @@
     "casual",
     "casual",
     "casual",
-    "essay"
+    "essay",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
