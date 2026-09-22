@@ -110,7 +110,8 @@
       "cm_job_site",
       "cm_yuukyu",
       "cm_sunday_night",
-      "cm_teiji"
+      "cm_teiji",
+      "cm_coffee"
     ],
     "casual_brand": [
       "brand",
@@ -523,7 +524,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 6,
+    "afternoon": 0,
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 4,
@@ -537,7 +538,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "question",
@@ -556,7 +556,8 @@
     "topic_thread",
     "question",
     "topic_thread",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
