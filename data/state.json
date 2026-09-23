@@ -118,7 +118,8 @@
       "cm_skill",
       "cm_tedori",
       "cm_owatta",
-      "cm_seat"
+      "cm_seat",
+      "cm_saiyou"
     ],
     "casual_brand": [
       "brand",
@@ -548,13 +549,12 @@
     "latemorning": 3,
     "midmorning": 1,
     "morning": 4,
-    "night": 2,
+    "night": 3,
     "noon": 3,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "site_link",
     "topic_thread",
     "question",
@@ -573,7 +573,8 @@
     "question",
     "topic_thread",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
