@@ -488,7 +488,8 @@
       "nl_jikopr",
       "nl_agent_tsukaikata",
       "nl_tedori",
-      "nl_mikeiken"
+      "nl_mikeiken",
+      "nl_market_value"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -541,7 +542,7 @@
   "rotation_cursor": {
     "afternoon": 1,
     "autoreply_shape": 3,
-    "earlynight": 6,
+    "earlynight": 0,
     "evening": 6,
     "late": 6,
     "latemorning": 3,
@@ -553,7 +554,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "question",
     "site_link",
     "topic_thread",
@@ -572,7 +572,8 @@
     "casual",
     "question",
     "topic_thread",
-    "question"
+    "question",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
