@@ -385,7 +385,8 @@
       "q_mikeiken",
       "q_shigoto_yume",
       "q_scout",
-      "q_remote_shuuchuu"
+      "q_remote_shuuchuu",
+      "q_yameru_riyu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -541,7 +542,7 @@
     "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 6,
-    "evening": 5,
+    "evening": 6,
     "late": 6,
     "latemorning": 3,
     "midmorning": 1,
@@ -552,7 +553,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic",
     "question",
     "site_link",
@@ -571,7 +571,8 @@
     "question",
     "casual",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
