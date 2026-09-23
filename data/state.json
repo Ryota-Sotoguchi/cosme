@@ -384,7 +384,8 @@
       "q_boss_type",
       "q_mikeiken",
       "q_shigoto_yume",
-      "q_scout"
+      "q_scout",
+      "q_remote_shuuchuu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -536,7 +537,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 5,
@@ -550,7 +551,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "question",
     "topic",
@@ -569,7 +569,8 @@
     "casual",
     "question",
     "question",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
