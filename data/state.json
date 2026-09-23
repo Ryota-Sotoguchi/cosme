@@ -381,7 +381,8 @@
       "q_tensyoku_soudan",
       "q_monday",
       "q_boss_type",
-      "q_mikeiken"
+      "q_mikeiken",
+      "q_shigoto_yume"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -539,7 +540,7 @@
     "evening": 5,
     "late": 6,
     "latemorning": 2,
-    "midmorning": 0,
+    "midmorning": 1,
     "morning": 4,
     "night": 2,
     "noon": 2,
@@ -547,7 +548,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "topic_thread",
     "question",
     "topic_thread",
@@ -566,7 +566,8 @@
     "casual",
     "essay",
     "topic",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
