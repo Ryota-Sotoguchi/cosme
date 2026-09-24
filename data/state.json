@@ -497,7 +497,8 @@
       "nl_agent_tsukaikata",
       "nl_tedori",
       "nl_mikeiken",
-      "nl_market_value"
+      "nl_market_value",
+      "nl_shouki"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -552,7 +553,7 @@
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 6,
-    "late": 0,
+    "late": 1,
     "latemorning": 3,
     "midmorning": 2,
     "morning": 5,
@@ -562,7 +563,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "essay",
@@ -581,7 +581,8 @@
     "casual",
     "casual",
     "casual",
-    "question"
+    "question",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
