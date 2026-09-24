@@ -121,7 +121,8 @@
       "cm_seat",
       "cm_saiyou",
       "cm_tomodachi",
-      "cm_toshi"
+      "cm_toshi",
+      "cm_gogo"
     ],
     "casual_brand": [
       "brand",
@@ -548,7 +549,7 @@
   "rotation_cursor": {
     "afternoon": 2,
     "autoreply_shape": 3,
-    "earlynight": 0,
+    "earlynight": 1,
     "evening": 6,
     "late": 0,
     "latemorning": 3,
@@ -560,7 +561,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "casual",
     "casual",
@@ -578,6 +578,7 @@
     "casual",
     "question",
     "essay",
+    "casual",
     "casual",
     "casual"
   ],
