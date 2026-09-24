@@ -13,7 +13,8 @@ Threads アカウントの自動運用システム（投稿は GitHub Actions、
 - 中の人: 転職を二回している三十代の会社員。面接官として採用にも入る（`src/content/persona.py`）
 - 投稿は全枠リンクなし。**楽天（コスメ）のリンク投稿は休止中**（`allow_affiliate = false`）。
   商品エンジン（`rakuten/` `selector/` 商品テンプレート・剤形 `BENEFITS`）は消さずに残してある
-- 年収相場チェッカー（https://business-3hy.pages.dev/）を投稿型 `site_link` で週3回前後置く（下の §5-2）
+- 年収相場チェッカー（https://business-3hy.pages.dev/）を投稿型 `site_link` で週3回前後置く（下の §5-2）。
+  **URLは1本目に置かない**（連投の2本目に回す。2026-09-24 の実測で、本文にURLがある投稿は表示1桁）
 - 表示名・プロフィールは本人が変える。**Claude はプロフィールを変更しない**
 - 新しいアフィリエイトサービスを勝手に追加・登録しない
 
@@ -156,6 +157,10 @@ compliance を通るが、レビュー ⊆ 購入者なので §4 の
 
 - 投稿型 `site_link` だけが URL を載せる。afternoon / earlynight / late のローテーションに1つずつ
   （各枠7要素なので週3回前後）。**それ以外の投稿には出さない**。在庫切れの逃がし先にも入れない
+- **URLは連投の2本目（自分への返信）に置く。1本目には入れない**（2026-09-24）。
+  本文にURLを入れた3本の表示は 1 / 7 / 0 で、同じ日の他の投稿（100〜600）と桁が違った。
+  一方コスメ時代の**リンクカード**（link_attachment）付き投稿は表示中央値230で、リンクなしの153より高い。
+  沈むのは本文のURLであってカードではない。`tests/test_site_link.py` が1本目にURLが無いことを見張る
 - 文面は `parts.SITE_LINK_POSTS`。**作者を名乗らない（「作った」と書かない）。
   他人のサイトを見つけた・薦められた体にもしない**（広告を載せた時点でステマになる）。統計の数字は書かない
 - checker が本文に許すのは `[compliance] own_site_urls` と**完全一致**するURLだけ
@@ -277,6 +282,42 @@ DELETE_OLD_THREADS_POSTS=true python3 scripts/cleanup_old_posts.py --execute --l
 - 自動返信の cron と同じロック（`/tmp/cosme-autoreply.lock`）を取る
 - Threads のメニューには「アーカイブ」もある（消さずに非表示にできる）。このスクリプトは使っていない
 
+## 投稿時刻は「発火」であって「出る時刻」ではない（2026-09-24 に組み直した）
+
+GitHub Actions の定期実行は混雑で遅れる。実測（273投稿）の遅れは枠ごとにこうなっていた。
+
+| 発火（UTC） | 遅れの中央値 |
+|---|---|
+| 22:30 | +116分 |
+| 00:00〜13:00 | +224〜301分 |
+
+07:30〜22:30 JST に発火させていたが、実際に出ていたのは **09:26〜02:14 JST**で、
+深夜2時台に1本落ちていた（表示中央値0〜74）。
+そこで**出したい時刻から遅れぶんを引いた時刻**へ発火を前倒しした。
+狙いは 07:30 / 08:30 / 10:00 / 14:00 / 16:00 / 17:20 / 19:30 / 20:30 / 21:30 / 22:45 ごろ。
+
+**1日10本と枠の名前は変えていない。** 名前（morning / noon …）は枠のIDであって、
+出る時刻ではない。言い回しは `parts.time_band_at` が実際の時刻から選ぶ。
+1〜2週間たったら `research/review/` の時刻別の表で着地を測り直すこと。
+
+## 自動返信が止まっていた原因（2026-09-24 に復旧）
+
+9/11 を最後に1件も返信できていなかった。原因は3つとも別物だった。
+
+1. **返信ボタンのセレクタが死んでいた。** Threads が返信アイコンを廃止し、
+   投稿ページ下部の入力欄に変えた。入力欄の「投稿ツールを拡大」を押すと
+   従来の返信ダイアログが開くので、そこを入り口にした（`selectors.reply_button`）。
+   **返信の処理（executor）は変えていない。**
+2. **検索が一度も回っていなかった。** crontab に timeline と accounts しか無かった。
+   検索は、フォロワーに依存せず転職の会話へ入れる唯一の経路。1日5回に追加した。
+3. **検索が古い投稿ばかり拾っていた。** `serp_type=default` は Threads 側で
+   タグ検索へ転送され、並びが「上位検索結果」になる。`filter=recent`（最近）を
+   付けて新しい順にした。あわせて足切りを緩めた（検索だけ min_likes=2）。
+
+加えて、**文体の手本がゼロだった**。過去の返信はすべてコスメ時代のタメ口で、
+敬語に切り替えたときに «文体の参考» から全部外れていた。手本無しで書かせた結果、
+審査の「AIらしさ」で落ち続けていた。`prompts.SEED_EXAMPLES` に敬語の見本を置いた。
+
 ## 定期的にやること
 
 作って終わりにすると、設計時に見えなかった問題が積み上がる。
@@ -286,7 +327,7 @@ DELETE_OLD_THREADS_POSTS=true python3 scripts/cleanup_old_posts.py --execute --l
 
 | 頻度 | やること |
 |---|---|
-| 毎日（自動） | `insights` が成績を取得。`research` が競合の投稿とレビューの使用感を集める |
+| 毎日（自動） | `insights` が成績を取得し、**アカウント全体の指標を `data/account.jsonl` に1日1行**残す（フォロワー数の推移）。`research` が競合の投稿とレビューの使用感を集める |
 | 毎週（自動） | `review.yml` が `report` を `research/review/YYYY-MM-DD.md` に残す |
 | 毎週（人） | その週のファイルの **点検** 欄だけ見る。空なら config を触らない |
 | 月1（人） | 楽天のレポートCSVを `revenue --csv` で取り込む。これが無いと CTR も EPC も出ない |
@@ -303,7 +344,7 @@ DELETE_OLD_THREADS_POSTS=true python3 scripts/cleanup_old_posts.py --execute --l
 | `content/parts.py` | 追加した文言は `test_every_phrase_part_is_free_of_ng_expressions` で自動検査される。トピック文に数字を入れない |
 | `content/facts.py` | 数値は**おおよそで出す**（`approx_price` / `approx_review_count`）。値札の桁をそのまま書かない。丸めは**実際より安く見せない向き**に固定してあり `test_approx_numbers.py` が見張る |
 | `content/voices.py` | 拾ってよいのは使用感だけ。効能の語を `TEXTURE_WORDS` に入れない。文型は必ず「誰の感想か」が分かる形（`voice_sentence`） |
-| `config.toml` の `[[schedule]]` | `.github/workflows/post.yml` の cron と**両方**直す。`test_schedule.py` が突き合わせる |
+| `config.toml` の `[[schedule]]` | `.github/workflows/post.yml` の cron と**両方**直す。`test_schedule.py` が突き合わせる。**時刻は «発火» であって «出る時刻» ではない**（下の注記） |
 | `config.toml` の `max_drift_minutes` | 定期実行のずれは実測で中央値232分ある。**小さくすると全投稿がスキップされる**（90分にして直近30本すべてが該当した）。時間帯の食い違いは `parts.time_band_at` が実際の時刻から言い回しを選ぶことで直してある |
 | `src/engage/` | 自動返信は**ローカル実行専用**。`.playwright/`（セッション Cookie）と `data/engage/` は絶対にコミットしない。ワークフローが `git add data/` を実行するので、.gitignore を外さないこと |
 | `rakuten/client.py` | 2026年の刷新で `accessKey` 必須・`Origin` 必須・ドメイン変更。記憶で書き換えない |

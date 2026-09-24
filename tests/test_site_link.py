@@ -125,6 +125,18 @@ def test_the_site_link_post_carries_the_site_and_nothing_else(tmp_path):
     assert PR_TAG not in draft.text
 
 
+def test_the_url_is_not_in_the_first_post(tmp_path):
+    """URLは2本目（自分への返信）に置く。
+
+    本文にURLを入れた3本の表示は 1 / 7 / 0 だった（2026-09-24 の実測）。
+    同じ日の他の投稿は100〜600出ている。タイムラインに乗る1本目にURLを置かない。
+    """
+    draft = _site_draft(tmp_path)
+    assert len(draft.segments) == 2, draft.segments
+    assert "http" not in draft.segments[0], draft.segments[0]
+    assert draft.segments[1] == P.SITE_URL
+
+
 def test_the_site_link_post_passes_compliance(config, tmp_path):
     builder = ContentBuilder(State(tmp_path / "state.json"), voices_path=tmp_path / "voices.json")
     checker = _checker(config)

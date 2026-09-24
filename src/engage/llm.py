@@ -168,6 +168,20 @@ def extract_json(text: str) -> dict[str, Any]:
     return {}
 
 
+def _failure_detail(stdout: str, stderr: str) -> str:
+    """CLI が異常終了したときに残す理由。**統計ではなく文を残す。**"""
+    try:
+        envelope = json.loads(stdout)
+    except (json.JSONDecodeError, ValueError):
+        envelope = None
+    if isinstance(envelope, dict):
+        for key in ("result", "error", "message", "subtype", "stop_reason"):
+            value = envelope.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()[:300]
+    return (stderr.strip() or stdout.strip() or "（出力なし）")[:300]
+
+
 def _result_text(envelope: dict[str, Any]) -> str:
     """CLI のエンベロープから本文を取り出す。
 
@@ -283,7 +297,15 @@ class ClaudeCliClient:
         stderr = (proc.stderr or "").strip()
 
         if proc.returncode != 0:
-            raise TransientError(f"claude CLI exit={proc.returncode}: {stderr[:300]}")
+            # **理由を残す（2026-09-24）。**
+            # claude CLI は使用量の上限などを stdout 側の JSON に入れて exit 1 で終わる。
+            # stderr だけを見ていたので «exit=1: » と空のまま記録され、
+            # 自動返信が1件も返せない原因が追えなかった。
+            # JSON の先頭は使用量の統計なので、そのまま切ると理由の文が出ない。
+            # 読めるなら result の本文を、読めないなら生の出力を添える。
+            raise TransientError(
+                f"claude CLI exit={proc.returncode}: {_failure_detail(stdout, stderr)}"
+            )
 
         try:
             envelope = json.loads(stdout)

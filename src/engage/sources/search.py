@@ -34,7 +34,14 @@ from ..candidates import Candidate
 
 logger = logging.getLogger(__name__)
 
-SEARCH_URL = "https://www.threads.com/search?q={}&serp_type=default"
+# **「最近」の並びを指定する（2026-09-24 実測）。**
+#
+# serp_type=default は Threads 側で serp_type=tags へ転送され、並びは「上位検索結果」になる。
+# その並びは関連順で古い投稿が混ざり、実測では収集22件のうち14件が「古すぎる」で落ちていた
+# （返信が1件も出せない状態だった）。
+# 検索ページのタブ（上位検索結果 / 最近 / おすすめ）の「最近」は filter=recent で、
+# これを付けると新しい順に並ぶ（実測で最新は1時間前）。
+SEARCH_URL = "https://www.threads.com/search?q={}&serp_type=default&filter=recent"
 
 # 設定に何も書かれていなければこれを使う（発信ジャンル: 転職・年収・キャリア）。
 DEFAULT_KEYWORDS: tuple[str, ...] = (

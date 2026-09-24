@@ -201,22 +201,32 @@ class FakeState:
         return self._day
 
 
+def _clamped(config, stage: dict) -> dict:
+    """ランプは «設定の枠» を超えない。枠が0の収集元は0のまま。
+
+    2026-09-24 に accounts の枠を0にしたので、ランプの段だけを見ると食い違う。
+    """
+    quota = config.autoreply_section("daily_quota")
+    return {k: min(v, quota.get(k, quota["default"]))
+            for k, v in stage.items() if k != "until_day"}
+
+
 def test_the_ramp_clamps_every_source_on_early_days(config, store, log):
     stage = config.autoreply_section("ramp_up")["stages"][0]
     budget = build(config, store, log, state=FakeState(day=3))
-    for source, limit in stage.items():
-        if source != "until_day":
-            assert budget.quota(source) == limit
-    assert budget.global_cap == sum(v for k, v in stage.items() if k != "until_day")
+    expected = _clamped(config, stage)
+    for source, limit in expected.items():
+        assert budget.quota(source) == limit
+    assert budget.global_cap == sum(expected.values())
 
 
 def test_the_ramp_widens_on_the_second_stage(config, store, log):
     stage = config.autoreply_section("ramp_up")["stages"][1]
     budget = build(config, store, log, state=FakeState(day=10))
-    for source, limit in stage.items():
-        if source != "until_day":
-            assert budget.quota(source) == limit
-    assert budget.global_cap == sum(v for k, v in stage.items() if k != "until_day")
+    expected = _clamped(config, stage)
+    for source, limit in expected.items():
+        assert budget.quota(source) == limit
+    assert budget.global_cap == sum(expected.values())
 
 
 def test_the_ramp_stops_clamping_once_it_is_over(config, store, log):
@@ -234,7 +244,8 @@ def test_the_ramp_counts_from_the_first_automatic_reply(config, store, log):
     ランプが一度も効いていなかった（2026-09-06 に判明）。同じ間違いを繰り返さない。
     """
     budget = build(config, store, log, state=FakeState(day=None))
-    assert budget.global_cap == 3
+    stage = config.autoreply_section("ramp_up")["stages"][0]
+    assert budget.global_cap == sum(_clamped(config, stage).values())
 
 
 def test_without_state_the_ramp_does_not_apply(config, store, log):

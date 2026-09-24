@@ -23,30 +23,44 @@ def at(hour: int, minute: int = 0, day: int = 3) -> datetime:
     return datetime(2026, 9, day, hour, minute, tzinfo=JST)
 
 
+def fires_at(config, slot: str, *, plus_minutes: int = 0, day: int = 3) -> datetime:
+    """その枠の発火時刻から指定ぶんずらした時刻。
+
+    **設定の時刻は直書きしない。** 2026-09-24 に発火時刻を前倒ししたとき、
+    直書きしていたテストが実装ではなく設定の都合で落ちた。
+    """
+    entry = next(s for s in config.schedule if s.slot == slot)
+    hour, minute = (int(v) for v in entry.time_jst.split(":"))
+    return at(hour, minute, day=day) + timedelta(minutes=plus_minutes)
+
+
 # ======================================================================
 def test_on_time_is_zero_drift(config):
-    # noon は 12:15
-    assert _schedule_drift_minutes(config, "noon", at(12, 15)) == 0
+    assert _schedule_drift_minutes(config, "noon", fires_at(config, "noon")) == 0
 
 
 def test_small_delay(config):
-    assert _schedule_drift_minutes(config, "noon", at(12, 45)) == 30
+    when = fires_at(config, "noon", plus_minutes=30)
+    assert _schedule_drift_minutes(config, "noon", when) == 30
 
 
 def test_large_delay(config):
-    """実際に起きた「12:15枠が23:09に出る」ケース。"""
-    assert _schedule_drift_minutes(config, "noon", at(23, 9)) == pytest.approx(654, abs=1)
+    """実際に起きた「昼の枠が10時間半後に出る」ケース。"""
+    when = fires_at(config, "noon", plus_minutes=654)
+    assert _schedule_drift_minutes(config, "noon", when) == pytest.approx(654, abs=1)
 
 
 def test_drift_wraps_around_midnight(config):
-    """22:30枠が翌00:30に走ったら、22時間ではなく2時間のずれとして見る。"""
-    drift = _schedule_drift_minutes(config, "late", at(0, 30, day=4))
+    """最終枠が日をまたいで走っても、22時間ではなく2時間のずれとして見る。"""
+    when = fires_at(config, "late", plus_minutes=120)
+    drift = _schedule_drift_minutes(config, "late", when)
     assert drift == pytest.approx(120, abs=1)
 
 
 def test_early_run_counts_as_drift_too(config):
     """早すぎる実行も同じくずれとして扱う。"""
-    assert _schedule_drift_minutes(config, "noon", at(11, 15)) == 60
+    when = fires_at(config, "noon", plus_minutes=-60)
+    assert _schedule_drift_minutes(config, "noon", when) == 60
 
 
 def test_unknown_slot_does_not_raise(config):

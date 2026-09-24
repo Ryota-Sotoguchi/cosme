@@ -41,6 +41,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from src.content.books import is_book  # noqa: E402
 from src.content.voices import extract_voices  # noqa: E402
 
 JST = timezone(timedelta(hours=9))
@@ -188,6 +189,10 @@ def main() -> int:
                 continue
             record = json.loads(line)
             code, url = record.get("item_code"), record.get("item_url")
+            # 本（2026-09-15 に再開した商品リンク投稿）は数えない。ここの語は化粧品の使用感で、
+            # 本のレビューを数えると「軽くて読みやすい」が「軽いつけ心地」になる。
+            if is_book(str(record.get("category") or "")):
+                continue
             if code and url and code not in seen:
                 seen.add(code)
                 targets.append((code, url))

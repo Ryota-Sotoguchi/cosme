@@ -89,10 +89,23 @@ def test_the_reply_icon_prefers_the_logged_in_wording():
     自動返信は必ずログインして動くので「返信」が第一候補。
     ログアウトで測り直して書き戻すと、本番で 0個 になる。
     """
-    for key in ("reply_button", "metric_reply"):
-        spec = selectors.get(key)
-        assert spec.css == 'svg[aria-label="返信"]', key
-        assert 'svg[aria-label="コメントする"]' in spec.fallbacks, key
+    spec = selectors.get("metric_reply")
+    assert spec.css == 'svg[aria-label="返信"]'
+    assert 'svg[aria-label="コメントする"]' in spec.fallbacks
+
+
+def test_the_reply_entry_point_is_on_the_post_page():
+    """**返信の入り口は投稿ページにある。タイムラインではない。**
+
+    2026-09-24 実測: Threads が返信アイコンをやめ、投稿ページ下部の入力欄に変えた。
+    その入力欄の「投稿ツールを拡大」を押すと、従来の返信ダイアログが開く。
+    古いアイコンは fallback に残す（Threads が戻したときに拾えるように）。
+    """
+    spec = selectors.get("reply_button")
+    assert spec.css == '[role="button"][aria-label="投稿ツールを拡大"]'
+    assert 'svg[aria-label="返信"]' in spec.fallbacks
+    assert spec.where == selectors.WHERE_POST, "タイムラインで探すと毎回❌になる"
+    assert spec.required and spec.measured
 
 
 def test_the_reply_composer_is_scoped_to_the_dialog():

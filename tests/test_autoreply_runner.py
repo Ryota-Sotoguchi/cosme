@@ -338,7 +338,9 @@ def test_a_post_rejected_by_a_rule_comes_back_when_it_grows(config, store, log):
     「いいねが足りない」で1度落ちた投稿を45日間封印すると、
     伸び始めを狙うという目的そのものに反する。
     """
-    quiet = candidate(shortcode="GROWING", likes=5)
+    # 足切りは config の min_likes（2026-09-24 に 10 → 4）。設定値から1つ下を使う。
+    quiet = candidate(shortcode="GROWING",
+                      likes=int(config.autoreply_filter()["min_likes"]) - 1)
     build(config, store, log, sources=[quiet]).run(dry_run=True)
     assert store.previous_sighting("GROWING").decision == "skipped_rule"
 
@@ -603,7 +605,7 @@ def test_without_state_the_rotation_still_returns_something(config):
     """state が無い経路（テストや --collect-only の一部）でも落ちない。"""
     from src.engage.sources.accounts import AccountsSource
 
-    assert len(AccountsSource(config, None)._todays_targets()) == 1
+    assert len(AccountsSource(with_monitored(config), None)._todays_targets()) == 1
 
 
 def test_skips_are_separated_by_stage(config, store, log):
@@ -626,8 +628,23 @@ def test_skips_are_separated_by_stage(config, store, log):
 # ======================================================================
 # 監視対象には1日に何度でも返す（要件2）
 # ======================================================================
+# 巡回先（accounts）は **config に依存させない**。
+# 2026-09-24 に巡回先を空にし accounts の枠も0にしたので、本番設定を読むと
+# 「監視対象の扱い」を試すテストが設定の都合で落ちる。ここで用意する。
+MONITORED = "career_example"
+
+
+def with_monitored(config, *, quota: int = 2):
+    """テスト用に巡回先を1件と accounts の枠を持たせた config を返す。"""
+    from src.config import TargetAccount
+
+    config.autoreply_targets.append(TargetAccount(username=MONITORED, note="テスト用"))
+    config.autoreply_section("daily_quota")["accounts"] = quota
+    return config
+
+
 def _accounts_candidate(shortcode: str, **kwargs) -> Candidate:
-    c = candidate(shortcode=shortcode, username="poco_insta_life", **kwargs)
+    c = candidate(shortcode=shortcode, username=MONITORED, **kwargs)
     c.source = "accounts"
     return c
 
@@ -656,6 +673,7 @@ def test_a_second_reply_to_the_monitored_account_is_allowed_the_same_day(
 
     以前は7日クールダウンが効いて、1件目を返した時点で相手ごと除外していた。
     """
+    config = with_monitored(config)
     first = build(config, store, log, sources=[_accounts_candidate("A1")])
     assert len(first.run(dry_run=False).posted) == 1
 
@@ -677,6 +695,7 @@ def test_the_monitored_account_still_gets_a_short_breather(config, store, log):
     狙い撃ちに見えるのは、レート制限とは別の失敗の仕方
     （相手にブロック・報告される）。
     """
+    config = with_monitored(config)
     build(config, store, log, sources=[_accounts_candidate("A1")]).run(dry_run=False)
     backdate(store, log, hours=1)   # 全体の間隔は越えたが、同一相手の3時間は未達
 
@@ -705,7 +724,8 @@ def test_a_monitored_account_post_found_on_the_timeline_counts_as_accounts(
     連結し、rank_candidates は先勝ちで重複排除するので、放っておくと
     source="timeline" になり要件2が静かに壊れる。
     """
-    found = [candidate(shortcode="P1", username="poco_insta_life")]
+    config = with_monitored(config)
+    found = [candidate(shortcode="P1", username=MONITORED)]
     assert found[0].source == "timeline"
 
     runner = EngageRunner(
@@ -916,7 +936,8 @@ def test_search_keywords_wrap_around(config, tmp_path):
 def test_search_without_state_still_works(config):
     from src.engage.sources.search import SearchSource
 
-    assert len(SearchSource(config, None)._todays_keywords()) == 2
+    assert (len(SearchSource(config, None)._todays_keywords())
+            == config.autoreply_section("sources")["search_per_run"])
 
 
 def test_search_candidates_are_tagged_with_their_source(config, store, log):

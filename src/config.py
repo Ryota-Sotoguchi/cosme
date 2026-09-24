@@ -255,6 +255,11 @@ class Config:
         return self.raw.get("engagement", {})
 
     @property
+    def account_path(self) -> Path:
+        """アカウント全体の指標（フォロワー数の推移）。insights が1日1行残す。"""
+        return self.data_dir / "account.jsonl"
+
+    @property
     def revenue_path(self) -> Path:
         """楽天アフィリエイトの日次実績。手で取り込む（公開APIが無い）。"""
         return self.data_dir / "revenue.jsonl"

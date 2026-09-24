@@ -42,6 +42,9 @@ OBFUSCATED_CLASS = re.compile(r"\.x[0-9a-z]{5,}")
 # 存在しないので、タイムラインで探して「無い」と言っても誤警報にしかならず、
 # 毎回赤くなる点検は誰も見なくなる。
 WHERE_FEED = "feed"    # タイムラインに常にある。**無ければ異常**
+# 投稿の詳細ページにある（タイムラインには無い）。返信の入り口がこれ。
+# 2026-09-24: Threads が返信アイコンをやめ、詳細ページ下部の入力欄になったので分けた。
+WHERE_POST = "post"
 WHERE_MODAL = "modal"  # 返信ダイアログを開くと現れる
 WHERE_RARE = "rare"    # 該当する投稿にだけ現れる。**無いのが正常**
 # 自分の投稿のメニューを開くと現れる。過去投稿の削除（scripts/cleanup_old_posts.py）だけが使う。
@@ -189,13 +192,17 @@ _METRICS = (
 # 返信を書く
 # ======================================================================
 _REPLY = (
-    _s("reply_button", css='svg[aria-label="返信"]',
-       fallbacks=('svg[aria-label="コメントする"]',),
-       note="2026-09-04 実測（ログイン後の投稿詳細ページで20個）。"
-            "**ログアウトで測ると「コメントする」になる。** 自動返信は"
-            "ログインして動くので「返信」が第一候補。svg を直接 click() して"
-            "コンポーザが開くことを実測で確認済み。",
-       measured=True, required=True),
+    _s("reply_button", css='[role="button"][aria-label="投稿ツールを拡大"]',
+       fallbacks=('svg[aria-label="返信"]', 'svg[aria-label="コメントする"]'),
+       note="**2026-09-24 に作り直した。** Threads が返信の入り口を変えた。"
+            "投稿詳細ページに返信アイコン（svg[aria-label=\"返信\"]）は無くなり（実測0個）、"
+            "ページ下部に返信の入力欄が直接置かれるようになった"
+            "（div[contenteditable][aria-placeholder=\"◯◯に返信…\"]）。"
+            "その入力欄の右にある「投稿ツールを拡大」を押すと、"
+            "**入力前でも** 従来どおりの返信ダイアログ（role=dialog aria-modal=true）が開き、"
+            "中に返信の入力欄と「投稿」ボタンが揃う。**この順なら返信の処理を変えずに済む。**"
+            "2026-09-11 以降に自動返信が1件も出せていなかったのは、これが引けなくなったため。",
+       measured=True, required=True, where=WHERE_POST),
 
     _s("reply_dialog", css='div[role="dialog"][aria-modal="true"]',
        fallbacks=('div[role="dialog"]',),

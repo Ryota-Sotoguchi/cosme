@@ -201,7 +201,10 @@ def test_high_performing_replies_are_offered_as_examples(config, store):
 
     llm = FakeLlm([GOOD])
     ReplyWriter(config, llm, store=store).write(CANDIDATE)
-    assert "反応が良かった返信" in llm.prompts[0]
+    # 手本の節は常に出る（2026-09-24 以降は手本が無ければ既定の見本を渡す）。
+    # ここで見たいのは «自分の実績が手本として入ったか»。
+    assert "文体の参考" in llm.prompts[0]
+    assert ANOTHER_GOOD in llm.prompts[0]
 
 
 # ======================================================================
@@ -234,6 +237,6 @@ def test_casual_past_replies_are_not_offered_as_style_examples(config, store):
     ReplyWriter(config, llm, store=store).write(CANDIDATE)
     # «似た言い回しを避ける» 一覧には出てよい（避けるための材料なので）。
     # 見るのは «文体の参考» の節だけ。
-    examples = llm.prompts[0].split("反応が良かった返信", 1)[1].split("書き方:", 1)[0]
+    examples = llm.prompts[0].split("文体の参考", 1)[1].split("書き方:", 1)[0]
     assert casual not in examples
     assert ANOTHER_GOOD in examples

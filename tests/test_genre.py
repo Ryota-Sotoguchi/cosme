@@ -33,6 +33,11 @@ ROOT = Path(__file__).resolve().parent.parent
 #                             下のハッシュはこの1行を足した後のもの）
 #   engage/review.py      … 「レビュー」「口コミ」の禁止を撤回
 #   engage/browser/selectors.py … 過去投稿の削除に使うセレクタの追加
+#   .github/workflows/post.yml … 発火時刻の前倒し（2026-09-24）。定期実行の遅れ（中央値268分）で
+#                           狙った時間帯に出ていなかったため。本数・処理は変えていない
+#   engage/llm.py         … CLI が exit!=0 のとき stdout も添えて理由を残す（2026-09-24）。
+#                           stderr だけだと «exit=1: » と空になり、自動返信が1件も返せない
+#                           原因が追えなかった。呼び出し方・判断の仕組みは変えていない
 # ======================================================================
 UNCHANGED_MECHANISM = {
     "src/pipeline.py": "cb553ce7c70b8d4e53f4b786479005916fbdf0e1",
@@ -49,13 +54,13 @@ UNCHANGED_MECHANISM = {
     "src/engage/verify.py": "89e53846389ec637efc14f3d89510fba38fe7a45",
     "src/engage/budget.py": "de178e77975cc4797019a16f0296b56973a09f88",
     "src/engage/store.py": "76d45d04d5578339fbbe6663f6ffa526c61199d0",
-    "src/engage/llm.py": "e82c4ee9906770160cc6b146c7b5d44149d54e69",
+    "src/engage/llm.py": "d07cffb7a73173297b5d8bd8c6373ae2d6a5c843",
     "src/engage/writer.py": "4e9bc5f1ffda406fb82a0a1ab95f141765993ae2",
     "src/engage/judge.py": "c15f85f84968199030203d7d609838cf0cb58d45",
     "src/engage/browser/session.py": "b44a56ad0dacc9d5faf1ec90805d74ebb5d0bebe",
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
-    ".github/workflows/post.yml": "eaa8a29e57d57bc2c8fec04b588663a7646b9a3e",
+    ".github/workflows/post.yml": "a3664614977ce39cea9134855927807fc6defbc8",
     ".github/workflows/research.yml": "3c9422f1e4e8d1d55636307d1d546b78059c630c",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
@@ -85,13 +90,19 @@ def test_every_workflow_is_guarded():
 
 
 def test_the_schedule_timing_is_unchanged(config):
-    """時刻・cron・本数は変えない。変えたのは noon のリンクの有無だけ。"""
+    """時刻と本数の見張り。
+
+    **2026-09-24 に発火時刻を前倒しした**（ジャンルの切り替えとは別の変更）。
+    GitHub Actions の遅れが実測で中央値268分あり、07:30〜22:30 に発火していた投稿が
+    実際には 09:26〜02:14 に出ていた。出したい時刻から遅れぶんを引いた時刻へ組み直した。
+    1日10本と枠の名前は変えていない。
+    """
     expected = {
-        "morning": ("07:30", "30 22 * * *"), "midmorning": ("09:30", "30 0 * * *"),
-        "latemorning": ("11:00", "0 2 * * *"), "noon": ("12:15", "15 3 * * *"),
-        "afternoon": ("14:30", "30 5 * * *"), "predinner": ("16:30", "30 7 * * *"),
-        "evening": ("18:00", "0 9 * * *"), "earlynight": ("19:00", "0 10 * * *"),
-        "night": ("20:30", "30 11 * * *"), "late": ("22:30", "30 13 * * *"),
+        "morning": ("05:30", "30 20 * * *"), "midmorning": ("06:30", "30 21 * * *"),
+        "latemorning": ("08:00", "0 23 * * *"), "noon": ("09:30", "30 0 * * *"),
+        "afternoon": ("11:00", "0 2 * * *"), "predinner": ("12:30", "30 3 * * *"),
+        "evening": ("15:00", "0 6 * * *"), "earlynight": ("16:00", "0 7 * * *"),
+        "night": ("17:00", "0 8 * * *"), "late": ("18:30", "30 9 * * *"),
     }
     actual = {s.slot: (s.time_jst, s.cron_utc) for s in config.schedule}
     assert actual == expected

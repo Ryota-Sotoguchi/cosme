@@ -21,12 +21,25 @@ from .benefits import (
     BENEFITS,
     CAREER_SUBJECTS,
     TIPS_HEADINGS,
+    Benefit,
     benefit_by_cursor,
     benefit_for,
     pitfall_line,
     tips_block,
 )
 from .voices import voice_sentence
+from .books import (
+    BOOK_CTA_PARTS,
+    BOOK_DISCLAIMERS,
+    BOOK_GENERIC_TIPS,
+    BOOK_RECOMMEND_CLOSINGS,
+    BOOK_RECOMMEND_OPENINGS,
+    BOOK_ROUNDUP_CLOSINGS,
+    BOOK_ROUNDUP_OPENINGS,
+    book_benefit_by_cursor,
+    book_benefit_for,
+    is_book,
+)
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -162,8 +175,9 @@ def _link_blocks(ctx: RenderContext, rendered: Rendered) -> list[Block]:
     """CTA + URL + 注記。URLは必須ブロック、注記は削れるブロック。"""
     if not ctx.affiliate_url:
         return []
-    cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
-    disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+    pools = _pools(ctx)
+    cta = ctx.pick("cta", pools.cta, **ctx.flags())
+    disclaimer = ctx.pick("disclaimer", pools.disclaimers, **ctx.flags())
     rendered.part_ids["cta"] = cta.id
     rendered.part_ids["disclaimer"] = disclaimer.id
     # URLは本文に書かない。link_attachment としてカード添付するので
@@ -221,7 +235,7 @@ def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
         # 楽天の商品名の末尾には検索用キーワードが羅列されていることが多く
         # （「…[ ヘアパック ヘアマスク 美髪 …]」）、そのまま判定すると
         # 別の剤形として誤判定する。販促文を落とした表示名で判定する。
-        benefit = benefit_for(ctx.item.display_name(60))
+        benefit = _pools(ctx).find_benefit(ctx.item.display_name(60))
 
     if benefit is None:
         # 剤形が判定できない商品（ブラシ・ポーチ）。
@@ -251,20 +265,92 @@ GENERIC_TIPS: tuple[str, ...] = (
 def _generic_tips(ctx: RenderContext, heading: str | None = None) -> str:
     """剤形に依存しない、買い方だけのノウハウ段。"""
     cursor = _variation_cursor(ctx)
+    tips = _pools(ctx).generic_tips
     # 見出しはベタ書きせず、剤形ありと同じプールから取る（benefits.py）
     title = heading if heading is not None else TIPS_HEADINGS[cursor % len(TIPS_HEADINGS)]
-    picked = [GENERIC_TIPS[(cursor + i) % len(GENERIC_TIPS)] for i in range(3)]
+    picked = [tips[(cursor + i) % len(tips)] for i in range(3)]
     lines = "\n".join(f"・{tip}" for tip in picked)
     return f"{title}\n\n{lines}"
+
+
+# ----------------------------------------------------------------------
+# 商品のカテゴリーで、文面のプールを切り替える
+#
+# 商品リンク投稿の文面は、化粧品（休止中）と本（2026-09-15 に再開）の2通り。
+# カテゴリーは config の [[selection.genres]] の label（facts.category_label）。
+# 組み立ての順番はどちらも同じで、使う言葉だけが違う。
+# ----------------------------------------------------------------------
+@dataclass(frozen=True)
+class ProductPools:
+    openings: tuple[Part, ...]            # リンクが付かないときの入り
+    recommend_openings: tuple[Part, ...]  # リンクが付くときの入り
+    closings: tuple[Part, ...]
+    recommend_closings: tuple[Part, ...]
+    cta: tuple[Part, ...]
+    disclaimers: tuple[Part, ...]
+    roundup_openings: dict[str, tuple[Part, ...]]
+    roundup_closings: tuple[Part, ...]
+    generic_tips: tuple[str, ...]
+    find_benefit: Callable[[str], Benefit | None]
+    fallback_benefit: Callable[[int], Benefit]
+    # 使った人の声（voices.py）。化粧品の使用感の語で数えているので、本には使わない。
+    # 本のレビューを化粧品の語で数えると「軽くて読みやすい」が「軽いつけ心地」になる。
+    uses_voices: bool
+
+
+COSME_POOLS = ProductPools(
+    openings=PRODUCT_OPENINGS,
+    recommend_openings=RECOMMEND_OPENINGS,
+    closings=PRODUCT_CLOSINGS,
+    recommend_closings=RECOMMEND_CLOSINGS,
+    cta=CTA_PARTS,
+    disclaimers=DISCLAIMERS,
+    roundup_openings=ROUNDUP_OPENINGS,
+    roundup_closings=ROUNDUP_CLOSINGS,
+    generic_tips=GENERIC_TIPS,
+    find_benefit=benefit_for,
+    fallback_benefit=benefit_by_cursor,
+    uses_voices=True,
+)
+
+# 本は、読んだことにも中身を知っていることにもしない（books.py）。
+# 入りと締めはリンクの有無で分けない。
+BOOK_POOLS = ProductPools(
+    openings=BOOK_RECOMMEND_OPENINGS,
+    recommend_openings=BOOK_RECOMMEND_OPENINGS,
+    closings=BOOK_RECOMMEND_CLOSINGS,
+    recommend_closings=BOOK_RECOMMEND_CLOSINGS,
+    cta=BOOK_CTA_PARTS,
+    disclaimers=BOOK_DISCLAIMERS,
+    roundup_openings=BOOK_ROUNDUP_OPENINGS,
+    roundup_closings=BOOK_ROUNDUP_CLOSINGS,
+    generic_tips=BOOK_GENERIC_TIPS,
+    find_benefit=book_benefit_for,
+    fallback_benefit=book_benefit_by_cursor,
+    uses_voices=False,
+)
+
+
+def _pools(ctx: RenderContext) -> ProductPools:
+    return BOOK_POOLS if is_book(ctx.category) else COSME_POOLS
+
+
+def _voices(ctx: RenderContext) -> tuple[str, ...]:
+    return ctx.voices if _pools(ctx).uses_voices else ()
+
+
+def _voice_counts(ctx: RenderContext) -> dict[str, int]:
+    return ctx.voice_counts if _pools(ctx).uses_voices else {}
 
 
 def _concern_stage(ctx: RenderContext) -> str:
     """所感・悩みの段。煽らない形にとどめる。"""
     benefit = None
+    pools = _pools(ctx)
     if ctx.items:
-        benefit = benefit_for(ctx.item.display_name(60))
+        benefit = pools.find_benefit(ctx.item.display_name(60))
     if benefit is None:
-        benefit = benefit_by_cursor(ctx.fact_style + 1)
+        benefit = pools.fallback_benefit(ctx.fact_style + 1)
     return benefit.concern
 
 
@@ -290,15 +376,16 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
     #
     # 悩み型だけに寄せると、結局また同じ形になる。
     # 16の訴求軸から、直近使ったものを避けて選ぶ（appeals.py）。
+    pools = _pools(ctx)
     if ctx.affiliate_url and ctx.items:
-        benefit = benefit_for(ctx.item.display_name(60))
+        benefit = pools.find_benefit(ctx.item.display_name(60))
         cursor = _variation_cursor(ctx)
         built = build_appeal(
             ctx.item, benefit, ctx.category,
             cursor=cursor,
             avoid=set(ctx.recent_appeals),
-            voices=ctx.voices,
-            voice_counts=ctx.voice_counts,
+            voices=_voices(ctx),
+            voice_counts=_voice_counts(ctx),
         )
         if built is not None:
             text, appeal_id, allowed = built
@@ -306,7 +393,7 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
             rendered.allowed_numbers |= allowed
             return text
 
-    pool = RECOMMEND_OPENINGS if ctx.affiliate_url else PRODUCT_OPENINGS
+    pool = pools.recommend_openings if ctx.affiliate_url else pools.openings
     group = "recommend_opening" if ctx.affiliate_url else "opening"
     part = ctx.pick(group, pool, **ctx.flags())
     rendered.part_ids[group] = part.id
@@ -315,7 +402,8 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
 
 def _lead_closing(ctx: RenderContext, rendered: Rendered) -> str:
     """締め。リンクがあるときは薦める温度感を保つ。"""
-    pool = RECOMMEND_CLOSINGS if ctx.affiliate_url else PRODUCT_CLOSINGS
+    pools = _pools(ctx)
+    pool = pools.recommend_closings if ctx.affiliate_url else pools.closings
     group = "recommend_closing" if ctx.affiliate_url else "closing"
     part = ctx.pick(group, pool, **ctx.flags())
     rendered.part_ids[group] = part.id
@@ -371,7 +459,7 @@ def _split_for_thread(
         rendered.blocks = [Block(text, 0) for text in body]
         return
 
-    cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
+    cta = ctx.pick("cta", _pools(ctx).cta, **ctx.flags())
     rendered.part_ids["cta"] = cta.id
 
     if ctx.link_position == LINK_FIRST:
@@ -441,10 +529,11 @@ def _render_link_first(
     # 「安い」「レビューが多い」より読み手の判断を助ける。
     #
     # 訴求文がすでに声を使っているときは重ねない（同じ語が二度出る）。
+    voices = _voices(ctx)
     voice = voice_sentence(
-        ctx.voices, cursor=_variation_cursor(ctx), counts=ctx.voice_counts
+        voices, cursor=_variation_cursor(ctx), counts=_voice_counts(ctx)
     )
-    if voice and any(word in lead for word in ctx.voices):
+    if voice and any(word in lead for word in voices):
         voice = ""
 
     rendered.blocks = [
@@ -526,9 +615,10 @@ def render_band_focus(ctx: RenderContext) -> Rendered:
 # ======================================================================
 def _roundup(ctx: RenderContext, kind: str) -> Rendered:
     r = Rendered(blocks=[])
-    pool = ROUNDUP_OPENINGS[kind]
+    pools = _pools(ctx)
+    pool = pools.roundup_openings[kind]
     opening = ctx.pick(f"roundup_{kind}", pool, **ctx.flags())
-    closing = ctx.pick("roundup_closing", ROUNDUP_CLOSINGS, **ctx.flags())
+    closing = ctx.pick("roundup_closing", pools.roundup_closings, **ctx.flags())
     r.part_ids.update({f"roundup_{kind}": opening.id, "roundup_closing": closing.id})
 
     prices = [i.item_price for i in ctx.items]
@@ -554,8 +644,8 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
     if ctx.affiliate_url:
         # 複数商品を並べているのにリンクは1つなので、どれのリンクかを明示する。
         r.allowed_numbers.add("1")
-        cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
-        disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+        cta = ctx.pick("cta", pools.cta, **ctx.flags())
+        disclaimer = ctx.pick("disclaimer", pools.disclaimers, **ctx.flags())
         r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
         note = "※リンクは1つ目のものです"
 
@@ -609,8 +699,9 @@ def render_longform(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     cursor = _variation_cursor(ctx)
 
-    opening = ctx.pick("roundup_price_band", ROUNDUP_OPENINGS["price_band"], **ctx.flags())
-    closing = ctx.pick("roundup_closing", ROUNDUP_CLOSINGS, **ctx.flags())
+    pools = _pools(ctx)
+    opening = ctx.pick("roundup_price_band", pools.roundup_openings["price_band"], **ctx.flags())
+    closing = ctx.pick("roundup_closing", pools.roundup_closings, **ctx.flags())
     r.part_ids.update({"roundup_price_band": opening.id, "roundup_closing": closing.id})
 
     prices = [i.item_price for i in ctx.items]
@@ -624,7 +715,7 @@ def render_longform(ctx: RenderContext) -> Rendered:
     )
 
     # 選ぶ観点。長い型なので、短い型より多めに出す。
-    benefit = benefit_for(ctx.item.display_name(60)) if ctx.items else None
+    benefit = pools.find_benefit(ctx.item.display_name(60)) if ctx.items else None
     if benefit is not None:
         tips = tips_block(benefit, cursor=cursor, count=5)
     else:
@@ -642,7 +733,7 @@ def render_longform(ctx: RenderContext) -> Rendered:
             lines.append(note)
         entries.append("\n".join(lines))
 
-    voice = voice_sentence(ctx.voices, cursor=cursor, counts=ctx.voice_counts)
+    voice = voice_sentence(_voices(ctx), cursor=cursor, counts=_voice_counts(ctx))
     future = benefit.future if benefit is not None else ""
 
     # 1行目で読み手を名指しする。おすすめ欄に流れてきた人は、
@@ -661,8 +752,8 @@ def render_longform(ctx: RenderContext) -> Rendered:
 
     if ctx.affiliate_url:
         r.allowed_numbers.add("1")
-        cta = ctx.pick("cta", CTA_PARTS, **ctx.flags())
-        disclaimer = ctx.pick("disclaimer", DISCLAIMERS, **ctx.flags())
+        cta = ctx.pick("cta", pools.cta, **ctx.flags())
+        disclaimer = ctx.pick("disclaimer", pools.disclaimers, **ctx.flags())
         r.part_ids.update({"cta": cta.id, "disclaimer": disclaimer.id})
         r.blocks.append(Block(f"※リンクは1つ目のものです\n{cta.text}", 1))
         r.blocks.append(Block(disclaimer.text, 2))
@@ -836,12 +927,23 @@ def render_site_link(ctx: RenderContext) -> Rendered:
 
     毎回このサイトに誘導すると怪しいので、頻度はローテーションで絞る。
     この型以外の投稿にはURLを出さない。
+
+    ## URLは1本目に置かない（2026-09-24）
+
+    本文にURLを入れた3本の表示は **1 / 7 / 0** だった。同じ日の他の投稿は
+    100〜600出ているので、本文のURLがほぼ確実に効いている。
+    一方コスメ時代の **リンクカード**（link_attachment）付き投稿は表示中央値230で、
+    リンクなしの153より高かった。**沈むのは本文のURLで、カードではない。**
+
+    そこで連投にして、1本目は本文だけ、URLは2本目（自分への返信）に置く。
+    1本目はタイムラインに乗り、押したい人は下の返信から行ける。
+    文末の 👇 は、そのまま下の返信を指す。
     """
     r = Rendered(blocks=[])
     post = ctx.pick("site_link", SITE_LINK_POSTS, **ctx.flags())
     r.part_ids["site_link"] = post.id
-    r.blocks.append(Block(post.text, 0))
-    r.blocks.append(Block(SITE_URL, 0))
+    r.segments = [post.text, SITE_URL]
+    r.blocks = [Block(seg, 0) for seg in r.segments]
     r.allowed_numbers |= set(F.extract_numbers(post.text))
     return r
 

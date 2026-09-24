@@ -15,6 +15,7 @@ from dataclasses import dataclass
 import pytest
 
 from src.content.persona import CONTRADICTIONS, FIRST_PERSON, TRAITS
+from src.compliance.rules import scan
 from src.engage import prompts
 from src.engage.review import MAX_LENGTH, SELF_PROMO, TEMPLATE_ONLY
 
@@ -237,3 +238,44 @@ def test_the_polite_examples_in_the_prompt_pass_the_machine_check():
         assert not impolite_fragment(text), text
     for text in bad:
         assert impolite_fragment(text), f"× の例が検査を通ってしまう: {text}"
+
+
+# ======================================================================
+# 文体の手本（2026-09-24 追加）
+#
+# 過去の返信がすべてコスメ時代のタメ口で «文体の参考» から全部外れ、
+# 手本ゼロで書かせた結果「AIらしさ」で落ち続けていた。
+# ======================================================================
+def test_the_seed_examples_are_usable_as_replies():
+    """手本自身が、返信として通る形であること。"""
+    from src.engage.prompts import SEED_EXAMPLES
+    from src.engage.review import MAX_LENGTH, impolite_fragment, review
+
+    assert len(SEED_EXAMPLES) >= 3
+    for text in SEED_EXAMPLES:
+        assert not impolite_fragment(text), f"タメ口が混ざっている: {text}"
+        assert not scan(text, has_link=False), text
+        assert len(text) <= MAX_LENGTH, f"{len(text)}字: {text}"
+        assert review(text, include_experience=True).ok, text
+
+
+def test_the_seed_examples_are_career_content():
+    """コスメの語が残っていないこと（ジャンルは転職・年収・キャリア）。"""
+    from src.engage.prompts import SEED_EXAMPLES
+
+    for text in SEED_EXAMPLES:
+        assert not [w for w in ("コスメ", "美容", "スキンケア", "肌", "化粧") if w in text], text
+
+
+def test_the_prompt_falls_back_to_the_seed_examples():
+    """手本が無いときも «文体の参考» を渡す。空のまま書かせない。"""
+    from src.engage.prompts import SEED_EXAMPLES, reply_prompt
+
+    prompt = reply_prompt(CANDIDATE, shape="共感", examples=[])
+    assert "文体の参考" in prompt
+    assert SEED_EXAMPLES[0][:20] in prompt
+
+    mine = ["求人票の年収の幅、下限のほうが実際に近いことが多いです"]
+    with_examples = reply_prompt(CANDIDATE, shape="共感", examples=mine)
+    assert mine[0] in with_examples
+    assert SEED_EXAMPLES[0][:20] not in with_examples

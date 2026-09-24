@@ -247,22 +247,25 @@ max_drift_minutes = 360
 
 [[schedule]]
 slot = "morning"
-time_jst = "07:30"
-cron_utc = "30 22 * * *"
+# 実際に出るのは 07:30 ごろ（GitHub Actions の遅れぶん）
+time_jst = "05:30"
+cron_utc = "30 20 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
 slot = "midmorning"
-time_jst = "09:30"
-cron_utc = "30 0 * * *"
+# 実際に出るのは 08:30 ごろ（GitHub Actions の遅れぶん）
+time_jst = "06:30"
+cron_utc = "30 21 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
 slot = "latemorning"
-time_jst = "11:00"
-cron_utc = "0 2 * * *"
+# 実際に出るのは 10:00 ごろ（GitHub Actions の遅れぶん）
+time_jst = "08:00"
+cron_utc = "0 23 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
@@ -270,8 +273,9 @@ allow_affiliate = false
 # 2026-09-14 から休止中で、中身はリンクなしの型（下の allow_affiliate を参照）。
 [[schedule]]
 slot = "noon"
-time_jst = "12:15"
-cron_utc = "15 3 * * *"
+# 実際に出るのは 14:00 ごろ（GitHub Actions の遅れぶん）
+time_jst = "09:30"
+cron_utc = "30 0 * * *"
 post_type = "rotation"
 # 2026-09-14: 発信ジャンルを「コスメ・美容」→「転職・年収・キャリア」へ変えたので、
 # 楽天（コスメ）のリンク投稿を止めた。時刻・cron・1日の本数は変えていない。
@@ -282,29 +286,33 @@ allow_affiliate = false
 # どちらもリンクなし。露出を増やすのが目的で、広告を増やすのが目的ではない。
 [[schedule]]
 slot = "afternoon"
-time_jst = "14:30"
-cron_utc = "30 5 * * *"
+# 実際に出るのは 16:00 ごろ（GitHub Actions の遅れぶん）
+time_jst = "11:00"
+cron_utc = "0 2 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
 slot = "predinner"
-time_jst = "16:30"
-cron_utc = "30 7 * * *"
+# 実際に出るのは 17:20 ごろ（GitHub Actions の遅れぶん）
+time_jst = "12:30"
+cron_utc = "30 3 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
 slot = "evening"
-time_jst = "18:00"
-cron_utc = "0 9 * * *"
+# 実際に出るのは 19:30 ごろ（GitHub Actions の遅れぶん）
+time_jst = "15:00"
+cron_utc = "0 6 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
 slot = "earlynight"
-time_jst = "19:00"
-cron_utc = "0 10 * * *"
+# 実際に出るのは 20:30 ごろ（GitHub Actions の遅れぶん）
+time_jst = "16:00"
+cron_utc = "0 7 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
@@ -320,19 +328,34 @@ allow_affiliate = false
 # [experiment] の A/B が終わったら戻してよい。
 [[schedule]]
 slot = "night"
-time_jst = "20:30"
-cron_utc = "30 11 * * *"
+# 実際に出るのは 21:30 ごろ（GitHub Actions の遅れぶん）
+time_jst = "17:00"
+cron_utc = "0 8 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 [[schedule]]
 slot = "late"
-time_jst = "22:30"
-cron_utc = "30 13 * * *"
+# 実際に出るのは 22:45 ごろ（GitHub Actions の遅れぶん）
+time_jst = "18:30"
+cron_utc = "30 9 * * *"
 post_type = "rotation"
 allow_affiliate = false
 
 # ローテーション順（state.json でカーソルを保持）
+#
+# **2026-09-24 に実績で組み替えた**（切り替え後9日・86投稿の実測）。
+#
+#   型            表示中央値   人の反応率
+#   thread_topic     198        0.15%
+#   question         161        0.33%
+#   casual            87        0.94%   ← 反応はいちばん取れる
+#   no_link           82        0.13%
+#   essay             22        0.00%   ← **枠から外した**
+#
+# essay（書ききる型）は6本出して表示中央値22・反応0。読まれていない。
+# テンプレート自体は残してあるので、在庫切れの逃がし先としては使われる。
+# 配分: question 22 / casual 20 / thread_topic 18 / no_link 7 / site_link 3（計70）
 #
 # casual       … ただのつぶやき。結論も落ちもない一行
 # question     … 短い問いかけ。返信はいちばん強い反応シグナルなので専用枠にした
@@ -381,7 +404,7 @@ morning = [
     "question",
     "thread_topic",
     "casual",
-    "essay",
+    "thread_topic",
     "question",
     "casual",
 ]
@@ -390,7 +413,7 @@ midmorning = [
     "casual",
     "no_link",
     "question",
-    "casual",
+    "thread_topic",
     "thread_topic",
     "question",
 ]
@@ -399,9 +422,9 @@ latemorning = [
     "thread_topic",
     "question",
     "casual",
-    "essay",
-    "casual",
+    "thread_topic",
     "question",
+    "casual",
 ]
 afternoon = [
     "question",
@@ -410,13 +433,13 @@ afternoon = [
     "thread_topic",
     "question",
     "no_link",
-    "casual",
+    "thread_topic",
 ]
 predinner = [
     "casual",
     "question",
     "no_link",
-    "casual",
+    "thread_topic",
     "thread_topic",
     "question",
     "casual",
@@ -426,9 +449,9 @@ evening = [
     "casual",
     "question",
     "casual",
-    "casual",
+    "no_link",
     "question",
-    "essay",
+    "casual",
 ]
 earlynight = [
     "casual",
@@ -451,18 +474,18 @@ noon = [
     "casual",
     "no_link",
     "question",
-    "essay",
+    "thread_topic",
     "casual",
 ]
 # night / late は 2026-09-03 にリンク許可を外したので、リンクなしの型で回す。
 night = [
     "question",
-    "essay",
-    "casual",
+    "thread_topic",
     "casual",
     "question",
-    "casual",
     "thread_topic",
+    "casual",
+    "question",
 ]
 late = [
     "no_link",
@@ -470,8 +493,8 @@ late = [
     "question",
     "thread_topic",
     "site_link",
-    "no_link",
     "question",
+    "thread_topic",
 ]
 
 # ------------------------------------------------------------
@@ -626,9 +649,13 @@ dwell_ms_max = 5000
 # タイムラインの中身はフォローで決まるので、目的（コスメの露出）に
 # 対しては検索のほうが素直に当たる。合計は max_per_day に収める。
 [autoreply.daily_quota]
-search = 3           # フォローに依存せず、発信ジャンル（転職・年収・キャリア）の会話へ直接入れる
+# 2026-09-24: search 3 → 5、accounts 2 → 0。
+# accounts は巡回先が副業・SNS運用のアカウント1件だけで、転職の会話ではなかった。
+# 枠を検索へ回す（合計は [engagement] max_per_day = 8 のまま変えない）。
+# 転職の話をしている相手が決まったら、[[autoreply.targets]] に足して枠を戻す。
+search = 5           # フォローに依存せず、発信ジャンル（転職・年収・キャリア）の会話へ直接入れる
 timeline = 3
-accounts = 2
+accounts = 0
 default = 1          # 収集元を足したときの暫定枠
 
 # 返す価値のある投稿の条件。ここはルールベースで、LLM を呼ぶ前に効かせる。
@@ -645,7 +672,13 @@ max_age_hours = 24
 # 反応がまったく無い投稿に返しても見られない。
 # **2026-09-07: 20 → 10。** 順位付けを反応数優先にしたので、
 # 少ない投稿は下に沈む。ここで硬く切る必要がなくなった。
-min_likes = 10
+#
+# **2026-09-24: 10 → 4。** 検索を「最近」の並びにしたら、取れるのは投稿直後の
+# 新しい投稿になり、いいねはまだ1〜5件しか付いていない。10 のままだと
+# 実測25件中16件がここで落ち、返信が1件も出せなかった。
+# いいねが3桁ある投稿は逆に1か月以上前のもので、古すぎるほうで落ちる。
+# どれを選ぶかは buzz の順位付けに任せ、ここは «反応ゼロ» を落とすだけにする。
+min_likes = 4
 # 伸びすぎた投稿は返信が埋もれる
 max_likes = 20000
 # 返信数がこの帯にある投稿を上に置く（逆U字）。
@@ -679,6 +712,14 @@ seen_ttl_days = 45
 # 2026-09-05 に13アカウントを実測してこう決めた:
 #   ・新しい投稿は反応がまだ付いていない（いいね2〜3）→ min_likes を外す
 #   ・反応の多い投稿は12時間を超えている（♥992 が18時間前）→ 24時間まで見る
+# 検索は「最近」の並びで引くので、拾えるのは投稿直後のものになる（実測で0〜4時間前）。
+# その時点のいいねは1〜5件しかなく、base の min_likes = 4 では
+# 2026-09-24 の実測で22件中20件がここで落ちた。
+# **どれに返すかは buzz の順位付けに任せ、ここは «反応ゼロ» を落とすだけにする。**
+# 伸びる前の投稿に早く入るほうが、コメント欄で埋もれない。
+[autoreply.filter.search]
+min_likes = 2
+
 [autoreply.filter.accounts]
 max_age_hours = 24
 min_likes = 0
@@ -764,7 +805,8 @@ search_keywords = [
     "面接", "職務経歴書", "退職", "キャリア",
     "未経験転職", "転職エージェント", "残業", "仕事辞めたい",
 ]
-search_per_run = 2
+# 2026-09-24: 2 → 3。「最近」の並びにしたぶん、1語あたりの当たりが薄くなったので語数で補う
+search_per_run = 3
 search_scrolls = 2
 timeline_scrolls = 6
 account_scrolls = 2
@@ -822,10 +864,14 @@ stages = [
 # 勧誘は引き続きルール段階で落ちる。
 # 実際にどれだけ通るかは --collect-only で見ながら調整すること。
 
-[[autoreply.targets]]
+# 2026-09-24: 下の巡回先を止めた。副業・SNS運用のアカウントで、転職の会話ではない。
+# 転職・年収の話を毎日していて返信欄が動いている相手が見つかったら、ここに足して
+# [autoreply.daily_quota] の accounts を戻すこと。
+#
+# [[autoreply.targets]]
 # 2026-09-05 実測: 最新投稿1時間前で、取得4件すべてが12時間以内だった。
 # このとき13件を登録して測ったが、24時間以内に投稿していたのは3件だけで、
 # 残り10件は44時間〜165日前。反応はいいね2〜3と少ないが、
 # **投稿頻度がある = 新しい投稿を拾える**のがこの相手を残した理由。
-username = "poco_insta_life"
-note = "投稿頻度が高く新着を拾える。2026-09-05 の実測で唯一まともに動いていた相手"
+# username = "poco_insta_life"
+# note = "投稿頻度が高く新着を拾える。2026-09-05 の実測で唯一まともに動いていた相手"

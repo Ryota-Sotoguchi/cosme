@@ -40,6 +40,7 @@ from typing import Callable
 from ..rakuten.models import RakutenItem
 from . import facts as F
 from .benefits import Benefit
+from .books import is_book
 
 
 @dataclass(frozen=True)
@@ -153,6 +154,15 @@ def _answer(c: AppealContext) -> str | None:
 # ======================================================================
 def _surprise(c: AppealContext) -> str | None:
     tip = c.tip()
+    if is_book(c.category):
+        # 本はほぼ定価なので、値段の高い安いは意外性にならない。
+        return c.pick((
+            f"{c.category}は、厚いほうが正解とは限らない",
+            f"{c.category}、実は見るべきなのは有名かどうかじゃない",
+            f"{c.category}は新しく出た本じゃなくていい。自分の状況に合うかどうか",
+            f"{c.category}で本当に差が出るのは「{tip}」のほう" if tip else
+            f"{c.category}、定番だけで選ぶ必要はないと思ってる",
+        ))
     return c.pick((
         f"高い{c.category}が正解とは限らない",
         f"{c.category}、実は見るべきなのは値段じゃない",
@@ -180,6 +190,9 @@ def _effort_saving(c: AppealContext) -> str | None:
 # 6. 得・コスパ
 # ======================================================================
 def _value(c: AppealContext) -> str | None:
+    # 本は定価で、どの店でもほぼ同じ値段。値段は選ぶ理由にならない（books.py）。
+    if is_book(c.category):
+        return None
     price = c.item.item_price
     if not price:
         return None
@@ -302,6 +315,13 @@ def _timing(c: AppealContext) -> str | None:
     tip = c.tip()
     if not tip:
         return None
+    if is_book(c.category):
+        # 「買い替える」「切らしてから」は消耗品の言い方。本には合わない。
+        return c.pick((
+            f"{c.category}、動き出す前に一回見てほしい。\n\n「{tip}」",
+            f"{c.category}は、必要になってから慌てて探すと選び方が雑になる",
+            f"いま{c.category}選ぶなら、見るのは「{tip}」",
+        ))
     return c.pick((
         f"{c.category}、買い替える前に一回見てほしい。\n\n「{tip}」",
         f"切らしてから探すと雑になる。{c.category}は先に決めておきたい",

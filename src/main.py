@@ -41,6 +41,7 @@ from .errors import (
 from .logging_setup import setup_logging
 from .pipeline import Pipeline
 from .rakuten.client import RakutenClient
+from .storage import account as account_metrics
 from .storage.history import History, PostRecord
 from .content.voices import load_voices
 from .storage.revenue import Revenue, RevenueDay
@@ -441,6 +442,12 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
         print("\n=== アカウント全体 ===")
         for key, value in account.items():
             print(f"  {key:16s} {value:,}")
+        # **残す。** 画面に出すだけだと、フォロワーが増えているのか
+        # 止まっているのかを後から確認できない（2026-09-24 の見直しで判明）。
+        account_metrics.record(config.account_path, account)
+        trend = account_metrics.growth(config.account_path)
+        if trend:
+            print(f"  {trend}")
 
     targets = [r for r in history.successful() if r.thread_post_id]
     own = state.get("threads_username") or ""
@@ -1517,6 +1524,9 @@ def _autoreply_selfcheck(config: Config, *, headed: bool = False) -> int:
                 url = f"https://www.threads.com{href.split('?')[0]}"
                 print(f"\n[2] 投稿詳細 → 返信欄（{url}）")
                 page = session.goto(url)
+                # 返信の入り口は詳細ページにある（タイムラインには無い）。
+                # 2026-09-24 に Threads が返信アイコンをやめたので、探す場所を分けた。
+                report |= actions.selector_report(page, where=selectors.WHERE_POST)
                 if actions.open_reply_composer(page):
                     report |= actions.selector_report(page, where=selectors.WHERE_MODAL)
                     actions.close_dialog(page)

@@ -185,13 +185,20 @@ def test_tips_block_without_reasons_is_unchanged():
 
 
 # ======================================================================
-def test_essay_is_in_the_link_free_rotation(config):
-    """リンクなしの枠に入っていること。9割の投稿はこちら側。"""
-    slots = [name for name, options in config.rotation.items() if "essay" in options]
-    assert len(slots) >= 3, f"書ききる型が {slots} にしか入っていない"
+def test_essay_is_no_longer_in_the_rotation_but_still_buildable(config):
+    """**2026-09-24 に枠から外した。**
 
-    affiliate = {s.slot for s in config.schedule if s.allow_affiliate}
-    assert not (set(slots) & affiliate), "リンクなしの型がリンク枠に入っている"
+    切り替え後9日の実測で、書ききる型は6本出して表示中央値22・人の反応0だった
+    （同じ期間の thread_topic は198、question は161）。読まれていない。
+
+    型そのものは消さない。在庫が尽きたときの逃がし先（_no_link_fallbacks）に残す。
+    """
+    slots = [name for name, options in config.rotation.items() if "essay" in options]
+    assert slots == [], f"枠に戻っている: {slots}"
+
+    from src.pipeline import Pipeline
+
+    assert "essay" in Pipeline._no_link_fallbacks("essay")
 
 
 def test_essay_needs_no_items():
