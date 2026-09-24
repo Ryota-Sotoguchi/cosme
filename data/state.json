@@ -394,7 +394,8 @@
       "q_remote_shuuchuu",
       "q_yameru_riyu",
       "q_tensyoku_kikkake",
-      "q_meeting"
+      "q_meeting",
+      "q_friday"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -556,14 +557,13 @@
     "late": 1,
     "latemorning": 3,
     "midmorning": 2,
-    "morning": 5,
+    "morning": 6,
     "night": 4,
     "noon": 3,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "essay",
     "topic",
@@ -582,7 +582,8 @@
     "casual",
     "casual",
     "question",
-    "topic"
+    "topic",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
