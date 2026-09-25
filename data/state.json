@@ -501,7 +501,8 @@
       "nl_mikeiken",
       "nl_market_value",
       "nl_shouki",
-      "nl_white_sign"
+      "nl_white_sign",
+      "nl_fukugyou_kisoku"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -561,12 +562,11 @@
     "midmorning": 3,
     "morning": 6,
     "night": 4,
-    "noon": 3,
+    "noon": 4,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "question",
     "question",
@@ -585,7 +585,8 @@
     "topic",
     "question",
     "topic",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
