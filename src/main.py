@@ -1257,6 +1257,9 @@ def cmd_autoreply(config: Config, args: argparse.Namespace) -> int:
     if args.history:
         return _autoreply_history(config)
 
+    if args.outcomes:
+        return _autoreply_outcomes(config, limit=args.limit or 10, headed=args.headed)
+
     if args.login:
         return _autoreply_login(config)
 
@@ -1594,6 +1597,48 @@ def _autoreply_history(config: Config) -> int:
     return EXIT_OK
 
 
+def _autoreply_outcomes(config: Config, *, limit: int = 10, headed: bool = False) -> int:
+    """出した返信に、どれだけ反応が付いたかを測って書き戻す。
+
+    **投稿はしない。** 相手の投稿を開いて、自分の返信の行を読むだけ。
+    これが無いと「反応が良かった返信を手本にする」仕組みが空のまま回る
+    （2026-09-24 まで、呼ぶ場所がどこにも無かった）。
+    """
+    from .engage import outcomes as outcome_reader
+    from .engage.browser.session import ThreadsSession
+    from .engage.store import EngageStore
+    from .storage.state import State
+
+    own = State(config.state_path).get("threads_username") or ""
+    if not own:
+        print("自分のユーザー名が state.json にありません（insights か replies を一度動かしてください）")
+        return EXIT_CONFIG
+
+    with EngageStore(config.engage_db_path) as store:
+        pending = store.pending_outcomes()
+        if not pending:
+            print("測る返信はありません（出した直後のものは20時間おいてから見ます）")
+            return EXIT_OK
+
+        print(f"\n=== 返信の成果を測ります（{len(pending)}件のうち最大{limit}件）===\n")
+        try:
+            with ThreadsSession(config, headless=not headed) as session:
+                session.require_login()
+                done = outcome_reader.measure(session, store, own_username=own, limit=limit)
+        except ImportError:
+            print(_PLAYWRIGHT_HINT)
+            return EXIT_CONFIG
+        except AuthError as exc:
+            print(f"❌ {exc}")
+            return EXIT_CONFIG
+
+    for item in done:
+        print(f"  @{item.username:20} ♥{item.likes:>3} 💬{item.replies:>3}")
+    missed = min(len(pending), limit) - len(done)
+    print(f"\n  測れた: {len(done)}件" + (f" / 見つからなかった: {missed}件" if missed else ""))
+    return EXIT_OK
+
+
 def _autoreply_llm_check(config: Config) -> int:
     """claude CLI の疎通を確かめる。"""
     from .engage.llm import build_client
@@ -1771,6 +1816,8 @@ def build_parser() -> argparse.ArgumentParser:
                         help="claude CLI の疎通を確かめる")
     p_auto.add_argument("--collect-only", action="store_true",
                         help="収集と順位付けだけ（LLM を呼ばない）")
+    p_auto.add_argument("--outcomes", action="store_true",
+                        help="出した返信に付いた反応を測って記録する（投稿はしない）")
     p_auto.add_argument("--history", action="store_true",
                         help="これまでの自動返信を表示する")
     p_auto.add_argument("--explain", metavar="SHORTCODE",

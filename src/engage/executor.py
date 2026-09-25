@@ -126,17 +126,26 @@ class BrowserReplyExecutor:
         actions.resolve(page, "reply_submit", required=True).click()
 
     def _confirm(self, session: Any, page: Any, text: str,
-                 *, timeout_s: float = 60.0) -> tuple[bool, str]:
+                 *, timeout_s: float = 90.0) -> tuple[bool, str]:
         """返信がページに現れたか見る。**クリックしただけで成功にしない。**
 
         **現れるまで待つ。** 固定待ちだと、実際には投稿できているのに
         «確認できなかった» になる（2026-09-07 に発生。返信は実在したのに
         confirmed=0 で記録された）。着弾を取り違えると、成果を測る先
         （our_reply_url）も残らない。
+
+        ## 下まで送ってから見る（2026-09-24 追加）
+
+        返信は投稿の**下**に描かれ、開いた直後の画面には入っていない。
+        2026-09-24 の3件は**すべて実際には返信が付いていた**のに、
+        再読み込みして待つだけでは2件が «確認できなかった» になっていた。
+        再読み込みのあとはスクロールしながら探す。
         """
         needle = normalize(text)[:30]
         if not needle:
             return False, ""
+        # 長い返信が「もっと見る」で省略されても拾えるよう、短いほうも見る。
+        short = needle[:16]
 
         session.dwell(page)
         deadline = time.monotonic() + timeout_s
@@ -148,7 +157,7 @@ class BrowserReplyExecutor:
                 logger.debug("ページを読めません: %s", exc)
                 body = ""
 
-            if needle in body:
+            if needle in body or short in body:
                 return True, self._find_our_reply_url(page, text)
 
             if not reloaded:
@@ -158,6 +167,12 @@ class BrowserReplyExecutor:
                 except Exception as exc:  # noqa: BLE001
                     logger.debug("再読み込みできません: %s", exc)
                 reloaded = True
+            else:
+                # 返信は下にある。画面に入るまで送る。
+                try:
+                    page.mouse.wheel(0, 1500)
+                except Exception as exc:  # noqa: BLE001
+                    logger.debug("スクロールできません: %s", exc)
             page.wait_for_timeout(5000)
 
         logger.warning("返信の着弾を %.0f 秒待ちましたが確認できませんでした", timeout_s)

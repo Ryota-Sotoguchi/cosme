@@ -247,11 +247,25 @@ def test_pending_outcomes_waits_for_the_delay(store):
     assert [r.shortcode for r in store.pending_outcomes(older_than_hours=24)] == ["ABC123"]
 
 
-def test_pending_outcomes_skips_replies_without_a_url(store):
-    """着弾を確認できなかった返信は開く先が無い。"""
+def test_pending_outcomes_includes_replies_without_a_url(store):
+    """**着弾を確認できなかった返信も測る対象にする**（2026-09-24 に変更）。
+
+    自分の返信の permalink は着弾確認が取れたときしか残らないが、
+    相手の投稿（permalink）を開けば自分の返信は見つかる。
+    2026-09-24 に出した3件はすべて実在したのに2件は url が残っておらず、
+    以前の条件では成果測定から丸ごとこぼれていた。
+    """
     store.record_reply(shortcode="NOURL", username="a", reply_text="返信")
     _backdate(store, "NOURL", hours=25)
-    assert store.pending_outcomes(older_than_hours=24) == []
+    assert [r.shortcode for r in store.pending_outcomes(older_than_hours=24)] == ["NOURL"]
+
+
+def test_the_reply_url_can_be_filled_in_later(store):
+    """あとから見つけた自分の返信の permalink を埋められること。"""
+    reply_id = store.record_reply(shortcode="LATER", username="a", reply_text="返信")
+    store.set_reply_url(reply_id, "https://www.threads.com/@me/post/RPL")
+    row = next(r for r in store.recent_replies(limit=5) if r.shortcode == "LATER")
+    assert row.our_reply_url == "https://www.threads.com/@me/post/RPL"
 
 
 def test_pending_outcomes_skips_already_fetched(store):

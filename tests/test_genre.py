@@ -35,6 +35,11 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/browser/selectors.py … 過去投稿の削除に使うセレクタの追加
 #   .github/workflows/post.yml … 発火時刻の前倒し（2026-09-24）。定期実行の遅れ（中央値268分）で
 #                           狙った時間帯に出ていなかったため。本数・処理は変えていない
+#   engage/store.py       … 成果待ちの返信を our_reply_url 無しでも返す + permalink の後埋め
+#                           （2026-09-24）。着弾確認に失敗した返信が成果測定から漏れていた
+#   engage/executor.py    … 着弾確認で下までスクロールする（2026-09-24）。返信は投稿の下に
+#                           描かれるので、再読み込みだけでは見つからず、実際に付いた返信3件中2件を
+#                           «確認できなかった» と記録していた。送信・再送しない方針は変えていない
 #   engage/llm.py         … CLI が exit!=0 のとき stdout も添えて理由を残す（2026-09-24）。
 #                           stderr だけだと «exit=1: » と空になり、自動返信が1件も返せない
 #                           原因が追えなかった。呼び出し方・判断の仕組みは変えていない
@@ -50,10 +55,10 @@ UNCHANGED_MECHANISM = {
     "src/storage/state.py": "f3236916c3f92eaa1bfb2871bf2fcb77c7abc0f1",
     "src/storage/revenue.py": "d31c43d11822d4dbc8a9825ab8f07009d1167ed2",
     "src/engage/runner.py": "c8fb5d95696e44fbe19a8b2e8fc6466bb78dc723",
-    "src/engage/executor.py": "bf1b9ee3184bd8648f71e56fdad1b7b0a9d98ac0",
+    "src/engage/executor.py": "96bc6834d7ef98ac8d3309650ce921f0e64a9ea6",
     "src/engage/verify.py": "89e53846389ec637efc14f3d89510fba38fe7a45",
     "src/engage/budget.py": "de178e77975cc4797019a16f0296b56973a09f88",
-    "src/engage/store.py": "76d45d04d5578339fbbe6663f6ffa526c61199d0",
+    "src/engage/store.py": "279cdb1d1d0331810342eee523d4f1da693d1841",
     "src/engage/llm.py": "d07cffb7a73173297b5d8bd8c6373ae2d6a5c843",
     "src/engage/writer.py": "4e9bc5f1ffda406fb82a0a1ab95f141765993ae2",
     "src/engage/judge.py": "c15f85f84968199030203d7d609838cf0cb58d45",

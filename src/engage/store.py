@@ -393,19 +393,33 @@ class EngageStore:
     # 成果（24時間後に埋める）
     # ------------------------------------------------------------------
     def pending_outcomes(self, *, older_than_hours: int = 24) -> list[ReplyRow]:
-        """まだ成果を取っていない返信。"""
+        """まだ成果を取っていない返信。
+
+        **our_reply_url が空でも返す（2026-09-24）。** 着弾確認に失敗した返信でも、
+        相手の投稿（permalink）を開けば自分の返信は見つかる。実際 2026-09-24 の3件は
+        すべて実在したのに2件は url が残っておらず、この条件で全部こぼれていた。
+        """
         cutoff = (
             datetime.now(JST) - timedelta(hours=older_than_hours)
         ).isoformat(timespec="seconds")
         rows = self._conn.execute(
             """
             SELECT * FROM threads_replies
-            WHERE outcome_fetched_at IS NULL AND replied_at < ? AND our_reply_url != ''
+            WHERE outcome_fetched_at IS NULL AND replied_at < ?
             ORDER BY id
             """,
             (cutoff,),
         )
         return [self._to_reply(row) for row in rows]
+
+    def set_reply_url(self, reply_id: int, url: str) -> None:
+        """あとから見つけた自分の返信の permalink を埋める。"""
+        if not url:
+            return
+        with self._conn:
+            self._conn.execute(
+                "UPDATE threads_replies SET our_reply_url = ? WHERE id = ?", (url, reply_id)
+            )
 
     def update_outcome(self, reply_id: int, *, likes: int, replies: int) -> None:
         """返信がどれだけ読まれたかを書き戻す。
