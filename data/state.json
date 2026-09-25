@@ -123,7 +123,8 @@
       "cm_tomodachi",
       "cm_toshi",
       "cm_gogo",
-      "cm_online_mtg"
+      "cm_online_mtg",
+      "cm_rencyuu_mae"
     ],
     "casual_brand": [
       "brand",
@@ -558,7 +559,7 @@
     "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 1,
-    "evening": 6,
+    "evening": 0,
     "late": 1,
     "latemorning": 4,
     "midmorning": 3,
@@ -569,7 +570,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "topic_thread",
@@ -588,7 +588,8 @@
     "casual",
     "topic",
     "site_link",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
