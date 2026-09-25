@@ -122,7 +122,8 @@
       "cm_saiyou",
       "cm_tomodachi",
       "cm_toshi",
-      "cm_gogo"
+      "cm_gogo",
+      "cm_online_mtg"
     ],
     "casual_brand": [
       "brand",
@@ -556,7 +557,7 @@
     "earlynight": 1,
     "evening": 6,
     "late": 1,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
     "night": 4,
@@ -565,7 +566,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "topic",
     "casual",
     "question",
@@ -584,7 +584,8 @@
     "question",
     "topic",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
