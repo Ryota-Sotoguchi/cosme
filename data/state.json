@@ -398,7 +398,8 @@
       "q_tensyoku_kikkake",
       "q_meeting",
       "q_friday",
-      "q_yameta_ato"
+      "q_yameta_ato",
+      "q_first_salary"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -558,7 +559,7 @@
   "rotation_cursor": {
     "afternoon": 3,
     "autoreply_shape": 3,
-    "earlynight": 1,
+    "earlynight": 2,
     "evening": 0,
     "late": 1,
     "latemorning": 4,
@@ -570,7 +571,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "question",
@@ -589,7 +589,8 @@
     "topic",
     "site_link",
     "question",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
