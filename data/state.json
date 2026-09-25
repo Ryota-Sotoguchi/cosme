@@ -396,7 +396,8 @@
       "q_yameru_riyu",
       "q_tensyoku_kikkake",
       "q_meeting",
-      "q_friday"
+      "q_friday",
+      "q_yameta_ato"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -564,11 +565,10 @@
     "morning": 6,
     "night": 4,
     "noon": 4,
-    "predinner": 5,
+    "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "casual",
     "question",
@@ -587,7 +587,8 @@
     "topic",
     "casual",
     "topic",
-    "site_link"
+    "site_link",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
