@@ -559,11 +559,12 @@
       "tt_kyougyou",
       "tt_tensyoku_kaisuu",
       "tt_hanbouki",
-      "tt_yowami"
+      "tt_yowami",
+      "tt_shibou_juni"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 3,
+    "afternoon": 4,
     "autoreply_shape": 3,
     "earlynight": 2,
     "evening": 0,
@@ -577,7 +578,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "essay",
     "casual",
     "casual",
     "casual",
@@ -596,7 +596,8 @@
     "casual",
     "question",
     "topic_thread",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
