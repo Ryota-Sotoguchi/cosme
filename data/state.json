@@ -126,7 +126,8 @@
       "cm_online_mtg",
       "cm_rencyuu_mae",
       "cm_hanko",
-      "cm_kyuujitsu"
+      "cm_kyuujitsu",
+      "cm_getsumatsu"
     ],
     "casual_brand": [
       "brand",
@@ -574,11 +575,10 @@
     "morning": 0,
     "night": 5,
     "noon": 5,
-    "predinner": 6,
+    "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "question",
@@ -597,7 +597,8 @@
     "question",
     "topic_thread",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
