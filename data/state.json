@@ -401,7 +401,8 @@
       "q_meeting",
       "q_friday",
       "q_yameta_ato",
-      "q_first_salary"
+      "q_first_salary",
+      "q_bonus"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -566,7 +567,7 @@
     "evening": 0,
     "late": 2,
     "latemorning": 4,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 5,
     "noon": 4,
@@ -574,7 +575,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "question",
     "essay",
@@ -593,7 +593,8 @@
     "question",
     "topic_thread",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
