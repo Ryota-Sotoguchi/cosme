@@ -557,7 +557,8 @@
       "tt_saishuu",
       "tt_kyougyou",
       "tt_tensyoku_kaisuu",
-      "tt_hanbouki"
+      "tt_hanbouki",
+      "tt_yowami"
     ]
   },
   "rotation_cursor": {
@@ -566,7 +567,7 @@
     "earlynight": 2,
     "evening": 0,
     "late": 2,
-    "latemorning": 4,
+    "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
     "night": 5,
@@ -575,7 +576,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "essay",
     "casual",
@@ -594,7 +594,8 @@
     "topic_thread",
     "casual",
     "casual",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
