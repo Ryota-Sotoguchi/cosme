@@ -577,7 +577,8 @@
       "tt_fukugyou_chikai",
       "tt_shanai_ido",
       "tt_naitei_jitai",
-      "tt_seichou_kankyou"
+      "tt_seichou_kankyou",
+      "tt_warukuchi"
     ]
   },
   "rotation_cursor": {
@@ -587,7 +588,7 @@
     "evening": 2,
     "late": 4,
     "latemorning": 6,
-    "midmorning": 5,
+    "midmorning": 6,
     "morning": 2,
     "night": 0,
     "noon": 6,
@@ -595,7 +596,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "question",
     "topic_thread",
@@ -614,7 +614,8 @@
     "site_link",
     "question",
     "topic_thread",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
