@@ -407,7 +407,8 @@
       "q_first_salary",
       "q_bonus",
       "q_joushi_hitokoto",
-      "q_shikaku"
+      "q_shikaku",
+      "q_taishoku_tsutaeru"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -576,7 +577,7 @@
     "earlynight": 3,
     "evening": 1,
     "late": 3,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
     "night": 6,
@@ -585,7 +586,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic",
     "site_link",
     "question",
@@ -604,7 +604,8 @@
     "casual",
     "question",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
