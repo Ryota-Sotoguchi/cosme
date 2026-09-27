@@ -130,7 +130,8 @@
       "cm_getsumatsu",
       "cm_tanin",
       "cm_kyuuryou_zenjitsu",
-      "cm_nemui"
+      "cm_nemui",
+      "cm_second_job"
     ],
     "casual_brand": [
       "brand",
@@ -579,7 +580,7 @@
     "afternoon": 5,
     "autoreply_shape": 3,
     "earlynight": 3,
-    "evening": 1,
+    "evening": 2,
     "late": 3,
     "latemorning": 6,
     "midmorning": 5,
@@ -590,7 +591,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "casual",
@@ -609,6 +609,7 @@
     "question",
     "topic_thread",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
