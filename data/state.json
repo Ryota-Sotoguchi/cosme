@@ -412,7 +412,8 @@
       "q_shikaku",
       "q_taishoku_tsutaeru",
       "q_yuukyu",
-      "q_shigoto_tanoshii"
+      "q_shigoto_tanoshii",
+      "q_nenshu_or_yarigai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -587,14 +588,13 @@
     "late": 4,
     "latemorning": 6,
     "midmorning": 5,
-    "morning": 1,
+    "morning": 2,
     "night": 0,
     "noon": 6,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "question",
@@ -613,7 +613,8 @@
     "casual",
     "site_link",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
