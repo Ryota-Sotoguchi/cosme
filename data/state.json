@@ -408,7 +408,8 @@
       "q_bonus",
       "q_joushi_hitokoto",
       "q_shikaku",
-      "q_taishoku_tsutaeru"
+      "q_taishoku_tsutaeru",
+      "q_yuukyu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -574,7 +575,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 4,
+    "afternoon": 5,
     "autoreply_shape": 3,
     "earlynight": 3,
     "evening": 1,
@@ -588,7 +589,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "question",
     "casual",
     "question",
@@ -607,7 +607,8 @@
     "casual",
     "topic_thread",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
