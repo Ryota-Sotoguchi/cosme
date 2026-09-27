@@ -129,7 +129,8 @@
       "cm_kyuujitsu",
       "cm_getsumatsu",
       "cm_tanin",
-      "cm_kyuuryou_zenjitsu"
+      "cm_kyuuryou_zenjitsu",
+      "cm_nemui"
     ],
     "casual_brand": [
       "brand",
@@ -585,11 +586,10 @@
     "morning": 1,
     "night": 6,
     "noon": 6,
-    "predinner": 0,
+    "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "topic_thread",
@@ -608,7 +608,8 @@
     "topic_thread",
     "question",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-19T20:32:04.889938+00:00",
