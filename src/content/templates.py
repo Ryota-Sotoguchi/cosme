@@ -335,6 +335,28 @@ def _pools(ctx: RenderContext) -> ProductPools:
     return BOOK_POOLS if is_book(ctx.category) else COSME_POOLS
 
 
+def _item_name(ctx: RenderContext, item: RakutenItem, max_length: int) -> str:
+    """本文に載せる商品名。
+
+    化粧品は容量・入数を落とす（リンク投稿に数値を出さない方針）。
+    **本は落とさない（2026-09-28）。** 書名の一部が消えてしまう
+    （実測: 「大量に覚えて絶対忘れない「紙1枚」勉強法」→「紙 」勉強法）。
+    """
+    if is_book(ctx.category):
+        return item.display_name(max_length)
+    return item.display_name_without_volume(max_length)
+
+
+def _mentions_postage(ctx: RenderContext) -> bool:
+    """送料の話をしてよいか。
+
+    **本では触れない（2026-09-28）。** 楽天ブックスは常に送料無料なので、
+    毎回「送料無料」と書いても差がつかず、同じ行が並ぶだけになる
+    （実測: 2冊を並べた投稿で2行とも「送料もかからないの、うれしい🤍」になった）。
+    """
+    return not is_book(ctx.category)
+
+
 def _voices(ctx: RenderContext) -> tuple[str, ...]:
     return ctx.voices if _pools(ctx).uses_voices else ()
 
@@ -350,6 +372,11 @@ def _concern_stage(ctx: RenderContext) -> str:
     if ctx.items:
         benefit = pools.find_benefit(ctx.item.display_name(60))
     if benefit is None:
+        if is_book(ctx.category):
+            # **書名から種類が分からない本に、別の種類の話をくっつけない**（2026-09-28）。
+            # 実測で、コミュニケーションの本に「面接の本は、答えの例を丸暗記すると…」が付いた。
+            # 剤形のときと同じ失敗（メイクブラシに «体を洗うものなので» が付いた）。
+            return ""
         benefit = pools.fallback_benefit(ctx.fact_style + 1)
     return benefit.concern
 
@@ -468,7 +495,7 @@ def _split_for_thread(
 
     # 最後の1本。押す理由はCTAだけなので、注記で埋もれさせない。
     # 容量・入数の数値も出さない方針なので、名前から落とす
-    final = f"{ctx.item.display_name_without_volume(38)}\n\n{cta.text}\n\n{PR_TAG}"
+    final = f"{_item_name(ctx, ctx.item, 38)}\n\n{cta.text}\n\n{PR_TAG}"
 
     rendered.segments = [*body, final]
     rendered.blocks = [Block(seg, 0) for seg in rendered.segments]
@@ -511,14 +538,16 @@ def _render_link_first(
 
     if stages <= 1:
         # short 型。数値は1つだけにして、いちばん短い形を保つ。
-        fact_text, allowed = F.sentence_facts(ctx.item, _variation_cursor(ctx))
+        fact_text, allowed = F.sentence_facts(ctx.item, _variation_cursor(ctx),
+                                              mention_postage=_mentions_postage(ctx))
         rendered.allowed_numbers |= allowed
-        item_block = f"{ctx.item.display_name_without_volume(38)}\n{fact_text}"
+        item_block = f"{_item_name(ctx, ctx.item, 38)}\n{fact_text}"
         middle = ""
     else:
-        facts = F.build_facts(ctx.item, style=_variation_cursor(ctx))
+        facts = F.build_facts(ctx.item, style=_variation_cursor(ctx),
+                              mention_postage=_mentions_postage(ctx))
         rendered.allowed_numbers |= facts.allowed_numbers
-        item_block = "\n".join([ctx.item.display_name_without_volume(38), *facts.lines])
+        item_block = "\n".join([_item_name(ctx, ctx.item, 38), *facts.lines])
         # checklist のような長い型だけ、選び方の段も1本に残す。
         middle = body[1] if stages >= 3 else ""
 
@@ -634,7 +663,8 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
 
     lines: list[str] = []
     for item in ctx.items:
-        inline, allowed = F.sentence_facts(item, ctx.fact_style + len(lines))
+        inline, allowed = F.sentence_facts(item, ctx.fact_style + len(lines),
+                                           mention_postage=_mentions_postage(ctx))
         r.allowed_numbers |= allowed
         lines.append(f"{item.display_name(26)}\n{inline}")
     r.blocks.append(Block("\n\n".join(lines), 0))
@@ -726,9 +756,10 @@ def render_longform(ctx: RenderContext) -> Rendered:
     notes = F.comparative_notes(ctx.items)
     entries: list[str] = []
     for index, (item, note) in enumerate(zip(ctx.items, notes)):
-        facts = F.build_facts(item, bullet="", style=cursor + index)
+        facts = F.build_facts(item, bullet="", style=cursor + index,
+                              mention_postage=_mentions_postage(ctx))
         r.allowed_numbers |= facts.allowed_numbers
-        lines = [item.display_name_without_volume(30), "／".join(facts.lines)]
+        lines = [_item_name(ctx, item, 30), "／".join(facts.lines)]
         if note:
             lines.append(note)
         entries.append("\n".join(lines))

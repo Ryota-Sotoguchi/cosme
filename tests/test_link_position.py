@@ -256,7 +256,10 @@ def test_the_only_affiliate_slot_can_reach_the_roundups(config):
     # 「レビュー」という語そのものだったので廃止した（CLAUDE.md §4-2）。
     # 722表示は型の名前ではなく «3件並べる形» の成果で、
     # postage_free が同じ形で575表示を出している。
-    roundups = {"price_band", "postage_free", "comparison"} & set(options)
+    # longform も3冊を並べる型。2026-09-28 に本へ切り替えたとき、
+    # price_band（本は定価）と postage_free（楽天ブックスは送料無料）は
+    # 切り口にならないので外し、その枠を longform に置き換えた。
+    roundups = {"price_band", "postage_free", "comparison", "longform"} & set(options)
     assert len(roundups) >= 2, (
         f"まとめ形式がリンク枠から外れている: {options}"
     )

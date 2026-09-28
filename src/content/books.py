@@ -24,7 +24,7 @@ from .benefits import Benefit
 from .parts import Part
 
 # config の [[selection.genres]] の label と一致させる。
-BOOK_CATEGORIES: frozenset[str] = frozenset({"転職本", "資格本"})
+BOOK_CATEGORIES: frozenset[str] = frozenset({"転職本", "資格本", "働き方の本"})
 
 
 def is_book(category: str) -> bool:

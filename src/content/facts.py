@@ -158,7 +158,8 @@ class FactSet:
             self.allowed_numbers.add(normalize_number(str(token)))
 
 
-def build_facts(item: RakutenItem, *, bullet: str = "・", style: int = 0) -> FactSet:
+def build_facts(item: RakutenItem, *, bullet: str = "・", style: int = 0,
+                mention_postage: bool = True) -> FactSet:
     """商品から事実行を作る。取得できた項目だけを並べる。
 
     箇条書き記号は控えめにする。記号を並べると「Botの表」に見えて、
@@ -201,7 +202,9 @@ def build_facts(item: RakutenItem, *, bullet: str = "・", style: int = 0) -> Fa
     # 行を分けると4行の箇条書きになり、人のメモではなく仕様表に見える。
     # どちらも短いので、並べても読みにくくならない。
     extras: list[str] = []
-    if item.is_postage_free:
+    # **本では送料に触れない**（2026-09-28）。楽天ブックスは常に送料無料なので、
+    # 毎回「送料無料」と書くと同じ行が並ぶだけで、選ぶ材料にならない。
+    if item.is_postage_free and mention_postage:
         extras.append("送料無料")
     if item.point_rate is not None and item.point_rate > 1:
         # ポイント倍率はもともと粗い整数で、人もそのまま口にする数字。
@@ -214,7 +217,8 @@ def build_facts(item: RakutenItem, *, bullet: str = "・", style: int = 0) -> Fa
     return facts
 
 
-def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
+def sentence_facts(item: RakutenItem, style: int = 0,
+                   *, mention_postage: bool = True) -> tuple[str, set[str]]:
     """事実を一言で置く。
 
     **数値は1つだけ。** 価格・レビュー件数・平均を並べると表になってしまい、
@@ -230,7 +234,7 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
 
     price, price_allowed = approx_price(item.item_price, style)
     allowed |= price_allowed
-    free = bool(item.is_postage_free)
+    free = bool(item.is_postage_free) and mention_postage
     count = item.review_count if (item.review_count or 0) > 0 else None
     average = item.review_average if count is not None else None
 
@@ -257,7 +261,8 @@ def sentence_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
     return variants[style % len(variants)], allowed
 
 
-def inline_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
+def inline_facts(item: RakutenItem, style: int = 0,
+                 *, mention_postage: bool = True) -> tuple[str, set[str]]:
     """短文型で使う、1〜2文にまとめた事実表現。
 
     ここもおおよそにする。桁をそのまま並べると値札の転記になる。
@@ -279,7 +284,7 @@ def inline_facts(item: RakutenItem, style: int = 0) -> tuple[str, set[str]]:
                 chunks.append(average_text)
             allowed.add(normalize_number(format_review_average(item.review_average)))
 
-    if item.is_postage_free:
+    if item.is_postage_free and mention_postage:
         chunks.append("送料無料")
 
     if item.point_rate is not None and item.point_rate > 1:
@@ -308,6 +313,7 @@ TOPIC_TAGS: dict[str, tuple[str, ...]] = {
     # 2026-09-15 に再開した本の商品リンク投稿（books.py）。
     "転職本": ("転職", "キャリア", "読書"),
     "資格本": ("資格", "資格勉強", "キャリア"),
+    "働き方の本": ("働き方", "仕事", "キャリア"),
     # **商品の無い投稿（質問・話題・連投・エッセイ）はこのキーを引く。**
     # builder が商品なしのとき category を "コスメ" として渡すため、キー名はそのまま。
     # 2026-09-14 に発信ジャンルを転職・年収・キャリアへ変えたので、中身だけ替えた。

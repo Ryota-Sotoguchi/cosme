@@ -130,18 +130,34 @@ def _cosme_hits(text: str) -> list[str]:
     return [w for w in COSME_WORDS if w in text]
 
 
-def test_no_slot_posts_affiliate_links(config):
-    """**リンク投稿（楽天・コスメ）は休止中。**
+def test_the_only_affiliate_slot_is_noon(config):
+    """**リンク投稿は1日1本（noon）だけ。**
 
-    発信ジャンルと合わないアフィリエイトを混ぜない（2026-09-14 決定）。
-    再開するときは、このテストごと見直すこと。
+    2026-09-14 にコスメのリンク投稿を止め、2026-09-28 に本（転職・資格）で再開した。
+    1本に絞っているのは、楽天の日次クリック数を投稿に割り当てられるようにするため
+    （レポートは日次までしか出ない）。
     """
-    assert [s.slot for s in config.schedule if s.allow_affiliate] == []
+    assert [s.slot for s in config.schedule if s.allow_affiliate] == ["noon"]
 
 
-def test_no_rotation_contains_a_product_type(config):
+def test_the_affiliate_slot_sells_books_not_cosmetics(config):
+    """**発信ジャンルと合わないアフィリエイトを混ぜない**（2026-09-14 決定）。
+
+    コスメのジャンルIDが戻っていたら、それは混ざっているということ。
+    """
+    from src.content.books import BOOK_CATEGORIES
+
+    labels = {genre["label"] for genre in config.genres}
+    assert labels and labels <= BOOK_CATEGORIES, f"本以外のジャンルがある: {labels}"
+
+
+def test_product_types_stay_in_the_affiliate_slot(config):
+    """商品の型はリンク枠にだけ置く。リンクなしの枠に混ざらないこと。"""
+    affiliate = {s.slot for s in config.schedule if s.allow_affiliate}
     for slot, options in config.rotation.items():
-        assert not (set(options) & PRODUCT_TYPES), f"{slot} に商品投稿の型が残っている: {options}"
+        if slot in affiliate:
+            continue
+        assert not (set(options) & PRODUCT_TYPES), f"{slot} に商品投稿の型がある: {options}"
 
 
 def test_every_slot_still_has_seven_options(config):
