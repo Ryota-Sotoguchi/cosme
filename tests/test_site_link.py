@@ -129,7 +129,8 @@ def test_the_url_is_not_in_the_first_post(tmp_path):
     """URLは2本目（自分への返信）に置く。
 
     本文にURLを入れた3本の表示は 1 / 7 / 0 だった（2026-09-24 の実測）。
-    同じ日の他の投稿は100〜600出ている。タイムラインに乗る1本目にURLを置かない。
+    **ただしURLの無い投稿も沈む日があり、原因がURLだとは確かめられていない。**
+    ここで固定しているのは «タイムラインに出る1本目を汚さない» という方針のほう。
     """
     draft = _site_draft(tmp_path)
     assert len(draft.segments) == 2, draft.segments
