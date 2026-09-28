@@ -975,7 +975,14 @@ def render_site_link(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     post = ctx.pick("site_link", SITE_LINK_POSTS, **ctx.flags())
     r.part_ids["site_link"] = post.id
-    r.segments = [post.text, SITE_URL]
+    # **広告表示は1本目に置く（2026-09-28）。**
+    # サイトに A8.net の広告（UZUZ・doda）が入ったので、この投稿は広告への導線になった。
+    # タイムラインに出るのは1本目なので、「広告と判別できる表示が、その投稿を見た人に
+    # 見えること」を満たすのはここ。config の [compliance] own_site_needs_pr = true と対。
+    #
+    # **条件分岐にしない。** 分けるには builder が config を持つ必要があり、
+    # 仕組み側を広げることになる。サイトから広告を外したときだけ、ここも戻す。
+    r.segments = [f"{post.text}\n\n{PR_TAG}", SITE_URL]
     r.blocks = [Block(seg, 0) for seg in r.segments]
     r.allowed_numbers |= set(F.extract_numbers(post.text))
     return r

@@ -61,9 +61,13 @@ def test_the_template_url_is_the_one_allowed_in_config(config):
     assert "business-3hy.pages.dev" in config.compliance["allowed_url_hosts"]
 
 
-def test_the_site_is_not_marked_as_an_ad_while_it_has_no_ads(config):
-    """いまのサイトは広告もアフィリエイトも無い。広告を載せたらここと config を見直す。"""
-    assert config.compliance["own_site_needs_pr"] is False
+def test_the_site_is_marked_as_an_ad_because_it_carries_ads(config):
+    """**2026-09-28 にサイトへ A8.net の広告（UZUZ・doda）が入った。**
+
+    うちの site_link 投稿はその広告面への導線なので、投稿にも #PR が要る。
+    サイトから広告を外したら、ここと config と render_site_link を一緒に戻す。
+    """
+    assert config.compliance["own_site_needs_pr"] is True
 
 
 # ======================================================================
@@ -122,7 +126,18 @@ def test_the_site_link_post_carries_the_site_and_nothing_else(tmp_path):
     assert not draft.link_attachment
     # 商品を持たないので、楽天のリンク枠にも「アフィリエイトリンクあり」にも数えない
     assert not draft.has_affiliate_link
-    assert PR_TAG not in draft.text
+
+
+def test_the_ad_mark_is_on_the_post_people_see(tmp_path):
+    """**広告表示はタイムラインに出る1本目に置く。**
+
+    サイトに広告が入った（2026-09-28）ので、この投稿は広告への導線になった。
+    景表法が求めるのは «その投稿を見た人に広告と分かること» なので、
+    2本目（URLだけの返信）ではなく1本目の最後に置く。
+    """
+    draft = _site_draft(tmp_path)
+    assert draft.segments[0].rstrip().endswith(PR_TAG), draft.segments[0]
+    assert draft.text.count(PR_TAG) == 1
 
 
 def test_the_url_is_not_in_the_first_post(tmp_path):
@@ -223,9 +238,15 @@ def test_only_the_exact_site_url_is_allowed(config, tmp_path, url):
     assert any(v.category == "url" for v in result.violations), result.summary()
 
 
+def _without_pr(draft):
+    """広告表示を外した版。**検査側が本当に要求しているか**を見るために使う。"""
+    segments = [seg.replace(PR_TAG, "").rstrip() for seg in draft.segments]
+    return dataclasses.replace(draft, text="\n\n".join(segments), segments=segments)
+
+
 def test_marking_the_site_as_an_ad_requires_the_pr_tag(config, tmp_path):
-    """サイトに広告を載せて own_site_needs_pr = true にしたら、#PR 無しは落ちること。"""
-    draft = _site_draft(tmp_path)
+    """own_site_needs_pr = true のとき、#PR 無しは落ちること。"""
+    draft = _without_pr(_site_draft(tmp_path))
     result = _checker(config, own_site_needs_pr=True).check(draft, recent_texts=[])
     assert not result.passed
     assert any(v.category == "pr" for v in result.violations), result.summary()
@@ -234,7 +255,7 @@ def test_marking_the_site_as_an_ad_requires_the_pr_tag(config, tmp_path):
 def test_without_the_setting_the_site_is_treated_as_an_ad(config, tmp_path):
     """設定を書いていない config では #PR を要求する側に倒す（判定がゆるむ方向に変えない）。"""
     compliance = {k: v for k, v in config.compliance.items() if k != "own_site_needs_pr"}
-    draft = _site_draft(tmp_path)
+    draft = _without_pr(_site_draft(tmp_path))
     result = ComplianceChecker(compliance, config.dedup, max_length=500).check(draft, recent_texts=[])
     assert not result.passed
 

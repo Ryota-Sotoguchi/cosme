@@ -596,11 +596,14 @@ pr_marker_position = "end"
 pr_marker_max_offset = 20
 allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp", "business-3hy.pages.dev"]
 # 自分のサイト「年収相場チェッカー」（2026-09-14 追加）。本文に置いてよいURL。**完全一致だけ**。
-# 厚労省「令和6年賃金構造基本統計調査」を出典つきで使う、広告なしの非営利ツール。
+# 厚労省の賃金構造基本統計調査を出典つきで使うツール。
 # 投稿型 site_link だけが載せる（ローテーションで週3回前後）。src/content/parts.py の SITE_URL と一致させる。
 own_site_urls = ["https://business-3hy.pages.dev/"]
-# サイトに広告・アフィリエイトを載せたら true にする（投稿に #PR が要るようになる）。
-own_site_needs_pr = false
+# **2026-09-28: false → true。サイトに A8.net の広告（UZUZ・doda）が入った。**
+# 実際に https://business-3hy.pages.dev/ を取得して px.a8.net のタグを確認済み。
+# うちの site_link 投稿はその広告面への導線になるので、投稿にも #PR が要る
+# （景表法のステマ規制。サイト側でも「広告」表記を必ず同時に出している）。
+own_site_needs_pr = true
 # 1投稿あたりのURL上限
 max_urls = 1
 # 生成をやり直す最大回数
