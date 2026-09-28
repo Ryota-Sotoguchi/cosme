@@ -131,7 +131,8 @@
       "cm_tanin",
       "cm_kyuuryou_zenjitsu",
       "cm_nemui",
-      "cm_second_job"
+      "cm_second_job",
+      "cm_senpai"
     ],
     "casual_brand": [
       "brand",
@@ -587,7 +588,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 4,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
     "night": 0,
@@ -596,7 +597,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "topic_thread",
     "casual",
@@ -615,7 +615,8 @@
     "question",
     "topic_thread",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
