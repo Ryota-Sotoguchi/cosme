@@ -133,7 +133,8 @@
       "cm_nemui",
       "cm_second_job",
       "cm_senpai",
-      "cm_welcome"
+      "cm_welcome",
+      "cm_shigoto_yume"
     ],
     "casual_brand": [
       "brand",
@@ -599,14 +600,13 @@
     "late": 4,
     "latemorning": 1,
     "midmorning": 0,
-    "morning": 3,
+    "morning": 4,
     "night": 0,
     "noon": 1,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "question",
@@ -625,7 +625,8 @@
     "question",
     "casual",
     "checklist",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
