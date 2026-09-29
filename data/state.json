@@ -132,7 +132,8 @@
       "cm_kyuuryou_zenjitsu",
       "cm_nemui",
       "cm_second_job",
-      "cm_senpai"
+      "cm_senpai",
+      "cm_welcome"
     ],
     "casual_brand": [
       "brand",
@@ -592,7 +593,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 4,
-    "latemorning": 0,
+    "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
     "night": 0,
@@ -601,7 +602,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "topic_thread",
     "casual",
     "question",
@@ -620,7 +620,8 @@
     "casual",
     "band_focus",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
