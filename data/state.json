@@ -529,7 +529,8 @@
       "nl_market_value",
       "nl_shouki",
       "nl_white_sign",
-      "nl_fukugyou_kisoku"
+      "nl_fukugyou_kisoku",
+      "nl_offer"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -591,7 +592,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 5,
+    "afternoon": 6,
     "autoreply_shape": 3,
     "earlynight": 4,
     "evening": 2,
@@ -605,7 +606,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "topic_thread",
@@ -624,7 +624,8 @@
     "topic_thread",
     "question",
     "casual",
-    "checklist"
+    "checklist",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
