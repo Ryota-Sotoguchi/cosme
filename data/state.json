@@ -243,7 +243,8 @@
       "cta_detail",
       "cta_now",
       "cta_size",
-      "bcta_compare"
+      "bcta_compare",
+      "bcta_now"
     ],
     "disclaimer": [
       "dc_point",
@@ -426,14 +427,16 @@
       "rl_candidate",
       "rl_start",
       "rl_basis",
-      "rl_fit"
+      "rl_fit",
+      "bc_check"
     ],
     "recommend_opening": [
       "ro_forwho",
       "ro_decide",
       "ro_notprice",
       "ro_notmany",
-      "bo_nottrend"
+      "bo_nottrend",
+      "bo_criteria"
     ],
     "roundup_closing": [
       "rc_undecided",
@@ -597,12 +600,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 0,
-    "noon": 0,
+    "noon": 1,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "question",
     "casual",
@@ -621,7 +623,8 @@
     "band_focus",
     "topic_thread",
     "question",
-    "casual"
+    "casual",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
