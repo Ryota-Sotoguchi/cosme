@@ -135,7 +135,8 @@
       "cm_senpai",
       "cm_welcome",
       "cm_shigoto_yume",
-      "cm_market_value"
+      "cm_market_value",
+      "cm_heiwa"
     ],
     "casual_brand": [
       "brand",
@@ -599,11 +600,15 @@
       "tt_jiku_mittsu",
       "tt_nenshu_moru",
       "tt_yametai_sankagetsu",
-      "tt_rireki_shashin"
+      "tt_rireki_shashin",
+      "tt_yaritakunai",
+      "tt_scout_mendan",
+      "tt_nenshu_down",
+      "tt_kyougyou"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 6,
+    "afternoon": 0,
     "autoreply_shape": 3,
     "earlynight": 4,
     "evening": 2,
@@ -617,7 +622,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "casual",
@@ -636,7 +640,8 @@
     "casual",
     "question",
     "casual",
-    "longform"
+    "longform",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
