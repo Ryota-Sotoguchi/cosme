@@ -136,7 +136,8 @@
       "cm_welcome",
       "cm_shigoto_yume",
       "cm_market_value",
-      "cm_heiwa"
+      "cm_heiwa",
+      "cm_morning_mail"
     ],
     "casual_brand": [
       "brand",
@@ -604,7 +605,11 @@
       "tt_yaritakunai",
       "tt_scout_mendan",
       "tt_nenshu_down",
-      "tt_kyougyou"
+      "tt_kyougyou",
+      "tt_referral",
+      "tt_teitaijin",
+      "tt_tensyoku_kaisuu",
+      "tt_saishuu"
     ]
   },
   "rotation_cursor": {
@@ -615,14 +620,13 @@
     "late": 4,
     "latemorning": 2,
     "midmorning": 1,
-    "morning": 4,
+    "morning": 5,
     "night": 0,
     "noon": 2,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "casual",
     "site_link",
@@ -641,6 +645,7 @@
     "question",
     "casual",
     "longform",
+    "casual",
     "casual"
   ],
   "threads_token": {
