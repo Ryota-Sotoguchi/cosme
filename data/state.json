@@ -426,7 +426,9 @@
       "q_shigoto_tanoshii",
       "q_nenshu_or_yarigai",
       "q_30_500",
-      "q_agent_kazu"
+      "q_agent_kazu",
+      "q_kyuujin_mitemiru",
+      "q_zangyou_genkai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -619,7 +621,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 4,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 2,
     "morning": 5,
     "night": 0,
@@ -628,7 +630,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "question",
     "topic_thread",
@@ -647,7 +648,8 @@
     "longform",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
