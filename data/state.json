@@ -137,7 +137,8 @@
       "cm_shigoto_yume",
       "cm_market_value",
       "cm_heiwa",
-      "cm_morning_mail"
+      "cm_morning_mail",
+      "cm_naitei"
     ],
     "casual_brand": [
       "brand",
@@ -619,7 +620,7 @@
     "evening": 2,
     "late": 4,
     "latemorning": 2,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 5,
     "night": 0,
     "noon": 2,
@@ -627,7 +628,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "site_link",
     "question",
@@ -645,6 +645,7 @@
     "question",
     "casual",
     "longform",
+    "casual",
     "casual",
     "casual"
   ],
