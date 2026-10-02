@@ -138,7 +138,8 @@
       "cm_market_value",
       "cm_heiwa",
       "cm_morning_mail",
-      "cm_naitei"
+      "cm_naitei",
+      "cm_shukkin"
     ],
     "casual_brand": [
       "brand",
@@ -625,7 +626,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 4,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
     "night": 0,
@@ -634,7 +635,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "casual",
     "band_focus",
@@ -653,7 +653,8 @@
     "question",
     "band_focus",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
