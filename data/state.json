@@ -433,7 +433,8 @@
       "q_agent_kazu",
       "q_kyuujin_mitemiru",
       "q_zangyou_genkai",
-      "q_kaisha_kimete"
+      "q_kaisha_kimete",
+      "q_tedori"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -625,7 +626,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 4,
     "evening": 2,
@@ -639,7 +640,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "band_focus",
     "topic_thread",
     "question",
@@ -658,7 +658,8 @@
     "question",
     "topic",
     "casual",
-    "comparison"
+    "comparison",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
