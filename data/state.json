@@ -139,7 +139,8 @@
       "cm_heiwa",
       "cm_morning_mail",
       "cm_naitei",
-      "cm_shukkin"
+      "cm_shukkin",
+      "cm_commute"
     ],
     "casual_brand": [
       "brand",
@@ -633,14 +634,13 @@
     "late": 4,
     "latemorning": 4,
     "midmorning": 3,
-    "morning": 6,
+    "morning": 0,
     "night": 0,
     "noon": 4,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "band_focus",
     "topic_thread",
     "question",
     "casual",
@@ -659,7 +659,8 @@
     "topic",
     "casual",
     "comparison",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
