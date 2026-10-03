@@ -505,7 +505,8 @@
       "site_kyuujinhyou",
       "site_touroku_nashi",
       "site_kouteki",
-      "site_kibou_nenshu"
+      "site_kibou_nenshu",
+      "site_mikeiken"
     ],
     "thread_bridge": [
       "br_found"
@@ -644,7 +645,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
-    "late": 4,
+    "late": 5,
     "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
@@ -654,7 +655,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "longform",
     "casual",
     "casual",
     "casual",
@@ -673,7 +673,8 @@
     "question",
     "question",
     "question",
-    "casual"
+    "casual",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
