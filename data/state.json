@@ -438,7 +438,8 @@
       "q_zangyou_genkai",
       "q_kaisha_kimete",
       "q_tedori",
-      "q_senpai"
+      "q_senpai",
+      "q_nenshu_kijun"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -642,11 +643,10 @@
     "morning": 0,
     "night": 0,
     "noon": 5,
-    "predinner": 1,
+    "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "question",
     "casual",
@@ -665,7 +665,8 @@
     "question",
     "topic_thread",
     "band_focus",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
