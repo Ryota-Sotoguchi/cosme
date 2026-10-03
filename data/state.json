@@ -142,7 +142,8 @@
       "cm_shukkin",
       "cm_commute",
       "cm_setsumei",
-      "cm_hitokoto"
+      "cm_hitokoto",
+      "cm_menkyo"
     ],
     "casual_brand": [
       "brand",
@@ -648,14 +649,13 @@
     "late": 5,
     "latemorning": 5,
     "midmorning": 4,
-    "morning": 0,
+    "morning": 1,
     "night": 1,
     "noon": 5,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "question",
@@ -674,7 +674,8 @@
     "question",
     "question",
     "casual",
-    "site_link"
+    "site_link",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
