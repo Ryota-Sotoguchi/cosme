@@ -440,7 +440,8 @@
       "q_tedori",
       "q_senpai",
       "q_nenshu_kijun",
-      "q_seichou"
+      "q_seichou",
+      "q_tenkin"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -636,7 +637,7 @@
   "rotation_cursor": {
     "afternoon": 2,
     "autoreply_shape": 3,
-    "earlynight": 4,
+    "earlynight": 5,
     "evening": 3,
     "late": 4,
     "latemorning": 5,
@@ -648,7 +649,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "longform",
     "casual",
@@ -666,6 +666,7 @@
     "topic_thread",
     "band_focus",
     "casual",
+    "question",
     "question",
     "question"
   ],
