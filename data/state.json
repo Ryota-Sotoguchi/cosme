@@ -435,7 +435,8 @@
       "q_kyuujin_mitemiru",
       "q_zangyou_genkai",
       "q_kaisha_kimete",
-      "q_tedori"
+      "q_tedori",
+      "q_senpai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -633,7 +634,7 @@
     "evening": 2,
     "late": 4,
     "latemorning": 4,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 0,
     "noon": 4,
@@ -641,7 +642,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "checklist",
@@ -660,7 +660,8 @@
     "casual",
     "comparison",
     "question",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
