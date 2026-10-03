@@ -140,7 +140,8 @@
       "cm_morning_mail",
       "cm_naitei",
       "cm_shukkin",
-      "cm_commute"
+      "cm_commute",
+      "cm_setsumei"
     ],
     "casual_brand": [
       "brand",
@@ -631,7 +632,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 1,
+    "afternoon": 2,
     "autoreply_shape": 3,
     "earlynight": 4,
     "evening": 2,
@@ -645,7 +646,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "checklist",
     "topic",
     "casual",
     "question",
@@ -664,7 +664,8 @@
     "casual",
     "question",
     "topic_thread",
-    "band_focus"
+    "band_focus",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
