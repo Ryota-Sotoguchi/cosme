@@ -143,7 +143,8 @@
       "cm_commute",
       "cm_setsumei",
       "cm_hitokoto",
-      "cm_menkyo"
+      "cm_menkyo",
+      "cm_kigen"
     ],
     "casual_brand": [
       "brand",
@@ -638,7 +639,11 @@
       "tt_teitaijin",
       "tt_tensyoku_kaisuu",
       "tt_saishuu",
-      "tt_sankagetsu"
+      "tt_sankagetsu",
+      "tt_hanbouki",
+      "tt_hikitsugi_mijikai",
+      "tt_shibou_juni",
+      "tt_yowami"
     ]
   },
   "rotation_cursor": {
@@ -648,7 +653,7 @@
     "evening": 3,
     "late": 5,
     "latemorning": 5,
-    "midmorning": 4,
+    "midmorning": 5,
     "morning": 1,
     "night": 1,
     "noon": 5,
@@ -656,7 +661,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "band_focus",
@@ -675,6 +679,7 @@
     "question",
     "casual",
     "site_link",
+    "casual",
     "casual"
   ],
   "threads_token": {
