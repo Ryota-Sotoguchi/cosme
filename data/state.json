@@ -624,7 +624,8 @@
       "tt_referral",
       "tt_teitaijin",
       "tt_tensyoku_kaisuu",
-      "tt_saishuu"
+      "tt_saishuu",
+      "tt_sankagetsu"
     ]
   },
   "rotation_cursor": {
@@ -633,7 +634,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 4,
-    "latemorning": 4,
+    "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
     "night": 0,
@@ -642,7 +643,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "checklist",
     "topic",
@@ -661,7 +661,8 @@
     "comparison",
     "question",
     "casual",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
