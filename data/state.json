@@ -455,7 +455,8 @@
       "q_nenshu_or_zangyou",
       "q_mensetsu_shitsumon",
       "q_kuchikomi",
-      "q_shokumukeirekisho"
+      "q_shokumukeirekisho",
+      "q_tensyoku_kaisuu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -664,7 +665,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
-    "late": 5,
+    "late": 6,
     "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
@@ -674,7 +675,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "comparison",
     "question",
@@ -693,7 +693,8 @@
     "casual",
     "longform",
     "site_link",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-11-26T21:05:46.106576+00:00",
