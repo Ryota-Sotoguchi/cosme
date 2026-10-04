@@ -144,7 +144,8 @@
       "cm_setsumei",
       "cm_hitokoto",
       "cm_menkyo",
-      "cm_kigen"
+      "cm_kigen",
+      "cm_interviewer"
     ],
     "casual_brand": [
       "brand",
@@ -448,7 +449,11 @@
       "q_first_tensyoku_age",
       "q_fukurikousei",
       "q_shikaku_benkyou",
-      "q_teinen"
+      "q_teinen",
+      "q_nenshu_or_zangyou",
+      "q_mensetsu_shitsumon",
+      "q_kuchikomi",
+      "q_shokumukeirekisho"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -652,7 +657,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 5,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
     "night": 1,
@@ -661,7 +666,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "band_focus",
     "question",
@@ -679,6 +683,7 @@
     "question",
     "casual",
     "site_link",
+    "casual",
     "casual",
     "casual"
   ],
