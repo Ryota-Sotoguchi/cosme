@@ -146,7 +146,8 @@
       "cm_menkyo",
       "cm_kigen",
       "cm_interviewer",
-      "cm_payday"
+      "cm_payday",
+      "cm_first_job"
     ],
     "casual_brand": [
       "brand",
@@ -672,7 +673,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 6,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
     "night": 2,
@@ -681,7 +682,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "topic_thread",
@@ -700,7 +700,8 @@
     "topic_thread",
     "question",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
