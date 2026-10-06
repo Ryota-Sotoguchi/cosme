@@ -463,7 +463,8 @@
       "q_shukkin",
       "q_monday",
       "q_shigoto_yume",
-      "q_40_tensyoku"
+      "q_40_tensyoku",
+      "q_teiji"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -677,7 +678,7 @@
     "evening": 3,
     "late": 6,
     "latemorning": 0,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 3,
     "night": 2,
     "noon": 0,
@@ -685,7 +686,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "band_focus",
     "casual",
     "question",
@@ -704,7 +704,8 @@
     "topic_thread",
     "casual",
     "band_focus",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
