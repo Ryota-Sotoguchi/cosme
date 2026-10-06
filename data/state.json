@@ -148,7 +148,8 @@
       "cm_interviewer",
       "cm_payday",
       "cm_first_job",
-      "cm_short_getsu"
+      "cm_short_getsu",
+      "cm_senior"
     ],
     "casual_brand": [
       "brand",
@@ -680,14 +681,13 @@
     "late": 6,
     "latemorning": 1,
     "midmorning": 0,
-    "morning": 3,
+    "morning": 4,
     "night": 2,
     "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "question",
@@ -706,6 +706,7 @@
     "band_focus",
     "topic_thread",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
