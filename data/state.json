@@ -266,7 +266,8 @@
       "bcta_decide",
       "bcta_detail",
       "bcta_price",
-      "bcta_now"
+      "bcta_now",
+      "bcta_look"
     ],
     "disclaimer": [
       "dc_point",
@@ -477,7 +478,8 @@
       "rl_start",
       "rl_basis",
       "rl_fit",
-      "bc_check"
+      "bc_check",
+      "bc_keep"
     ],
     "recommend_opening": [
       "ro_forwho",
@@ -488,7 +490,8 @@
       "bo_criteria",
       "bo_before",
       "bo_note",
-      "bo_nofail"
+      "bo_nofail",
+      "bo_notprice"
     ],
     "roundup_closing": [
       "rc_undecided",
@@ -687,12 +690,11 @@
     "midmorning": 1,
     "morning": 4,
     "night": 2,
-    "noon": 0,
+    "noon": 1,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "site_link",
     "casual",
@@ -711,7 +713,8 @@
     "casual",
     "casual",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "checklist"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
