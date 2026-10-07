@@ -671,7 +671,10 @@
       "tt_kanrishoku_kotowaru",
       "tt_jiku_mittsu",
       "tt_nenshu_moru",
-      "tt_yametai_sankagetsu"
+      "tt_yametai_sankagetsu",
+      "tt_warukuchi",
+      "tt_fukugyou_chikai",
+      "tt_shanai_ido"
     ]
   },
   "rotation_cursor": {
@@ -680,7 +683,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 6,
-    "latemorning": 1,
+    "latemorning": 2,
     "midmorning": 1,
     "morning": 4,
     "night": 2,
@@ -689,7 +692,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "casual",
     "site_link",
@@ -708,7 +710,8 @@
     "question",
     "casual",
     "casual",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
