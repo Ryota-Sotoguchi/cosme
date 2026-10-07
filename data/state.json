@@ -466,7 +466,8 @@
       "q_monday",
       "q_shigoto_yume",
       "q_40_tensyoku",
-      "q_teiji"
+      "q_teiji",
+      "q_skill"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -680,7 +681,7 @@
     "evening": 3,
     "late": 6,
     "latemorning": 1,
-    "midmorning": 0,
+    "midmorning": 1,
     "morning": 4,
     "night": 2,
     "noon": 0,
@@ -688,7 +689,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "question",
     "casual",
@@ -707,7 +707,8 @@
     "topic_thread",
     "question",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
