@@ -149,7 +149,8 @@
       "cm_payday",
       "cm_first_job",
       "cm_short_getsu",
-      "cm_senior"
+      "cm_senior",
+      "cm_nenshu_hanashi"
     ],
     "casual_brand": [
       "brand",
@@ -677,7 +678,11 @@
       "tt_yametai_sankagetsu",
       "tt_warukuchi",
       "tt_fukugyou_chikai",
-      "tt_shanai_ido"
+      "tt_shanai_ido",
+      "tt_naitei_jitai",
+      "tt_seichou_kankyou",
+      "tt_rireki_shashin",
+      "tt_yaritakunai"
     ]
   },
   "rotation_cursor": {
@@ -688,14 +693,13 @@
     "late": 6,
     "latemorning": 2,
     "midmorning": 1,
-    "morning": 4,
+    "morning": 5,
     "night": 2,
     "noon": 1,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "casual",
     "casual",
@@ -714,7 +718,8 @@
     "casual",
     "question",
     "topic_thread",
-    "checklist"
+    "checklist",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
