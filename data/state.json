@@ -150,7 +150,8 @@
       "cm_first_job",
       "cm_short_getsu",
       "cm_senior",
-      "cm_nenshu_hanashi"
+      "cm_nenshu_hanashi",
+      "cm_monday_heavy"
     ],
     "casual_brand": [
       "brand",
@@ -692,7 +693,7 @@
     "evening": 3,
     "late": 6,
     "latemorning": 2,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 5,
     "night": 2,
     "noon": 1,
@@ -700,7 +701,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "casual",
     "casual",
     "casual",
@@ -719,6 +719,7 @@
     "question",
     "topic_thread",
     "checklist",
+    "casual",
     "casual"
   ],
   "threads_token": {
