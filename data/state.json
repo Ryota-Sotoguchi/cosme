@@ -151,7 +151,8 @@
       "cm_short_getsu",
       "cm_senior",
       "cm_nenshu_hanashi",
-      "cm_monday_heavy"
+      "cm_monday_heavy",
+      "cm_cho_kotsu"
     ],
     "casual_brand": [
       "brand",
@@ -470,7 +471,11 @@
       "q_shigoto_yume",
       "q_40_tensyoku",
       "q_teiji",
-      "q_skill"
+      "q_skill",
+      "q_scout",
+      "q_mensetsu_kinchou",
+      "q_keirekisho_kakikata",
+      "q_remote_shuuchuu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -692,7 +697,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 6,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 2,
     "morning": 5,
     "night": 2,
@@ -701,7 +706,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "longform",
@@ -719,6 +723,7 @@
     "question",
     "topic_thread",
     "checklist",
+    "casual",
     "casual",
     "casual"
   ],
