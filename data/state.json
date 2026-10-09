@@ -152,7 +152,8 @@
       "cm_senior",
       "cm_nenshu_hanashi",
       "cm_monday_heavy",
-      "cm_cho_kotsu"
+      "cm_cho_kotsu",
+      "cm_mae_no_kaisha"
     ],
     "casual_brand": [
       "brand",
@@ -705,7 +706,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 6,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
     "night": 2,
@@ -714,7 +715,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "topic_thread",
     "question",
     "casual",
@@ -733,7 +733,8 @@
     "casual",
     "longform",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
