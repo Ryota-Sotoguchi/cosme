@@ -477,7 +477,10 @@
       "q_scout",
       "q_mensetsu_kinchou",
       "q_keirekisho_kakikata",
-      "q_remote_shuuchuu"
+      "q_remote_shuuchuu",
+      "q_friday",
+      "q_first_salary",
+      "q_fukugyou"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -703,14 +706,13 @@
     "late": 6,
     "latemorning": 3,
     "midmorning": 2,
-    "morning": 5,
+    "morning": 6,
     "night": 2,
     "noon": 2,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "longform",
     "site_link",
     "topic_thread",
@@ -729,7 +731,8 @@
     "casual",
     "casual",
     "casual",
-    "longform"
+    "longform",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
