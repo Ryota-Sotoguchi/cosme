@@ -154,7 +154,8 @@
       "cm_monday_heavy",
       "cm_cho_kotsu",
       "cm_mae_no_kaisha",
-      "cm_long_nenshu"
+      "cm_long_nenshu",
+      "cm_long_taishoku"
     ],
     "casual_brand": [
       "brand",
@@ -483,7 +484,11 @@
       "q_remote_shuuchuu",
       "q_friday",
       "q_first_salary",
-      "q_fukugyou"
+      "q_fukugyou",
+      "q_tensyoku_kikkake",
+      "q_mikeiken",
+      "q_bonus",
+      "q_meeting"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -710,7 +715,7 @@
     "evening": 3,
     "late": 6,
     "latemorning": 4,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 2,
     "noon": 3,
@@ -718,7 +723,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "band_focus",
@@ -737,6 +741,7 @@
     "topic",
     "casual",
     "band_focus",
+    "casual",
     "casual"
   ],
   "threads_token": {
