@@ -157,7 +157,8 @@
       "cm_long_nenshu",
       "cm_long_taishoku",
       "cm_tensyoku_katsudou",
-      "cm_gomen"
+      "cm_gomen",
+      "cm_short_kyuuyo"
     ],
     "casual_brand": [
       "brand",
@@ -730,14 +731,13 @@
     "late": 0,
     "latemorning": 5,
     "midmorning": 4,
-    "morning": 0,
+    "morning": 1,
     "night": 2,
     "noon": 4,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "casual",
@@ -756,6 +756,7 @@
     "casual",
     "casual",
     "comparison",
+    "casual",
     "casual"
   ],
   "threads_token": {
