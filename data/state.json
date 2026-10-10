@@ -153,7 +153,8 @@
       "cm_nenshu_hanashi",
       "cm_monday_heavy",
       "cm_cho_kotsu",
-      "cm_mae_no_kaisha"
+      "cm_mae_no_kaisha",
+      "cm_long_nenshu"
     ],
     "casual_brand": [
       "brand",
@@ -710,14 +711,13 @@
     "late": 6,
     "latemorning": 4,
     "midmorning": 3,
-    "morning": 6,
+    "morning": 0,
     "night": 2,
     "noon": 3,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic_thread",
     "casual",
@@ -736,7 +736,8 @@
     "question",
     "topic",
     "casual",
-    "band_focus"
+    "band_focus",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
