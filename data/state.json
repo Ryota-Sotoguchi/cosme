@@ -276,7 +276,8 @@
       "bcta_now",
       "bcta_look",
       "bcta_compare",
-      "bcta_decide"
+      "bcta_decide",
+      "bcta_date"
     ],
     "disclaimer": [
       "dc_point",
@@ -294,7 +295,8 @@
       "bd_time",
       "bd_edition",
       "bd_stock",
-      "bd_point"
+      "bd_point",
+      "bd_time"
     ],
     "essay": [
       "body_soap",
@@ -528,12 +530,14 @@
       "brc_note",
       "brc_which",
       "brc_memo",
-      "brc_who"
+      "brc_who",
+      "brc_note"
     ],
     "roundup_comparison": [
       "ru_cmp_1",
       "ru_cmp_3",
-      "bru_cmp_3"
+      "bru_cmp_3",
+      "bru_cmp_2"
     ],
     "roundup_postage_free": [
       "ru_pos_1",
@@ -723,12 +727,11 @@
     "midmorning": 4,
     "morning": 0,
     "night": 2,
-    "noon": 3,
+    "noon": 4,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "band_focus",
     "topic_thread",
     "question",
@@ -747,7 +750,8 @@
     "band_focus",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "comparison"
   ],
   "threads_token": {
     "expires_at": "2026-12-03T21:02:21.376608+00:00",
