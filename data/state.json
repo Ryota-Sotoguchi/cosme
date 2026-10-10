@@ -155,7 +155,8 @@
       "cm_cho_kotsu",
       "cm_mae_no_kaisha",
       "cm_long_nenshu",
-      "cm_long_taishoku"
+      "cm_long_taishoku",
+      "cm_tensyoku_katsudou"
     ],
     "casual_brand": [
       "brand",
@@ -705,7 +706,11 @@
       "tt_naitei_jitai",
       "tt_seichou_kankyou",
       "tt_rireki_shashin",
-      "tt_yaritakunai"
+      "tt_yaritakunai",
+      "tt_scout_mendan",
+      "tt_nenshu_down",
+      "tt_kyougyou",
+      "tt_referral"
     ]
   },
   "rotation_cursor": {
@@ -714,7 +719,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 6,
-    "latemorning": 4,
+    "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
     "night": 2,
@@ -723,7 +728,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "band_focus",
     "topic_thread",
@@ -741,6 +745,7 @@
     "topic",
     "casual",
     "band_focus",
+    "casual",
     "casual",
     "casual"
   ],
