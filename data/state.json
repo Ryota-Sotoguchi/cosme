@@ -160,7 +160,8 @@
       "cm_gomen",
       "cm_short_kyuuyo",
       "cm_raise",
-      "cm_mendan"
+      "cm_mendan",
+      "cm_tensyoku_kangaeru"
     ],
     "casual_brand": [
       "brand",
@@ -500,7 +501,11 @@
       "q_shigoto_tanoshii",
       "q_joushi_hitokoto",
       "q_yameta_ato",
-      "q_nenshu_or_yarigai"
+      "q_nenshu_or_yarigai",
+      "q_mensetsu_shippai",
+      "q_tensyoku_soudan",
+      "q_30_500",
+      "q_yameru_riyu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -743,14 +748,13 @@
     "late": 0,
     "latemorning": 6,
     "midmorning": 5,
-    "morning": 1,
+    "morning": 2,
     "night": 2,
     "noon": 5,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "checklist",
     "casual",
@@ -769,7 +773,8 @@
     "casual",
     "casual",
     "casual",
-    "band_focus"
+    "band_focus",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
