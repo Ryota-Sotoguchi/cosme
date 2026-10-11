@@ -159,7 +159,8 @@
       "cm_tensyoku_katsudou",
       "cm_gomen",
       "cm_short_kyuuyo",
-      "cm_raise"
+      "cm_raise",
+      "cm_mendan"
     ],
     "casual_brand": [
       "brand",
@@ -494,7 +495,11 @@
       "q_tensyoku_kikkake",
       "q_mikeiken",
       "q_bonus",
-      "q_meeting"
+      "q_meeting",
+      "q_shigoto_tanoshii",
+      "q_joushi_hitokoto",
+      "q_yameta_ato",
+      "q_nenshu_or_yarigai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -734,7 +739,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 0,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
     "night": 2,
@@ -743,7 +748,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "topic_thread",
@@ -760,6 +764,7 @@
     "casual",
     "casual",
     "comparison",
+    "casual",
     "casual",
     "casual",
     "casual"
