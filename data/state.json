@@ -162,7 +162,8 @@
       "cm_raise",
       "cm_mendan",
       "cm_tensyoku_kangaeru",
-      "cm_mail_yomi"
+      "cm_mail_yomi",
+      "cm_camera_off"
     ],
     "casual_brand": [
       "brand",
@@ -751,7 +752,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 0,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
     "night": 2,
@@ -760,7 +761,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "checklist",
     "casual",
     "casual",
     "casual",
@@ -778,6 +778,7 @@
     "casual",
     "casual",
     "band_focus",
+    "casual",
     "casual",
     "casual"
   ],
