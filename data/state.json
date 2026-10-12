@@ -161,7 +161,8 @@
       "cm_short_kyuuyo",
       "cm_raise",
       "cm_mendan",
-      "cm_tensyoku_kangaeru"
+      "cm_tensyoku_kangaeru",
+      "cm_mail_yomi"
     ],
     "casual_brand": [
       "brand",
@@ -737,7 +738,11 @@
       "tt_hanbouki",
       "tt_hikitsugi_mijikai",
       "tt_shibou_juni",
-      "tt_yowami"
+      "tt_yowami",
+      "tt_bonus_taishoku",
+      "tt_kanrishoku_kotowaru",
+      "tt_jiku_mittsu",
+      "tt_nenshu_moru"
     ]
   },
   "rotation_cursor": {
@@ -747,7 +752,7 @@
     "evening": 3,
     "late": 0,
     "latemorning": 6,
-    "midmorning": 5,
+    "midmorning": 6,
     "morning": 2,
     "night": 2,
     "noon": 5,
@@ -755,7 +760,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "checklist",
     "casual",
     "casual",
@@ -774,6 +778,7 @@
     "casual",
     "casual",
     "band_focus",
+    "casual",
     "casual"
   ],
   "threads_token": {
