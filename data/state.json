@@ -167,7 +167,8 @@
       "cm_seichou",
       "cm_kaigi_hatsugen",
       "cm_ido",
-      "cm_yoru_kyuujin"
+      "cm_yoru_kyuujin",
+      "cm_benkyo"
     ],
     "casual_brand": [
       "brand",
@@ -771,14 +772,13 @@
     "late": 1,
     "latemorning": 1,
     "midmorning": 0,
-    "morning": 3,
+    "morning": 4,
     "night": 3,
     "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "band_focus",
     "casual",
     "casual",
@@ -797,7 +797,8 @@
     "casual",
     "casual",
     "casual",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
