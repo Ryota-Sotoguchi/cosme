@@ -166,7 +166,8 @@
       "cm_camera_off",
       "cm_seichou",
       "cm_kaigi_hatsugen",
-      "cm_ido"
+      "cm_ido",
+      "cm_yoru_kyuujin"
     ],
     "casual_brand": [
       "brand",
@@ -770,13 +771,12 @@
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
-    "night": 2,
+    "night": 3,
     "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic",
     "casual",
     "band_focus",
@@ -793,6 +793,7 @@
     "casual",
     "casual",
     "longform",
+    "casual",
     "casual",
     "casual",
     "casual"
