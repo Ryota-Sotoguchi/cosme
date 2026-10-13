@@ -165,7 +165,8 @@
       "cm_mail_yomi",
       "cm_camera_off",
       "cm_seichou",
-      "cm_kaigi_hatsugen"
+      "cm_kaigi_hatsugen",
+      "cm_ido"
     ],
     "casual_brand": [
       "brand",
@@ -766,7 +767,7 @@
     "earlynight": 5,
     "evening": 3,
     "late": 0,
-    "latemorning": 0,
+    "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -775,7 +776,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "longform",
     "question",
     "topic",
     "casual",
@@ -793,6 +793,7 @@
     "casual",
     "casual",
     "longform",
+    "casual",
     "casual",
     "casual"
   ],
