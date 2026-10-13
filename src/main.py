@@ -717,7 +717,8 @@ def _report_body(config: Config) -> int:
     #
     # 数字を並べるだけだと、毎週見ても何をすればいいか分からない。
     # 判断が要るところだけを名指しする。
-    flags = _review_flags(config, posts, link_posts, attributable, revenue)
+    flags = _review_flags(config, posts, link_posts, attributable, revenue,
+                          all_records=history.load())
     print("\n=== 点検 ===")
     if flags:
         for line in flags:
@@ -728,7 +729,25 @@ def _report_body(config: Config) -> int:
     return EXIT_OK
 
 
-def _review_flags(config, posts, link_posts, attributable, revenue) -> list[str]:
+# 週次点検がさかのぼって見る日数。1日10本 × 14日 = 140本ぶん。
+REVIEW_WINDOW_DAYS = 14
+
+
+def _within_days(posted_at: str, days: int, *, now=None) -> bool:
+    """履歴の posted_at（ISO8601）が直近 days 日に入るか。読めなければ入れない。"""
+    if not posted_at:
+        return False
+    try:
+        when = datetime.fromisoformat(posted_at)
+    except ValueError:
+        return False
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=JST)
+    return (now or datetime.now(JST)) - when <= timedelta(days=days)
+
+
+def _review_flags(config, posts, link_posts, attributable, revenue,
+                  *, all_records=()) -> list[str]:
     """毎週見るべき異常だけを拾う。
 
     「分析 → 改善」を回すには、数字より先に「どこを触るか」が要る。
@@ -771,22 +790,47 @@ def _review_flags(config, posts, link_posts, attributable, revenue) -> list[str]
             "自己リプライを差し引けないので反応率が過大に出る"
         )
 
+    # --- 捨てられた投稿（遅れすぎて見送った枠）---
+    #
+    # **成功した投稿だけを見ていると、この異常は見えない。**
+    # 2026-09-29〜10-13 に1日10本のうち3〜5本しか出ていなかったとき、
+    # この欄が言ったのは「直近30本のうち1本が360分以上ずれている」だけだった。
+    # 遅れすぎた枠は履歴に status=skipped で残り、`posts` には入らないので、
+    # **生き残った投稿だけを数えていた**（生存者バイアス）。
+    # 見送られた側を数えれば、77本が捨てられていたことがその週に分かった。
+    drift_skips = [
+        r for r in all_records
+        if r.status == "skipped" and r.error_type == "ScheduleDrift"
+        and _within_days(r.posted_at, REVIEW_WINDOW_DAYS)
+    ]
+    attempted = drift_skips + [
+        r for r in all_records
+        if r.status == "success" and _within_days(r.posted_at, REVIEW_WINDOW_DAYS)
+    ]
+    if drift_skips and attempted:
+        share = len(drift_skips) / len(attempted) * 100
+        flags.append(
+            f"直近{REVIEW_WINDOW_DAYS}日で {len(drift_skips)}/{len(attempted)}本"
+            f"（{share:.0f}%）が遅れすぎて捨てられている。"
+            "定期実行の遅れが max_drift_minutes を超えている"
+            "（発火の前倒しと上限の見直しを一緒にやる。CLAUDE.md の «投稿時刻» の節）"
+        )
+
     # --- 実投稿時刻 ---
     #
-    # ずれ自体は避けられない（GitHub Actions の混雑）。言い回しは
-    # 実際の時刻から選ぶようにしたので、多少のずれは害にならない。
-    # 見るのは「捨てられる水準まで遅れていないか」だけ。
+    # 捨てられるほどではないが、上限に近づいているとき用。
+    # 言い回しは実際の時刻から選ぶので、多少のずれは害にならない。
     limit = float(config.schedule_settings.get("max_drift_minutes", 0) or 0)
-    if limit > 0:
-        dropped = sum(
+    if limit > 0 and not drift_skips:
+        near = sum(
             1 for r in posts[-30:]
             if r.posted_datetime
-            and _schedule_drift_minutes(config, r.slot, r.posted_datetime) > limit
+            and _schedule_drift_minutes(config, r.slot, r.posted_datetime) > limit * 0.85
         )
-        if dropped:
+        if near >= 5:
             flags.append(
-                f"直近30本のうち {dropped}本が {limit:.0f}分以上ずれている。"
-                "この水準の遅延は投稿ごと捨てられる"
+                f"直近30本のうち {near}本が上限（{limit:.0f}分）の85%を超えて遅れている。"
+                "このままだと捨てられ始める"
             )
 
     # --- 標本が薄いまま config を触らないための歯止め ---
