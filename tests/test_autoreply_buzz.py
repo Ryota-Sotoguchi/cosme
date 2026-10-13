@@ -316,3 +316,87 @@ def test_the_language_gate_can_be_turned_off():
     english = make(text="This highlighter is honestly the best I have ever tried, so glowy")
     assert passes_filter(
         english, {"min_text_length": 30, "require_japanese": False})[0] is True
+
+
+# ======================================================================
+# 発信ジャンルの外に返さない（2026-10-13）
+#
+# ホームTLのフォロー先がコスメ時代のまま残っているため、9/27〜9/30 に
+# **タイムラインから出した返信4件のうち3件がコスメの話だった。**
+# そのとき返してしまった投稿の本文をそのまま置いて、二度と通らないことを見張る。
+#
+# ここは**本物の config を使う**。語の一覧を手で書き写すと、
+# config を直したときにテストだけが古いまま通ってしまう。
+# ======================================================================
+
+# 実際に返信してしまった相手の投稿（要旨）。対になる返信は engage.sqlite3 の #26〜#28
+OFF_GENRE_POSTS = [
+    "AUX PARADISのオーラムイドレとCLEANのウォームコットン、どっちの香りが好みか迷ってます",
+    "kissの下地とマキアージュのクッションファンデ、重ねづけの順番で仕上がりが変わる気がする",
+    "洗浄力の強さでメイクを落としきる派だったけど、クレンジングを変えたら肌の調子がいい",
+]
+
+ON_GENRE_POSTS = [
+    "一次面接で給与の話をするのは早すぎますか。年収の希望を聞かれて答えに困りました",
+    "上司に退職を伝えるタイミング、ボーナスの前と後どっちがいいんだろう",
+    "簿記2級の勉強、仕事と並行してどれくらいで受かるものなんでしょうか",
+]
+
+
+def _filter(config, source):
+    """実行時と同じ条件を作る（反応数と文字数の足切りは別のテストで見ている）。"""
+    opts = dict(config.autoreply_filter(source))
+    opts.update(min_likes=0, min_text_length=10, max_age_hours=None, max_replies=None)
+    return opts
+
+
+@pytest.mark.parametrize("text", OFF_GENRE_POSTS)
+def test_the_timeline_no_longer_replies_to_the_old_genre(config, text):
+    """タイムラインから出てきても通らない。**LLM より前に落とす**。"""
+    ok, reason = passes_filter(make(text=text), _filter(config, "timeline"))
+    assert ok is False
+    assert "発信ジャンルの外" in reason or reason == "発信ジャンルの語が無い"
+
+
+@pytest.mark.parametrize("text", OFF_GENRE_POSTS)
+def test_the_search_also_drops_the_old_genre_by_word(config, text):
+    """検索にコスメが混ざっても、語の一覧で落ちる（要求語は検索には掛けない）。
+
+    「香り」だけの投稿のように、ブランド名しか手がかりが無いものは
+    語の一覧では止まらない。タイムラインは要求語で、検索は引く語そのもので守る。
+    """
+    opts = _filter(config, "search")
+    assert "require_topic_any" not in opts, "検索に要求語を掛けると二重になる"
+    ok, reason = passes_filter(make(text=text), opts)
+    if ok:
+        # 止まらなかったもの（ブランド名だけの投稿）は、転職の語も入っていないこと。
+        # 検索は転職の語で引くので、この形は検索結果には出てこない。
+        timeline = _filter(config, "timeline")
+        assert passes_filter(make(text=text), timeline)[1] == "発信ジャンルの語が無い"
+    else:
+        assert "発信ジャンルの外" in reason
+
+
+@pytest.mark.parametrize("text", ON_GENRE_POSTS)
+def test_an_on_genre_post_still_passes(config, text):
+    for source in ("timeline", "search"):
+        ok, reason = passes_filter(make(text=text), _filter(config, source))
+        assert ok is True, f"{source}: {reason}"
+
+
+def test_the_timeline_needs_a_genre_word_but_the_search_does_not(config):
+    """検索は転職の語で引いた結果なので、同じ条件を二重に掛けない。"""
+    neutral = make(text="今日はいい天気ですね。散歩でもしようかなと思っています")
+
+    ok, reason = passes_filter(neutral, _filter(config, "timeline"))
+    assert ok is False
+    assert reason == "発信ジャンルの語が無い"
+
+    assert passes_filter(neutral, _filter(config, "search"))[0] is True
+
+
+def test_the_genre_filter_is_off_when_the_lists_are_empty():
+    """設定を空にすれば従来どおり。ジャンルを戻すときに1行で外せる。"""
+    cosme = make(text=OFF_GENRE_POSTS[2])
+    assert passes_filter(cosme, {"off_topic_keywords": [], "require_topic_any": [],
+                                 "min_text_length": 10, "min_likes": 0})[0] is True

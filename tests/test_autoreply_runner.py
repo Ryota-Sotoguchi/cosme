@@ -29,12 +29,16 @@ from src.engage.review import EngagementLog
 from src.engage.runner import EngageRunner
 from src.engage.store import EngageStore
 
-BODY = "無印の化粧水しか使ってないけど、そろそろ何か足したほうがいいのかな。プチプラで探してる"
-GOOD_REPLY = "無印だけでも十分だと思います〜。足すなら日焼け止めからがいいって聞きました"
-ANOTHER_REPLY = "朝はいつもぎりぎりなので、増やすほど続かなくなっちゃうんですよね〜"
+# 試料はコスメ時代のまま残っていた（2026-09-14 のジャンル切り替えの取りこぼし）。
+# 2026-10-13 に転職の投稿へ入れ替えた。タイムラインには
+# [autoreply.filter.timeline] の require_topic_any が掛かるので、
+# コスメの本文では候補の段階で落ち、LLM まで届かない。
+BODY = "今の会社に残るか転職するか迷っています。年収は上がりそうだけど、また一から関係を作り直すのが正直しんどい"
+GOOD_REPLY = "一から作り直すところ、わたしも二回目のときに同じことを考えました。先に社内で動ける余地を探す手もあると思います"
+ANOTHER_REPLY = "年収だけで決めると後から戻せないので、わたしは残業と通勤も並べて比べました"
 
 GOOD_TARGET = {"relevance": 0.9, "opportunity": 0.9, "reach": 0.8, "risk": 0.05,
-               "score": 0.9, "recommended": True, "reason": "コスメの相談"}
+               "score": 0.9, "recommended": True, "reason": "転職の相談"}
 GOOD_JUDGE = {"naturalness": 0.9, "context_match": 0.9, "engagement": 0.85,
               "spam_risk": 0.05, "ai_smell": 0.1, "specific": True,
               "score": 0.9, "publish": True, "problems": [], "rewrite": ""}
@@ -68,7 +72,7 @@ class ScriptedLlm:
             self.calls.append("judge")
             return LlmResponse(text="", data=self.judge)
         self.calls.append("write")
-        return LlmResponse(text="", data={"reply": self.reply, "touches": "無印"})
+        return LlmResponse(text="", data={"reply": self.reply, "touches": "一から作り直す"})
 
 
 @dataclass
@@ -854,7 +858,7 @@ class JudgeThenPass:
         self.calls.append("write")
         self.write_prompts.append(prompt)
         reply = ANOTHER_REPLY if self.judged else GOOD_REPLY
-        return LlmResponse(text="", data={"reply": reply, "touches": "無印"})
+        return LlmResponse(text="", data={"reply": reply, "touches": "一から作り直す"})
 
 
 def test_a_rejected_reply_is_rewritten_and_posted(config, store, log):

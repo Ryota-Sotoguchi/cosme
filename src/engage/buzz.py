@@ -280,6 +280,27 @@ def passes_filter(
         if kana < 3 or kana / max(len(body), 1) < 0.05:
             return False, "日本語の投稿ではない"
 
+    # --- 発信ジャンルの外の話に返さない（2026-10-13） ---
+    #
+    # ホームTLはコスメ時代のフォロー先がそのまま残っているので、
+    # 香水・下地・クレンジングの投稿が流れてくる。実測（9/27〜9/30）では
+    # **タイムラインから出した返信4件のうち3件がコスメの話だった。**
+    # 転職の話をしているアカウントが化粧品の話に返していると、
+    # 誰の何のアカウントなのか読む側に分からない。
+    #
+    # LLM より前に、語で確定的に落とす（judge に投げると費用も時間もかかる）。
+    # 検索（search）は転職の語で引いているので base では掛けない。
+    # 収集元ごとに `[autoreply.filter.<source>]` で上書きする。
+    lowered = body.lower()
+    off_topic = [str(w) for w in opts.get("off_topic_keywords", []) if str(w).strip()]
+    hits = [w for w in off_topic if w.lower() in lowered]
+    if hits:
+        return False, f"発信ジャンルの外: {hits[:3]}"
+
+    require_topic = [str(w) for w in opts.get("require_topic_any", []) if str(w).strip()]
+    if require_topic and not any(w.lower() in lowered for w in require_topic):
+        return False, "発信ジャンルの語が無い"
+
     max_age = opts.get("max_age_hours")
     if max_age is not None:
         if candidate.age_hours is None:
