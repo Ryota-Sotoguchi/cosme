@@ -332,8 +332,17 @@ DELETE_OLD_THREADS_POSTS=true python3 scripts/cleanup_old_posts.py --execute --l
 - 実削除は `DELETE_OLD_THREADS_POSTS=true` **と** `--execute` の両方が要る。Dry Run の候補ファイル
   （`data/engage/cleanup/`、gitignore 済み）に載ったものだけを消す
 - 1回20件まで・30〜90秒間隔・絞られたら停止・消えたことを開き直して確認・`deleted.jsonl` で再実行を飛ばす
-- 削除の確認ダイアログのセレクタ（`delete_confirm_button`）は 2026-09-15 に実測済み。ボタンは「削除する」で、
-  文字が中の span にあるため `:text-is()` は当たらない（`:has-text()` か role で引く）。
+- **2026-10-13: 3つのセレクタを実測し直した。** 9/15 の実測が全部引けなくなっていて削除が止まっていた。
+  変わったのは2つ。(1) **Threads が svg のラベルを `aria-label` から `title` へ移した**ので、
+  `svg[aria-label="もっと見る"]` が投稿の ⋯ ではなく**新しい列レイアウトの列ヘッダーの ⋯** に
+  当たるようになっていた（押すと「列として追加」1項目のメニューが開く）。投稿の ⋯ は
+  `div[role=button][aria-haspopup=menu]` で、中の svg が `role=img title="もっと見る"`。
+  (2) **メニューと確認ダイアログの文言が「削除する」→「削除」に変わった。**
+  文字は子要素にあるので `:text-is()` は当たらない（`:has-text()` か role で引く）
+- `post_more_button` は対象カードの中を**ブラウザの `querySelector`** で引くので、標準CSSだけを使う
+  （`:has()` は標準、`:has-text()` は Playwright 専用で使えない）
+- 実測の手順: メニューを開いて確認ダイアログまで出し、**押さずに Escape で閉じる**。
+  そのうえで2件だけ実削除して確かめてから本数を上げる。
   セレクタが未実測のあいだは1回1件しか消さない仕組みは残してある
 - 1日の上限は仕組みでは強制していない（`--limit` を人が調整する運用）。
   公式 API の削除上限は100件/24時間なので、1日に回すのはそれ以内に収める
@@ -481,6 +490,7 @@ python3 -m src.main autoreply --outcomes   # 相手の投稿を開いて自分�
 | 頻度 | やること |
 |---|---|
 | 毎日（自動） | `insights` が成績を取得し、**アカウント全体の指標を `data/account.jsonl` に1日1行**残す（フォロワー数の推移）。`research` が競合の投稿とレビューの使用感を集める |
+| — | ↑ **9/25〜10/13 の行は views / likes / replies が «測った時点までの当日ぶん» で、日ごとに比較できない**（窓を渡していなかった。2026-10-13 に前日1日ぶんへ直した）。`followers_count` はその期間も正しい。`"partial": true` が付いた行は窓なしで取れた日なので比較に使わない |
 | 毎週（自動） | `review.yml` が `report` を `research/review/YYYY-MM-DD.md` に残す |
 | 毎週（人） | その週のファイルの **点検** 欄だけ見る。空なら config を触らない |
 | 月1（人） | 楽天のレポートCSVを `revenue --csv` で取り込む。これが無いと CTR も EPC も出ない |
