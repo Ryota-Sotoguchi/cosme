@@ -652,7 +652,8 @@
       "nl_fukugyou_kisoku",
       "nl_offer",
       "nl_tenkin",
-      "nl_minashi_zangyou"
+      "nl_minashi_zangyou",
+      "nl_keirekisho_suuji"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -767,7 +768,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
-    "late": 0,
+    "late": 1,
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
@@ -777,7 +778,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "band_focus",
     "casual",
@@ -796,7 +796,8 @@
     "casual",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
