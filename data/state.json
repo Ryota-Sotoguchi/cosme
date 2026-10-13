@@ -164,7 +164,8 @@
       "cm_tensyoku_kangaeru",
       "cm_mail_yomi",
       "cm_camera_off",
-      "cm_seichou"
+      "cm_seichou",
+      "cm_kaigi_hatsugen"
     ],
     "casual_brand": [
       "brand",
@@ -510,7 +511,11 @@
       "q_mensetsu_shippai",
       "q_tensyoku_soudan",
       "q_30_500",
-      "q_yameru_riyu"
+      "q_yameru_riyu",
+      "q_agent_kazu",
+      "q_yuukyu",
+      "q_shikaku",
+      "q_kaisha_kimete"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -762,7 +767,7 @@
     "evening": 3,
     "late": 0,
     "latemorning": 0,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 3,
     "night": 2,
     "noon": 6,
@@ -770,7 +775,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "longform",
     "question",
     "topic",
@@ -789,6 +793,7 @@
     "casual",
     "casual",
     "longform",
+    "casual",
     "casual"
   ],
   "threads_token": {
