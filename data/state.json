@@ -163,7 +163,8 @@
       "cm_mendan",
       "cm_tensyoku_kangaeru",
       "cm_mail_yomi",
-      "cm_camera_off"
+      "cm_camera_off",
+      "cm_seichou"
     ],
     "casual_brand": [
       "brand",
@@ -747,7 +748,11 @@
       "tt_bonus_taishoku",
       "tt_kanrishoku_kotowaru",
       "tt_jiku_mittsu",
-      "tt_nenshu_moru"
+      "tt_nenshu_moru",
+      "tt_yametai_sankagetsu",
+      "tt_warukuchi",
+      "tt_fukugyou_chikai",
+      "tt_shanai_ido"
     ]
   },
   "rotation_cursor": {
@@ -758,14 +763,13 @@
     "late": 0,
     "latemorning": 0,
     "midmorning": 6,
-    "morning": 2,
+    "morning": 3,
     "night": 2,
     "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "longform",
     "question",
@@ -784,7 +788,8 @@
     "casual",
     "casual",
     "casual",
-    "longform"
+    "longform",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
