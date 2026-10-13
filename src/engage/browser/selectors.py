@@ -279,34 +279,46 @@ _STATE = (
 
 
 # ======================================================================
-# 自分の投稿を削除する（2026-09-15 追加。scripts/cleanup_old_posts.py だけが使う）
+# 自分の投稿を削除する（2026-09-15 追加・2026-10-13 実測し直し。
+# scripts/cleanup_old_posts.py だけが使う）
 #
 # 自動返信は使わない。発信ジャンルを切り替えたときの片付け用で、手で実行する。
 # 実測はメニューを開いて閉じただけ。**削除は押していない。**
 # ======================================================================
 _DELETE = (
-    _s("post_more_button", css='svg[aria-label="もっと見る"]',
-       note="2026-09-15 実測: 自分の投稿の詳細ページで、対象の投稿カード"
-            "（data-pressable-container）の中に1個。押すと投稿のメニューが開く。"
-            "**ページ全体では9個ある**（返信欄の投稿にも付く）ので、必ず対象カードの中で引く。"
-            "「その他」という aria-label は0個だった。",
+    _s("post_more_button",
+       css='[role="button"][aria-haspopup="menu"]:has(svg[title="もっと見る"])',
+       fallbacks=('[role="button"][aria-haspopup="menu"]', 'svg[aria-label="もっと見る"]'),
+       note="自分の投稿の ⋯。2026-10-13 に実測し直した。"
+            "**Threads が svg のラベルを aria-label から title へ移した。** そのため "
+            "svg[aria-label=\"もっと見る\"] は投稿の ⋯ ではなく、新しい列レイアウトの"
+            "**列ヘッダーの ⋯** に当たるようになっていた（押すと「列として追加」1項目だけの"
+            "メニューが開く）。実測した投稿の ⋯ は 20x20 の "
+            "div[role=button][aria-haspopup=menu][aria-expanded=false] で、中の svg は "
+            "role=img title=\"もっと見る\" viewBox=\"0 0 24 24\"、aria-label は無い。"
+            "aria-haspopup=menu が «メニューを開くボタン» の目印になる。"
+            "scripts/cleanup_old_posts.py は対象カード（data-pressable-container）の中で"
+            "**ブラウザの querySelector で**引くので、ここは標準CSSだけを使う"
+            "（:has() は標準、:has-text() は Playwright 専用で使えない）。",
        measured=True, where=WHERE_OWN_POST),
-    _s("delete_menu_item", css='div[role="menu"] [role="menuitem"]:text-is("削除する")',
-       role=("menuitem", "削除する"), exact=True,
-       note="2026-09-15 実測: メニューは div[role=menu]、項目は role=menuitem が9個"
-            "（インサイト / 保存 / プロフィールにピン留め / アーカイブ / 「いいね！」数とシェア数を非表示 /"
-            " 返信オプション / 削除する / リンクをコピー / 埋め込みコードを取得）。"
-            "**文言は「削除」ではなく「削除する」。** 押すと確認が出る想定（下）。",
+    _s("delete_menu_item", css='[role="menuitem"]:has-text("削除")',
+       role=("menuitem", "削除"), exact=True,
+       note="2026-10-13 実測: メニューは div[role=menu]、項目は role=menuitem が9個"
+            "（インサイト / リンクをコピー / 埋め込みコードを取得 / 保存 / プロフィールにピン留め /"
+            " アーカイブ / 「いいね！」数とシェア数を非表示 / 投稿オプション / 削除）。"
+            "**文言が「削除する」から「削除」に変わった**（9/15 は「削除する」で、"
+            "10/13 にこれで引けなくなって削除が止まった）。文字は項目の中の子要素にあるので "
+            ":text-is() は当たらない（直下の文字だけを見る）。:has-text() か role で引く。",
        measured=True, where=WHERE_OWN_POST),
     _s("delete_confirm_button",
-       css='div[role="dialog"] [role="button"]:has-text("削除する")',
-       role=("button", "削除する"), exact=True,
-       note="削除の確認ダイアログのボタン。2026-09-15 実測: div[role=dialog][aria-modal=true] に"
+       css='div[role="dialog"] [role="button"]:has-text("削除")',
+       role=("button", "削除"), exact=True,
+       note="削除の確認ダイアログのボタン。2026-10-13 実測: div[role=dialog][aria-modal=true] に"
             "「投稿を削除しますか？」「この投稿を削除すると、復元できなくなります。」と、"
-            "div[role=button] の「キャンセル」「削除する」。**文言は「削除」ではなく「削除する」**"
-            "（推測で「削除」と書いていて引けなかった）。文字は button の中の span にあるので "
-            ":text-is() は当たらない（直下の文字だけを見る）。:has-text() か role で引く。"
-            "ダイアログの中に限定し、1個に絞れなければ止める。",
+            "div[role=button] の「削除」「キャンセル」。**ここも「削除する」→「削除」に変わった。**"
+            "文字は button の中の子要素にあるので :text-is() は当たらない。"
+            "ダイアログの中に限定し、1個に絞れなければ止める"
+            "（「キャンセル」は «削除» を含まないので2個に増えない）。",
        measured=True, where=WHERE_OWN_POST),
 )
 
