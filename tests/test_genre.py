@@ -40,6 +40,11 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/executor.py    … 着弾確認で下までスクロールする（2026-09-24）。返信は投稿の下に
 #                           描かれるので、再読み込みだけでは見つからず、実際に付いた返信3件中2件を
 #                           «確認できなかった» と記録していた。送信・再送しない方針は変えていない
+#   threads/insights.py   … アカウント指標に since/until を渡して «前日1日ぶん» を取る（2026-10-13）。
+#                           窓を渡していなかったので API が返す最後の桶（= 測った時点までの当日ぶん）を
+#                           拾っていて、発火が何時間もずれるこの運用では日ごとに比較できない数字だった
+#                           （9/28 が 5294、翌日が 67）。取得の失敗時は窓なしで取り直すので
+#                           フォロワー数は取り逃がさない。投稿ごとの成績の取得は変えていない
 #   engage/llm.py         … CLI が exit!=0 のとき stdout も添えて理由を残す（2026-09-24）。
 #                           stderr だけだと «exit=1: » と空になり、自動返信が1件も返せない
 #                           原因が追えなかった。呼び出し方・判断の仕組みは変えていない
@@ -48,7 +53,7 @@ UNCHANGED_MECHANISM = {
     "src/pipeline.py": "cb553ce7c70b8d4e53f4b786479005916fbdf0e1",
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
-    "src/threads/insights.py": "7baf13b2c12f6ff03baf25796c5f0c20a196fd69",
+    "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
     "src/threads/replies.py": "269f43e75ba921196b986dbc7f59460e2a3dc2f7",
     "src/threads/token.py": "80973d116b5aaaca06b2a3783b841add0a6cd65a",
     "src/storage/history.py": "ec367dd090d26b0e2c6922a7ee9543a96661d9c1",

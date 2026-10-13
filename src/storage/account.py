@@ -16,6 +16,13 @@
 
     {"date": "2026-09-24", "followers_count": 123, "views": 4560, "likes": 78, "replies": 9}
 
+**2026-10-13 までの行（9/25〜10/13）は views / likes / replies が
+«測った時点までの当日ぶん» になっている。** insights が窓を渡していなかったため、
+何時までの値かが日によって違う（9/28 が 5294、翌日が 67 はこの差が大きい）。
+`followers_count` は絶対値なので、その期間も正しい。
+いまは前日1日ぶんを取るので、以降の行は日ごとに比べられる。
+窓付きで取れなかった日は `"partial": true` が付く。
+
 `data/` はワークフローがコミットバックするので、履歴として残る。
 **個人を特定する情報は入らない**（自分のアカウントの合計値だけ）。
 """
@@ -49,12 +56,25 @@ def _rows(path: Path) -> list[dict[str, Any]]:
     return out
 
 
-def record(path: Path, metrics: dict[str, int], *, when: datetime | None = None) -> dict[str, Any]:
-    """その日の指標を1行残す。同じ日の行は置き換える。"""
-    day = (when or datetime.now(JST)).astimezone(JST).strftime("%Y-%m-%d")
-    row = {"date": day, **{k: int(v) for k, v in metrics.items() if isinstance(v, (int, float))}}
+def record(path: Path, metrics: dict[str, int], *, when: datetime | None = None,
+           day: str | None = None, partial: bool = False) -> dict[str, Any]:
+    """その日の指標を1行残す。同じ日の行は置き換える。
 
-    rows = [r for r in _rows(path) if r.get("date") != day]
+    `day`（YYYY-MM-DD）を渡せばその日付で書く。**どの日の数字かは取得側が知っている**
+    （`ThreadsInsights.for_account` は前日1日ぶんを取るので、今日の行に書くと1日ずれる）。
+
+    `partial=True` の行は、その日の途中までの値。**日ごとの比較に使えない**ので
+    印を付けて残す（捨てるとフォロワー数まで失う）。
+    """
+    label = day or (when or datetime.now(JST)).astimezone(JST).strftime("%Y-%m-%d")
+    row: dict[str, Any] = {
+        "date": label,
+        **{k: int(v) for k, v in metrics.items() if isinstance(v, (int, float))},
+    }
+    if partial:
+        row["partial"] = True
+
+    rows = [r for r in _rows(path) if r.get("date") != label]
     rows.append(row)
     rows.sort(key=lambda r: str(r.get("date")))
 

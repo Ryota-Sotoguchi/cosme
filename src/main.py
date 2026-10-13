@@ -439,12 +439,15 @@ def cmd_insights(config: Config, args: argparse.Namespace) -> int:
 
     account = insights.for_account()
     if account:
-        print("\n=== アカウント全体 ===")
-        for key, value in account.items():
+        label = f"{account.day} ぶん" if account.complete else f"{account.day} の途中まで"
+        print(f"\n=== アカウント全体（{label}）===")
+        for key, value in account.metrics.items():
             print(f"  {key:16s} {value:,}")
         # **残す。** 画面に出すだけだと、フォロワーが増えているのか
         # 止まっているのかを後から確認できない（2026-09-24 の見直しで判明）。
-        account_metrics.record(config.account_path, account)
+        # 日付は取得側が返したものを使う（前日ぶんを今日の行に書くと1日ずれる）。
+        account_metrics.record(config.account_path, account.metrics,
+                               day=account.day, partial=not account.complete)
         trend = account_metrics.growth(config.account_path)
         if trend:
             print(f"  {trend}")
