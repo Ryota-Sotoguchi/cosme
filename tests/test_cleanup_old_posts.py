@@ -395,3 +395,102 @@ def test_the_cleanup_output_is_not_committed():
          "data/engage/cleanup/deleted.jsonl"],
         cwd=ROOT, capture_output=True, text=True, check=False)
     assert result.returncode == 0, "削除候補（自分の投稿の本文）が gitignore されていない"
+
+
+# ======================================================================
+# 削除の反映待ち（2026-10-13）
+#
+# 確認を押してから、開いているページは15秒以上そのまま投稿を表示していた。
+# 開き直せば消えている。4秒待って1回だけ見ていたので、反映の遅い投稿を
+# «削除できていない» と判定し、そこで運用全体が止まっていた。
+# ======================================================================
+
+class _DeletePage:
+    """⋯ → 削除 → 確認 を素通りさせ、パーマリンクの有無だけを切り替える板。"""
+
+    def __init__(self, present: bool):
+        self.present = present
+
+    def wait_for_timeout(self, ms):
+        pass
+
+    def wait_for_selector(self, css, **kwargs):
+        if not self.present:
+            raise TimeoutError(css)
+
+    def query_selector(self, css):
+        return None
+
+    def evaluate(self, *args, **kwargs):
+        return None
+
+    def screenshot(self, **kwargs):
+        pass
+
+
+class _DeleteSession:
+    """何回目の開き直しかで «まだある / もう無い» を変える。"""
+
+    def __init__(self, present_until: int):
+        self.present_until = present_until
+        self.opened: list[str] = []
+        self.clicked: list[str] = []
+
+    def goto(self, url):
+        self.opened.append(url)
+        # 1回目は «最初に開いて削除する» ぶん。以降が確認の開き直し
+        return _DeletePage(present=len(self.opened) <= self.present_until)
+
+    def is_logged_in(self, page):
+        return True
+
+
+def _patch_delete_steps(cleanup, monkeypatch, session):
+    """⋯ とメニューと確認のクリックを «押せたことにする»（DOM は別のテストで見ている）。"""
+    class Handle:
+        def click(self):
+            session.clicked.append("more")
+
+    class Element:
+        def click(self):
+            session.clicked.append("item")
+
+    monkeypatch.setattr(cleanup, "CARD_ELEMENT_JS", "x")
+    monkeypatch.setattr(cleanup, "_resolve_in_page", lambda page, key: Element())
+    monkeypatch.setattr(cleanup, "_throttled", lambda page: False)
+
+    def fake_handle(js, args):
+        class H:
+            def as_element(self):
+                return Handle()
+        return H()
+
+    monkeypatch.setattr(_DeletePage, "evaluate_handle", lambda self, js, args: fake_handle(js, args),
+                        raising=False)
+
+
+def test_a_slow_deletion_is_confirmed_on_a_later_reload(cleanup, monkeypatch):
+    """1回目の開き直しでまだ見えても、消えるまで何回か開き直す。"""
+    session = _DeleteSession(present_until=2)   # 最初の1回＋確認1回目は «まだある»
+    _patch_delete_steps(cleanup, monkeypatch, session)
+
+    entry = {"shortcode": "X1", "url": "https://www.threads.com/@career_powerup/post/X1"}
+    assert cleanup.delete_one(session, entry, "career_powerup") == "deleted"
+    assert len(session.opened) == 3, "消えるまで開き直していない"
+
+
+def test_a_post_that_never_disappears_stops_the_run(cleanup, monkeypatch):
+    """**消えたことにして先へ進まない。** 残った投稿が二度と消されなくなる。"""
+    session = _DeleteSession(present_until=99)
+    _patch_delete_steps(cleanup, monkeypatch, session)
+
+    entry = {"shortcode": "X1", "url": "https://www.threads.com/@career_powerup/post/X1"}
+    with pytest.raises(RuntimeError, match="削除を確認できません"):
+        cleanup.delete_one(session, entry, "career_powerup")
+    assert len(session.opened) == 1 + cleanup.VERIFY_ATTEMPTS
+
+
+def test_the_number_of_reloads_is_bounded(cleanup):
+    """無限に待たない。間隔をあけて数回まで。"""
+    assert 2 <= cleanup.VERIFY_ATTEMPTS <= 5
+    assert cleanup.VERIFY_WAIT_MS >= 3000

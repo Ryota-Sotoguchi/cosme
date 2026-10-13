@@ -407,6 +407,12 @@ def append_deleted(out_dir: Path, entry: dict[str, Any], outcome: str) -> None:
 # ======================================================================
 DELETE_SELECTORS = ("post_more_button", "delete_menu_item", "delete_confirm_button")
 
+# 削除の反映を待つ回数と、1回ごとの待ち時間。
+# 実測（2026-10-13）では、確認を押してから開いているページが15秒以上
+# 投稿を表示したままだった。開き直せば消えているが、4秒では間に合わない日がある。
+VERIFY_ATTEMPTS = 3
+VERIFY_WAIT_MS = 5000
+
 
 def execution_refusal(*, execute: bool, env: dict[str, str],
                       measured: dict[str, bool]) -> str | None:
@@ -575,16 +581,28 @@ def delete_one(session: Any, entry: dict[str, Any], username: str) -> str:
                 raise
             page.wait_for_timeout(1000)
     confirm.click()
-    page.wait_for_timeout(4000)
 
     # 4. 開き直して、消えたことを確かめる
-    page = session.goto(url)
-    page.wait_for_timeout(2000)
-    if _throttled(page):
-        raise ThrottledError("削除後の確認で Threads に拒否されました。削除できたかは手で確認してください。")
-    if _post_is_present(page, code):
-        raise RuntimeError(f"削除を確認できません（{url}）。ここで止めます。")
-    return "deleted"
+    #
+    # **削除はすぐ反映されない。** 2026-10-13 の実測では、確認を押しても
+    # 開いているページは15秒以上そのまま投稿を表示していて、**開き直すと**
+    # プロフィールへ転送され `a[href*=/post/code]` が0個になった。
+    # 以前は4秒待って1回だけ見ていたので、反映の遅い投稿を
+    # «削除できていない» と判定し、そこで運用全体が止まっていた（実際に止まった）。
+    #
+    # 何回か開き直して確かめる。**それでも消えていなければ止める**
+    # （消えたことにして先へ進むと、残った投稿が二度と消されない）。
+    # 再送はしない。押したかもしれない操作をもう一度押すと二重に消える。
+    for attempt in range(VERIFY_ATTEMPTS):
+        page.wait_for_timeout(VERIFY_WAIT_MS)
+        page = session.goto(url)
+        page.wait_for_timeout(2000)
+        if _throttled(page):
+            raise ThrottledError("削除後の確認で Threads に拒否されました。削除できたかは手で確認してください。")
+        if not _post_is_present(page, code):
+            return "deleted"
+    raise RuntimeError(
+        f"削除を確認できません（{url}）。{VERIFY_ATTEMPTS}回開き直しました。ここで止めます。")
 
 
 # 確認ダイアログのボタンが引けなかったときに、実測の材料を残す（押さない。読むだけ）
