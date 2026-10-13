@@ -33,7 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 #                             下のハッシュはこの1行を足した後のもの）
 #   engage/review.py      … 「レビュー」「口コミ」の禁止を撤回
 #   engage/browser/selectors.py … 過去投稿の削除に使うセレクタの追加
-#   .github/workflows/post.yml … 発火時刻の前倒し（2026-09-24）。定期実行の遅れ（中央値268分）で
+#   .github/workflows/post.yml … 発火時刻の前倒し（2026-09-24 / 2026-10-13）。定期実行の遅れ（中央値268分）で
 #                           狙った時間帯に出ていなかったため。本数・処理は変えていない
 #   engage/store.py       … 成果待ちの返信を our_reply_url 無しでも返す + permalink の後埋め
 #                           （2026-09-24）。着弾確認に失敗した返信が成果測定から漏れていた
@@ -65,7 +65,7 @@ UNCHANGED_MECHANISM = {
     "src/engage/browser/session.py": "b44a56ad0dacc9d5faf1ec90805d74ebb5d0bebe",
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
-    ".github/workflows/post.yml": "a3664614977ce39cea9134855927807fc6defbc8",
+    ".github/workflows/post.yml": "7ffd7a2dca466ccf4a5b3df57d4b39733985520a",
     ".github/workflows/research.yml": "3c9422f1e4e8d1d55636307d1d546b78059c630c",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
@@ -100,14 +100,17 @@ def test_the_schedule_timing_is_unchanged(config):
     **2026-09-24 に発火時刻を前倒しした**（ジャンルの切り替えとは別の変更）。
     GitHub Actions の遅れが実測で中央値268分あり、07:30〜22:30 に発火していた投稿が
     実際には 09:26〜02:14 に出ていた。出したい時刻から遅れぶんを引いた時刻へ組み直した。
-    1日10本と枠の名前は変えていない。
+
+    **2026-10-13 に夕方以降の5枠をさらに前倒しした。** 遅れが中央365分まで伸び、
+    predinner 以降が `max_drift_minutes` を超えて 42/49 本が捨てられていた。
+    1日10本と枠の名前は、どちらの変更でも変えていない。
     """
     expected = {
         "morning": ("05:30", "30 20 * * *"), "midmorning": ("06:30", "30 21 * * *"),
         "latemorning": ("08:00", "0 23 * * *"), "noon": ("09:30", "30 0 * * *"),
-        "afternoon": ("11:00", "0 2 * * *"), "predinner": ("12:30", "30 3 * * *"),
-        "evening": ("15:00", "0 6 * * *"), "earlynight": ("16:00", "0 7 * * *"),
-        "night": ("17:00", "0 8 * * *"), "late": ("18:30", "30 9 * * *"),
+        "afternoon": ("11:00", "0 2 * * *"), "predinner": ("12:00", "0 3 * * *"),
+        "evening": ("13:00", "0 4 * * *"), "earlynight": ("14:00", "0 5 * * *"),
+        "night": ("15:00", "0 6 * * *"), "late": ("16:00", "0 7 * * *"),
     }
     actual = {s.slot: (s.time_jst, s.cron_utc) for s in config.schedule}
     assert actual == expected
