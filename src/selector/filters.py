@@ -66,6 +66,31 @@ def is_excluded(
         if _normalize(keyword) in haystack:
             return ExclusionResult(True, f"禁止キーワード: {keyword}")
 
+    # --- 要求キーワード（書名に1つも無ければ除外） ---
+    #
+    # 除外語だけでは足りなかった。本のジャンル（ビジネス実用・PC資格）は広く、
+    # 禁止語に当たらないのに発信ジャンルから外れた本が入ってくる。
+    # 実測（2026-09-28〜10-12 のリンク投稿14本）では6本がこれだった:
+    # 「YouTube入門」「できるWindows 11」「60歳からの最新AI」「はじめての子育て」
+    # 「第二級陸上特殊無線技士」「研究発表のためのスライドデザイン」。
+    #
+    # 見るのは**商品名だけ**。キャッチコピーは店が自由に書くので、
+    # そこに «転職» があっても «その本が転職の本» の根拠にならない。
+    # 「書名から種類が分からない本に、別の種類の話を付ける」失敗も同時に防げる。
+    #
+    # **掛けるのは本のジャンルだけ。** どのジャンルで取ってきた商品かは
+    # `raw["_genre_label"]`（rakuten/client.py が付ける）で分かる。
+    # 休止中の化粧品の経路には掛からないので、再開するときに触る必要がない
+    # （化粧品は「剤形語があるか」という別の仕組みで見ている）。
+    required = exclusion.get("require_any_keywords", [])
+    labels = exclusion.get("require_any_keywords_labels", [])
+    if required:
+        label = (item.raw or {}).get("_genre_label", "")
+        if not labels or label in labels:
+            name = _normalize(item.item_name)
+            if not any(_normalize(keyword) in name for keyword in required):
+                return ExclusionResult(True, "ジャンルの語が書名に無い")
+
     # --- 禁止ジャンル ---
     if item.genre_id:
         blocked = {str(g) for g in exclusion.get("genre_ids", [])}

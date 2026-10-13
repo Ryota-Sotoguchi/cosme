@@ -126,15 +126,13 @@ def test_every_book_category_has_topic_tags():
 
 
 def test_book_categories_match_the_configured_genres(config):
-    """楽天のジャンルを本に差し替えたら、label と BOOK_CATEGORIES を一致させる。
+    """楽天のジャンルの label と BOOK_CATEGORIES を一致させる。
 
-    **差し替えはまだ終わっていない**（ジャンルIDを実APIで確かめるのに
-    楽天の認証情報が要る。CLAUDE.md「推測でIDを書かない」）。
-    いまは化粧品のジャンルのままなので、本のジャンルが1つでも入るまでは見送る。
+    2026-09-28 に実APIで確かめたジャンル（208962 / 208967 / 101937 / 208679）へ
+    差し替えた。化粧品のジャンルは config にコメントで残してあるだけ。
     """
     labels = {genre["label"] for genre in config.genres}
-    if not (labels & B.BOOK_CATEGORIES):
-        pytest.skip("楽天のジャンルがまだ本に差し替わっていない（A-2 の実APIでの確認待ち）")
+    assert labels, "ジャンルが1つも設定されていない"
     assert labels <= B.BOOK_CATEGORIES, f"本以外のジャンルが残っている: {labels - B.BOOK_CATEGORIES}"
 
 
@@ -345,3 +343,89 @@ def test_review_collection_skips_books(tmp_path, monkeypatch):
 
     assert module.main() == 0
     assert fetched == ["https://item.rakuten.co.jp/a/1/"]
+
+
+# ======================================================================
+# 6. 書名で発信ジャンルを見分ける（2026-10-13）
+#
+# 本のジャンル（ビジネス実用・PC資格）は広く、禁止語に当たらないのに
+# 転職・年収・キャリアから外れた本がスコア1位に来ていた。
+# **実際に投稿された14冊のうち6冊がそれだった。** その14冊をそのまま
+# ここに置いて、同じものが二度と通らないことを見張る。
+# ======================================================================
+
+# (書名, 通ってよいか)。コメントは実測の出典
+TITLES_SEEN_IN_PRODUCTION = [
+    # --- 残すべきもの（発信ジャンルの中にある） ---
+    ("コミュニケーションの達人・超人 人間関係改善の秘訣 [ 林雄介 ]", True),
+    ("大量に覚えて絶対忘れない「紙1枚」勉強法 [ 棚田　健大郎 ]", True),
+    ("人生を変える！「コーチング脳」のつくり方 [ 宮越大樹 ]", True),
+    ("このまま今の会社にいていいのか？と一度でも思ったら読む転職の思考法 [ 北野 唯我 ]", True),
+    # --- 落とすべきもの（実際に投稿されてしまった） ---
+    ("第二級陸上特殊無線技士 試験問題集 （合格精選240題） [ 吉川 忠久 ]", False),
+    ("研究発表のためのスライドデザイン （ブルーバックス） [ 宮野 公樹 ]", False),
+    ("無料で使える！ 60歳からの最新AI ChatGPT&Gemini 世界一わかりやすい", False),
+    ("40代からは「稼ぎ口」を2つにしなさい [ 坂下　仁 ]", False),
+    ("育ちのきほん はじめての子育て [ 神田英雄 ]", False),
+    ("できるWindows 11 2025年 改訂4版 Copilot対応 （できるシリーズ）", False),
+    ("今すぐ使えるかんたん　YouTube入門 ［改訂2版］ [ AYURA ]", False),
+    ("マンガでわかる人間関係の心理学 [ 渋谷昌三 ]", False),
+    # 書名だけでは何の本か分からないもの。
+    # 「書名から種類が分からない本に別の種類の話を付ける」失敗を防ぐため落とす
+    ("一緒にいると楽しい人、疲れる人 [ 有川真由美 ]", False),
+    ("人の話は、ただ聞けばいい [ 石川 有生 ]", False),
+]
+
+# 選定の背骨。これが落ちるようになったら要求語を削りすぎている
+TITLES_THAT_MUST_PASS = [
+    "日商簿記3級 テキスト＆問題集 2026年度版",
+    "いちばんやさしいITパスポート 絶対合格の教科書",
+    "MOS Excel 365 対策テキスト＆問題集",
+    "職務経歴書の書き方 完全ガイド",
+    "面接の達人 2026",
+    "社会人1年目の仕事のきほん",
+    "FP3級 合格のトリセツ",
+    "TOEIC L&Rテスト 文法問題 でる1000問",
+    "転職エージェントとの付き合い方",
+    "年収交渉の教科書",
+]
+
+
+def _book_item(name):
+    return _book(name=name)
+
+
+@pytest.mark.parametrize("title,should_pass", TITLES_SEEN_IN_PRODUCTION)
+def test_titles_seen_in_production_are_judged_as_intended(config, title, should_pass):
+    from src.selector.filters import is_excluded
+
+    result = is_excluded(_book_item(title), config.exclusion, config.selection)
+    assert result.excluded is not should_pass, f"{title} → {result.reason}"
+
+
+@pytest.mark.parametrize("title", TITLES_THAT_MUST_PASS)
+def test_the_core_of_the_genre_still_passes(config, title):
+    from src.selector.filters import is_excluded
+
+    result = is_excluded(_book_item(title), config.exclusion, config.selection)
+    assert not result.excluded, f"要求語を削りすぎている: {title} → {result.reason}"
+
+
+def test_a_title_without_a_genre_word_is_dropped(config):
+    """キャッチコピーでは通らない。店が自由に書くので «何の本か» の根拠にならない。"""
+    from src.selector.filters import is_excluded
+
+    item = _book(name="きほんのきほん", catchcopy="転職に効く！面接対策の決定版")
+    result = is_excluded(item, config.exclusion, config.selection)
+    assert result.excluded
+    assert result.reason == "ジャンルの語が書名に無い"
+
+
+def test_the_required_keywords_are_only_for_books(config):
+    """化粧品の商品投稿を再開するときに空へ戻せること（剤形語の仕組みとは別）。"""
+    from src.selector.filters import is_excluded
+
+    exclusion = dict(config.exclusion)
+    exclusion["require_any_keywords"] = []
+    item = _book(name="きほんのきほん")
+    assert not is_excluded(item, exclusion, config.selection).excluded
