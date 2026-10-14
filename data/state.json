@@ -170,7 +170,8 @@
       "cm_yoru_kyuujin",
       "cm_benkyo",
       "cm_sunday_job_site",
-      "cm_owari_jikan"
+      "cm_owari_jikan",
+      "cm_mayoi"
     ],
     "casual_brand": [
       "brand",
@@ -522,7 +523,11 @@
       "q_yuukyu",
       "q_shikaku",
       "q_kaisha_kimete",
-      "q_kanrishoku"
+      "q_kanrishoku",
+      "q_nenshu_kijun",
+      "q_taishoku_tsutaeru",
+      "q_zangyou_genkai",
+      "q_tenkin"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -783,13 +788,12 @@
     "latemorning": 2,
     "midmorning": 1,
     "morning": 4,
-    "night": 3,
+    "night": 4,
     "noon": 0,
     "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "band_focus",
     "casual",
@@ -807,6 +811,7 @@
     "band_focus",
     "topic_thread",
     "topic",
+    "casual",
     "casual",
     "casual"
   ],
