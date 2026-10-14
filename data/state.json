@@ -657,7 +657,8 @@
       "nl_offer",
       "nl_tenkin",
       "nl_minashi_zangyou",
-      "nl_keirekisho_suuji"
+      "nl_keirekisho_suuji",
+      "nl_agent_honne"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -782,11 +783,10 @@
     "morning": 4,
     "night": 3,
     "noon": 0,
-    "predinner": 2,
+    "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "comparison",
     "casual",
     "casual",
     "casual",
@@ -805,7 +805,8 @@
     "question",
     "topic_thread",
     "band_focus",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
