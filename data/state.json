@@ -171,7 +171,8 @@
       "cm_benkyo",
       "cm_sunday_job_site",
       "cm_owari_jikan",
-      "cm_mayoi"
+      "cm_mayoi",
+      "cm_friday_night"
     ],
     "casual_brand": [
       "brand",
@@ -784,7 +785,7 @@
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 4,
-    "late": 1,
+    "late": 2,
     "latemorning": 2,
     "midmorning": 1,
     "morning": 4,
@@ -794,7 +795,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "band_focus",
     "casual",
     "casual",
@@ -811,6 +811,7 @@
     "band_focus",
     "topic_thread",
     "topic",
+    "casual",
     "casual",
     "casual",
     "casual"
