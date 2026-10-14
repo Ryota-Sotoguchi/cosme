@@ -291,7 +291,8 @@
       "bcta_decide",
       "bcta_date",
       "bcta_price",
-      "bcta_now"
+      "bcta_now",
+      "bcta_detail"
     ],
     "disclaimer": [
       "dc_point",
@@ -544,7 +545,8 @@
       "bo_nofail",
       "bo_notprice",
       "bo_forwho",
-      "bo_shortlist"
+      "bo_shortlist",
+      "bo_first"
     ],
     "roundup_closing": [
       "rc_undecided",
@@ -778,12 +780,11 @@
     "midmorning": 1,
     "morning": 4,
     "night": 3,
-    "noon": 6,
+    "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "comparison",
     "casual",
@@ -802,7 +803,8 @@
     "topic",
     "casual",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
