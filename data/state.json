@@ -169,7 +169,8 @@
       "cm_ido",
       "cm_yoru_kyuujin",
       "cm_benkyo",
-      "cm_sunday_job_site"
+      "cm_sunday_job_site",
+      "cm_owari_jikan"
     ],
     "casual_brand": [
       "brand",
@@ -776,7 +777,7 @@
   "rotation_cursor": {
     "afternoon": 4,
     "autoreply_shape": 3,
-    "earlynight": 5,
+    "earlynight": 6,
     "evening": 4,
     "late": 1,
     "latemorning": 2,
@@ -788,7 +789,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "band_focus",
@@ -807,6 +807,7 @@
     "band_focus",
     "topic_thread",
     "topic",
+    "casual",
     "casual"
   ],
   "threads_token": {
