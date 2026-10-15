@@ -533,7 +533,8 @@
       "q_tenkin",
       "q_first_tensyoku_age",
       "q_fukurikousei",
-      "q_shikaku_benkyou"
+      "q_shikaku_benkyou",
+      "q_nenshu_or_zangyou"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -799,14 +800,13 @@
     "late": 3,
     "latemorning": 3,
     "midmorning": 2,
-    "morning": 5,
+    "morning": 6,
     "night": 5,
     "noon": 1,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "band_focus",
@@ -825,6 +825,7 @@
     "topic",
     "topic",
     "topic_thread",
+    "question",
     "question"
   ],
   "threads_token": {
