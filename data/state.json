@@ -675,7 +675,8 @@
       "nl_keirekisho_suuji",
       "nl_agent_honne",
       "nl_20dai",
-      "nl_kanrishoku"
+      "nl_kanrishoku",
+      "nl_tenshoku_katsudou_jikan"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -799,7 +800,7 @@
     "evening": 5,
     "late": 3,
     "latemorning": 3,
-    "midmorning": 2,
+    "midmorning": 3,
     "morning": 6,
     "night": 5,
     "noon": 1,
@@ -807,7 +808,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "band_focus",
     "topic_thread",
@@ -826,7 +826,8 @@
     "topic",
     "topic_thread",
     "question",
-    "question"
+    "question",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
