@@ -783,7 +783,8 @@
       "tt_seichou_kankyou",
       "tt_rireki_shashin",
       "tt_yaritakunai",
-      "tt_scout_mendan"
+      "tt_scout_mendan",
+      "tt_nenshu_down"
     ]
   },
   "rotation_cursor": {
@@ -797,14 +798,13 @@
     "morning": 5,
     "night": 4,
     "noon": 1,
-    "predinner": 3,
+    "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
     "casual",
     "casual",
     "casual",
-    "casual",
     "topic",
     "casual",
     "question",
@@ -820,7 +820,8 @@
     "casual",
     "question",
     "band_focus",
-    "question"
+    "question",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
