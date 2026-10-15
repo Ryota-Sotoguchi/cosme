@@ -672,7 +672,8 @@
       "nl_minashi_zangyou",
       "nl_keirekisho_suuji",
       "nl_agent_honne",
-      "nl_20dai"
+      "nl_20dai",
+      "nl_kanrishoku"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -791,7 +792,7 @@
   "rotation_cursor": {
     "afternoon": 5,
     "autoreply_shape": 3,
-    "earlynight": 6,
+    "earlynight": 0,
     "evening": 5,
     "late": 2,
     "latemorning": 3,
@@ -804,7 +805,6 @@
   },
   "template_history": [
     "casual",
-    "casual",
     "topic",
     "casual",
     "question",
@@ -822,6 +822,7 @@
     "band_focus",
     "question",
     "topic_thread",
+    "topic",
     "topic"
   ],
   "threads_token": {
