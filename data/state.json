@@ -172,7 +172,8 @@
       "cm_sunday_job_site",
       "cm_owari_jikan",
       "cm_mayoi",
-      "cm_friday_night"
+      "cm_friday_night",
+      "cm_bonus"
     ],
     "casual_brand": [
       "brand",
@@ -788,7 +789,7 @@
     "evening": 4,
     "late": 2,
     "latemorning": 2,
-    "midmorning": 1,
+    "midmorning": 2,
     "morning": 5,
     "night": 4,
     "noon": 0,
@@ -796,7 +797,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "longform",
@@ -815,7 +815,8 @@
     "casual",
     "casual",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
