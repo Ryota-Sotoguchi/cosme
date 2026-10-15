@@ -671,7 +671,8 @@
       "nl_tenkin",
       "nl_minashi_zangyou",
       "nl_keirekisho_suuji",
-      "nl_agent_honne"
+      "nl_agent_honne",
+      "nl_20dai"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -791,7 +792,7 @@
     "afternoon": 5,
     "autoreply_shape": 3,
     "earlynight": 6,
-    "evening": 4,
+    "evening": 5,
     "late": 2,
     "latemorning": 3,
     "midmorning": 2,
@@ -804,7 +805,6 @@
   "template_history": [
     "casual",
     "casual",
-    "casual",
     "topic",
     "casual",
     "question",
@@ -821,7 +821,8 @@
     "question",
     "band_focus",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
