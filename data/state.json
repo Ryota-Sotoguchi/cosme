@@ -540,7 +540,8 @@
       "q_shikaku_benkyou",
       "q_nenshu_or_zangyou",
       "q_tensyoku_kaisuu",
-      "q_remote_or_nenshu"
+      "q_remote_or_nenshu",
+      "q_kuchikomi"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -810,7 +811,7 @@
     "evening": 6,
     "late": 4,
     "latemorning": 4,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 6,
     "noon": 2,
@@ -818,7 +819,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "band_focus",
     "question",
@@ -837,7 +837,8 @@
     "casual",
     "casual",
     "topic_thread",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
