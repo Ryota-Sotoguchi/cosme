@@ -887,9 +887,45 @@ def cmd_replies(config: Config, args: argparse.Namespace) -> int:
     規約上いちばん安全なもの（他人の投稿への自動返信とは別物）。
     既定は下書き表示のみ。--live のときだけ実際に返信する。
     """
+    # **キルスイッチは自動返信と同じものを使う。**
+    # 止めたいときに2か所覚えなくていいようにする（CLAUDE.md の停止手順）。
+    if args.live:
+        if os.environ.get("AUTOREPLY_OFF", "").strip().lower() in {"1", "true", "yes", "on"}:
+            print("\n  AUTOREPLY_OFF が設定されているので返信しません\n")
+            return EXIT_OK
+        if config.autoreply_stop_path.exists():
+            print(f"\n  停止ファイルがあります: {config.autoreply_stop_path}\n")
+            return EXIT_OK
+
+    # **先に認証を確かめる。** これはローカルで回す経路なので、
+    # GitHub Secrets ではなく .env に THREADS_ACCESS_TOKEN が要る。
+    # 途中まで進んでから落ちると、何を用意すればいいのか分かりにくい。
+    try:
+        config.credentials.require_threads()
+    except MissingSecretError as exc:
+        logger.error("%s", exc)
+        print("\n  .env に THREADS_ACCESS_TOKEN を入れてください。")
+        print("  Meta の開発者コンソール（developers.facebook.com）→ Threads API →")
+        print("  長期トークンを発行して貼ります。期限は60日で、")
+        print("  token-refresh.yml が Actions 側の分を自動で延長しています。\n")
+        return EXIT_CONFIG
+
     state = State(config.state_path)
     history = History(config.history_path)
-    responder = ReplyResponder(config, state)
+
+    # 返信文は LLM に書かせる（CLAUDE.md の「例外1」。claude CLI をサブプロセスで呼ぶ）。
+    # **定型文のままでは会話にならない**ので、ここを差し込んだうえで自動化した。
+    # CLI が無い環境では writer が None を返し、従来の定型文に落ちる。
+    writer = None
+    try:
+        from .engage.llm import build_client
+        from .threads.reply_writer import build_writer
+
+        writer = build_writer(build_client(config))
+    except Exception as exc:  # noqa: BLE001 — 書き手が組めなくても返信自体は動かす
+        logger.warning("返信文の書き手を用意できませんでした: %s", exc)
+
+    responder = ReplyResponder(config, state, writer=writer)
 
     # 人の返信が付いている投稿を履歴から拾う。
     #
@@ -910,8 +946,16 @@ def cmd_replies(config: Config, args: argparse.Namespace) -> int:
     except (AuthError, PostRejectedError, TransientError) as exc:
         logger.warning("直近の投稿一覧を取得できませんでした: %s", exc)
 
+    # 返信文を書くには「何に対するコメントか」が要る。履歴に本文があるので渡す。
+    post_texts = {
+        r.thread_post_id: (r.text or "")
+        for r in history.successful()
+        if r.thread_post_id
+    }
+
     try:
-        planned = responder.run(dry_run=not args.live, post_ids=candidates)
+        planned = responder.run(dry_run=not args.live, post_ids=candidates,
+                                post_texts=post_texts)
     except MissingSecretError as exc:
         logger.error("%s", exc)
         return EXIT_CONFIG
@@ -945,9 +989,8 @@ def cmd_replies(config: Config, args: argparse.Namespace) -> int:
         if link:
             print(f"    {link}")
     if not args.live:
-        print("\n  下書きは定型文です。会話として不自然なので、"
-              "上のリンクを開いて手で返すことを勧めます。")
-        print("  そのまま投稿する場合は --live を付けてください")
+        print("\n  投稿する場合は --live を付けてください")
+        print(f"  本日の残り: {responder.remaining_today()}/{responder.max_per_day}件")
     print()
     state.save()
     return EXIT_OK

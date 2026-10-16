@@ -40,6 +40,10 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/executor.py    … 着弾確認で下までスクロールする（2026-09-24）。返信は投稿の下に
 #                           描かれるので、再読み込みだけでは見つからず、実際に付いた返信3件中2件を
 #                           «確認できなかった» と記録していた。送信・再送しない方針は変えていない
+#   threads/replies.py    … 自分の投稿へのコメントに «一度だけ» 自動で返す（2026-10-16）。
+#                           仕組みは前からあったが «下書きを出すだけ» の前提で、他人から付いた
+#                           返信38件のうち答えたのは1件だった。返信文の書き手を差し込みにし、
+#                           1日の上限と絞られたときの停止を足した。取得・投稿のAPIは変えていない
 #   threads/insights.py   … アカウント指標に since/until を渡して «前日1日ぶん» を取る（2026-10-13）。
 #                           窓を渡していなかったので API が返す最後の桶（= 測った時点までの当日ぶん）を
 #                           拾っていて、発火が何時間もずれるこの運用では日ごとに比較できない数字だった
@@ -54,7 +58,7 @@ UNCHANGED_MECHANISM = {
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
-    "src/threads/replies.py": "269f43e75ba921196b986dbc7f59460e2a3dc2f7",
+    "src/threads/replies.py": "cf2cd2eed4b9c4380537d033b385ccd4c79d2cf1",
     "src/threads/token.py": "80973d116b5aaaca06b2a3783b841add0a6cd65a",
     "src/storage/history.py": "ec367dd090d26b0e2c6922a7ee9543a96661d9c1",
     "src/storage/state.py": "f3236916c3f92eaa1bfb2871bf2fcb77c7abc0f1",
@@ -138,14 +142,31 @@ def _cosme_hits(text: str) -> list[str]:
     return [w for w in COSME_WORDS if w in text]
 
 
-def test_the_only_affiliate_slot_is_noon(config):
-    """**リンク投稿は1日1本（noon）だけ。**
+def test_the_affiliate_slot_is_off_or_noon_only(config):
+    """**楽天のリンク投稿は、付けるとしても1日1本（noon）だけ。**
 
-    2026-09-14 にコスメのリンク投稿を止め、2026-09-28 に本（転職・資格）で再開した。
-    1本に絞っているのは、楽天の日次クリック数を投稿に割り当てられるようにするため
-    （レポートは日次までしか出ない）。
+    2026-09-14 にコスメのリンク投稿を止め、2026-09-28 に本（転職・資格）で再開し、
+    **2026-10-16 に止めた**（90日でクリック1・報酬¥0、リンクありは15表示で
+    #PRの無い投稿は113表示）。収益の経路は自サイト（site_link → A8）に寄せた。
+
+    1本に絞る決まりは残す。楽天のレポートは日次までしか出ないので、
+    1日にリンク投稿が2本あるとクリックを投稿に割り当てられなくなる。
     """
-    assert [s.slot for s in config.schedule if s.allow_affiliate] == ["noon"]
+    slots = [s.slot for s in config.schedule if s.allow_affiliate]
+    assert slots in ([], ["noon"]), f"リンク枠が noon 以外にある: {slots}"
+
+
+def test_the_money_path_is_still_in_the_rotation(config):
+    """**収益の導線を全部消さない。**
+
+    楽天の本を外したとき、site_link まで消すと «収益化の経路がゼロ» になる。
+    自サイト（年収相場チェッカー）には A8 の転職エージェント広告が載っていて、
+    1件あたりの単価が本とは桁違い。そこへの導線が site_link。
+    """
+    appearances = [t for types in config.rotation.values() for t in types if t == "site_link"]
+    assert appearances, "site_link がローテーションから消えている"
+    slots = [slot for slot, types in config.rotation.items() if "site_link" in types]
+    assert len(slots) >= 3, f"site_link の枠が少なすぎる: {slots}"
 
 
 def test_the_affiliate_slot_sells_books_not_cosmetics(config):

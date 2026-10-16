@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from typing import Any
 
@@ -26,6 +27,8 @@ from ..storage.state import State
 
 logger = logging.getLogger(__name__)
 
+_JST = timezone(timedelta(hours=9))
+
 # 返信しないコメント。宣伝・勧誘・URL付きなど。
 _SKIP_PATTERNS = (
     re.compile(r"https?://"),
@@ -33,18 +36,23 @@ _SKIP_PATTERNS = (
     re.compile(r"(相互|フォロバ|フォロー[しお])"),
 )
 
+# 定型文は **LLM が書けなかったときの保険**（reply_writer.py が本筋）。
+# 2026-10-16 にコスメ時代の文面から転職ジャンルへ入れ替えた。
+# 中身の薄い文だが、**返さないよりは返す**（書き込んだ人に何も返さないのが
+# いちばん損で、38件もらって1件しか答えていなかった）。
+#
 # 質問っぽいコメントへの返し
 _ANSWER_REPLIES = (
-    "ありがとうございます！わたしも迷ってるところです🥺",
-    "気になりますよね〜！わたしもまだ決めきれてないです💭",
-    "コメントうれしいです🤍 参考になったらよかったです！",
+    "コメントありがとうございます。わたしも同じところで迷いました。",
+    "ありがとうございます。そこ、判断が分かれるところですよね。",
+    "ありがとうございます。わたしの場合は、先に条件を書き出して整理しました。",
 )
 # それ以外への返し
 _THANKS_REPLIES = (
-    "ありがとうございます🤍",
-    "うれしいです、ありがとうございます☺️",
-    "コメントありがとうございます〜！",
-    "わ、ありがとうございます😌",
+    "ありがとうございます。",
+    "読んでいただいてありがとうございます。",
+    "コメントありがとうございます。励みになります。",
+    "ありがとうございます。参考になったのならよかったです。",
 )
 
 
@@ -66,13 +74,24 @@ class Reply:
 
 
 class ReplyResponder:
-    def __init__(self, config: Config, state: State, http: HttpClient | None = None) -> None:
+    def __init__(self, config: Config, state: State, http: HttpClient | None = None,
+                 writer: Any | None = None) -> None:
         self.config = config
         self.state = state
         self.credentials = config.credentials
         th = config.threads
         self.api_base: str = th["api_base"].rstrip("/")
         self.max_per_run: int = int(th.get("max_replies_per_run", 5))
+        # 返信文を書くもの（reply_writer.build_writer）。
+        # **差し込みにするのは、ここに LLM の都合を持ち込まないため。**
+        # 渡されなければ従来どおり定型文になる。
+        self.writer = writer
+        # 1日の上限。自分の投稿へのコメントに返すのは通常の利用の範囲なので、
+        # 他人の投稿へ出す自動返信（[autoreply.daily_quota]）とは別に数える。
+        # それでも「繰り返しコメント」に見えないよう上限は置く。
+        self.max_per_day: int = int(
+            config.raw.get("engagement", {}).get("max_own_replies_per_day", 5)
+        )
         # 通常投稿と同じく、コンテナ作成から公開まで待つ。
         # 待たずに公開すると "The requested resource does not exist" になる。
         self.publish_wait: int = int(th.get("publish_wait_seconds", 30))
@@ -148,9 +167,50 @@ class ReplyResponder:
                              username=d.get("username")))
         return out
 
-    def _reply_text(self, reply: Reply, cursor: int) -> str:
+    def _reply_text(self, reply: Reply, cursor: int, post_text: str = "") -> str:
+        """相手のコメントに答える文。書けなければ定型文に落とす。"""
+        if self.writer is not None:
+            try:
+                written = self.writer(reply, post_text)
+            except Exception as exc:  # noqa: BLE001 — 1件で全部を止めない
+                logger.warning("返信文を書けませんでした (@%s): %s", reply.username, exc)
+                written = None
+            if written:
+                return written
         pool = _ANSWER_REPLIES if reply.is_question else _THANKS_REPLIES
         return pool[cursor % len(pool)]
+
+    # ------------------------------------------------------------------
+    def _today(self) -> str:
+        return datetime.now(_JST).strftime("%Y-%m-%d")
+
+    def remaining_today(self) -> int:
+        """今日あと何件返せるか。"""
+        today = self._today()
+        done = [t for t in self.state.get("own_reply_log", []) if str(t).startswith(today)]
+        return max(self.max_per_day - len(done), 0)
+
+    def _charge(self) -> None:
+        log = list(self.state.get("own_reply_log", []))
+        log.append(datetime.now(_JST).isoformat(timespec="seconds"))
+        self.state.set("own_reply_log", log[-200:])
+
+    def throttled_until(self) -> str:
+        """絞られて止まっているなら、その時刻。止まっていなければ空。
+
+        **自動返信と同じ信号を見る。** 経路は違うが、Meta が見るのは
+        アカウント単位の合計なので、絞られている最中に別の口から押し込まない。
+        """
+        until = self.state.get("autoreply_throttled_until")
+        if not until:
+            return ""
+        try:
+            when = datetime.fromisoformat(str(until))
+        except ValueError:
+            return ""
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=_JST)
+        return str(until) if datetime.now(_JST) < when else ""
 
     def post_reply(self, reply_to_id: str, text: str) -> str | None:
         user_id = self.credentials.threads_user_id or "me"
@@ -183,7 +243,8 @@ class ReplyResponder:
 
     # ------------------------------------------------------------------
     def run(
-        self, *, dry_run: bool = True, post_ids: list[str] | None = None
+        self, *, dry_run: bool = True, post_ids: list[str] | None = None,
+        post_texts: dict[str, str] | None = None,
     ) -> list[dict[str, Any]]:
         """未返信のコメントに返す。dry_run のときは投稿しない。
 
@@ -198,15 +259,27 @@ class ReplyResponder:
         呼び出し側は、成績から「人の返信が付いている投稿」を渡す
         （履歴に反応が記録されているので、API を余分に叩かずに絞れる）。
         """
+        if not dry_run:
+            until = self.throttled_until()
+            if until:
+                logger.info("絞られているので返信しません（%s まで）", until)
+                return []
+
         answered = self._answered()
         planned: list[dict[str, Any]] = []
         cursor = len(answered)
+        post_texts = post_texts or {}
+        # **1日の上限は «実際に返した数» で数える。** 下書き（dry_run）では減らさない。
+        limit = self.max_per_run if dry_run else min(self.max_per_run, self.remaining_today())
+        if limit <= 0:
+            logger.info("本日の返信の上限に達しています（%d件）", self.max_per_day)
+            return []
 
         for post_id in (post_ids if post_ids is not None else self.recent_post_ids()):
-            if len(planned) >= self.max_per_run:
+            if len(planned) >= limit:
                 break
             for reply in self.replies_on(post_id):
-                if len(planned) >= self.max_per_run:
+                if len(planned) >= limit:
                     break
                 if reply.reply_id in answered:
                     continue
@@ -215,7 +288,7 @@ class ReplyResponder:
                     self._remember(reply.reply_id)   # 二度と見ない
                     continue
 
-                text = self._reply_text(reply, cursor)
+                text = self._reply_text(reply, cursor, post_texts.get(post_id, ""))
                 cursor += 1
                 entry = {
                     "post_id": post_id,
@@ -229,7 +302,9 @@ class ReplyResponder:
                     result = self.post_reply(reply.reply_id, text)
                     entry["posted"] = result is not None
                     if result:
+                        # **一度返したら二度と返さない**（同じ人に繰り返しコメントしない）
                         self._remember(reply.reply_id)
+                        self._charge()
                 planned.append(entry)
 
         return planned
