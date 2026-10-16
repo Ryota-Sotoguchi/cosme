@@ -429,3 +429,206 @@ def test_the_required_keywords_are_only_for_books(config):
     exclusion["require_any_keywords"] = []
     item = _book(name="きほんのきほん")
     assert not is_excluded(item, exclusion, config.selection).excluded
+
+
+# ======================================================================
+# 7. 名乗る «何の本か» は書名から決める（2026-10-16）
+#
+# ジャンルラベルは **楽天のどのジャンルで取ってきたか** でしかない。
+# 「考える人のメモの技術 手を動かして答えを出す『万能の問題解決術』」が
+# PC・IT資格のジャンルに入っていて、**«資格本は、名前を聞いたことがあるかより
+# 自分の状況に合うかで選んだほうがいい» と名乗る投稿が実際に出た**（表示4）。
+# CLAUDE.md §5-4「書名から種類が分からない本に、別の種類の話を付けない」。
+# ======================================================================
+
+# (書名, 付いていたジャンルラベル)。どれも実際に候補に出たもの
+MISLABELLED = [
+    ("考える人のメモの技術 手を動かして答えを出す「万能の問題解決術」 [ 下地寛也 ]", "資格本"),
+    ("今すぐ使えるかんたん　Access 2021　[Office 2021/Microsoft 365 両対応]", "資格本"),
+    ("不格好経営 チームDeNAの挑戦 [ 南場智子 ]", "働き方の本"),
+]
+
+
+def _text_of(tmp_path, item):
+    draft = _builder(tmp_path).build(
+        "product", [item], template_id="band_focus", with_affiliate_link=True,
+        today=datetime.date(2026, 9, 16), link_position=LINK_LAST,
+    )
+    return draft.text
+
+
+@pytest.mark.parametrize("title,label", MISLABELLED)
+def test_a_title_that_does_not_show_its_kind_never_claims_one(tmp_path, title, label):
+    """書名が種類を示していないなら、ジャンルラベルを名乗らない。"""
+    text = _text_of(tmp_path, _book(name=title, label=label))
+    assert label not in text, f"書名が示していない «{label}» を名乗っている:\n{text}"
+    assert B.NEUTRAL_CATEGORY in text or label not in text
+
+
+@pytest.mark.parametrize("title,label", [
+    ("転職面接の質問と答え方 [ 山田 太郎 ]", "転職本"),
+    ("日商簿記3級 テキスト＆問題集 2026年度版", "資格本"),
+    ("伝え方が9割（2） [ 佐々木圭一 ]", "働き方の本"),
+])
+def test_a_title_that_shows_its_kind_keeps_the_label(tmp_path, title, label):
+    """書名から分かるときは、今までどおりラベルを名乗る（中立の語に逃げない）。"""
+    text = _text_of(tmp_path, _book(name=title, label=label))
+    assert label in text or B.NEUTRAL_CATEGORY not in text
+
+
+def test_the_neutral_word_fits_all_three_genres():
+    """3つのジャンルどれにも当てはまる語であること（嘘にならない）。"""
+    assert B.NEUTRAL_CATEGORY
+    assert B.NEUTRAL_CATEGORY not in B.BOOK_CATEGORIES
+
+
+# ======================================================================
+# 8. 働き方の本（ビジネス実用）の種類を書名から判定する（2026-10-16）
+#
+# それまで BOOK_BENEFITS は転職と資格だけだったので、実際に選ばれた16冊のうち
+# 書名から種類が分かったのは2冊だけで、残りはラベルを名乗るだけになっていた。
+# ======================================================================
+
+TITLES_AND_KINDS = [
+    ("伝え方が9割（2） [ 佐々木圭一 ]", "book_tsutaekata"),
+    ("話し方で損する人 得する人", "book_tsutaekata"),
+    ("おもろい話し方 芸人だけが知っているウケる会話の法則", "book_tsutaekata"),
+    ("よくわかるアサーション　自分の気持ちの伝え方", "book_tsutaekata"),
+    ("コミュニケーションの達人・超人 人間関係改善の秘訣 [ 林雄介 ]", "book_ningenkankei"),
+    ("お前は私じゃないし、私はお前じゃない 悩みが0になる人間関係術", "book_ningenkankei"),
+    ("誰もが人を動かせる!　あなたの人生を変えるリーダーシップ革命 [ 森岡毅 ]", "book_leader"),
+    ("考える人のメモの技術 手を動かして答えを出す「万能の問題解決術」", "book_shiryo"),
+    ("残業ゼロの段取り術", "book_jikan"),
+    # 転職・資格の判定は先に置いてあるので、こちらが勝つ
+    ("転職面接の質問と答え方", "book_mensetsu"),
+    ("日商簿記3級 テキスト＆問題集", "book_boki"),
+]
+
+
+@pytest.mark.parametrize("title,kind", TITLES_AND_KINDS)
+def test_the_kind_comes_from_the_title(title, kind):
+    benefit = B.book_benefit_for(title)
+    assert benefit is not None, f"種類が判定できない: {title}"
+    assert benefit.id == kind, f"{title} → {benefit.id}（期待 {kind}）"
+
+
+# ======================================================================
+# 9. 訴求文は本の確認項目（疑問形）と噛み合う形だけ使う（2026-10-16）
+#
+# 確認項目は「職場の話か、家族や友人の話か」のような**疑問形**なので、
+# 化粧品向けの枠に入れると文にならなかった。実測で出たのがこれ:
+#   「働き方の本、『職場の話か、家族や友人の話か』派と…派で選ぶものが変わる」
+# あわせて「弱点もある」は、読んでいない本については言えない（§5-4）。
+# ======================================================================
+
+from src.content.appeals import APPEALS, AppealContext  # noqa: E402
+
+# 本の確認項目は疑問形。この形を名詞のように扱う言い方は使わない
+BROKEN_FRAMES = ("」派", "」重視", "派と「")
+# 読んでいない本の中身についての断定
+UNFOUNDED = ("弱点もある", "弱点はある")
+
+
+def _book_appeal_texts(category, title):
+    item = _book(name=title, label=category)
+    benefit = B.book_benefit_for(title)
+    out = []
+    for cursor, appeal in enumerate(APPEALS):
+        ctx = AppealContext(item=item, benefit=benefit, category=category,
+                            cursor=cursor, allowed_numbers=set())
+        for shift in range(4):
+            ctx = AppealContext(item=item, benefit=benefit, category=category,
+                                cursor=cursor + shift * len(APPEALS), allowed_numbers=set())
+            text = appeal.build(ctx)
+            if text:
+                out.append((appeal.id, text))
+    return out
+
+
+BOOK_SAMPLES = [
+    ("働き方の本", "お前は私じゃないし、私はお前じゃない 悩みが0になる人間関係術"),
+    ("転職本", "採用される履歴書・職務経歴書はこう書く 実例付き"),
+    ("資格本", "日商簿記3級 テキスト＆問題集 2026年度版"),
+]
+
+
+@pytest.mark.parametrize("category,title", BOOK_SAMPLES)
+def test_book_appeals_never_use_a_frame_that_needs_a_noun(category, title):
+    for appeal_id, text in _book_appeal_texts(category, title):
+        for frame in BROKEN_FRAMES:
+            assert frame not in text, f"{appeal_id}: 疑問形が名詞の枠に入っている\n{text}"
+
+
+@pytest.mark.parametrize("category,title", BOOK_SAMPLES)
+def test_book_appeals_never_claim_a_weakness(category, title):
+    """中身を読んでいないので、欠点があるとは言えない。"""
+    for appeal_id, text in _book_appeal_texts(category, title):
+        for word in UNFOUNDED:
+            assert word not in text, f"{appeal_id}: 読んでいない本の欠点を断定している\n{text}"
+
+
+def test_the_cosme_frames_are_kept_for_the_paused_genre():
+    """化粧品側は従来どおり。剤形の確認項目は名詞なので枠に入る。"""
+    from src.content.benefits import benefit_for
+
+    item = make_item(
+        item_code="cosme:1", item_name="モイストクレンジングバーム 90g", item_price=1980,
+        review_count=120, review_average=4.4, postage_flag=0, point_rate=1.0,
+        affiliate_rate=4.0, genre_id="100939", shop_code="s", shop_name="店",
+        genre_label="スキンケア",
+    )
+    benefit = benefit_for(item.item_name)
+    texts = []
+    for cursor, appeal in enumerate(APPEALS):
+        ctx = AppealContext(item=item, benefit=benefit, category="スキンケア",
+                            cursor=cursor, allowed_numbers=set())
+        text = appeal.build(ctx)
+        if text:
+            texts.append(text)
+    assert texts, "化粧品の訴求文が1つも作れていない"
+
+
+# ======================================================================
+# 10. 書き出しと箇条書きで同じ項目を二度出さない（2026-10-16）
+#
+# 「比較・対立」の軸は確認項目を2つ鍵括弧で引用する。そのすぐ下に
+# 同じ項目から始まる箇条書きが並んでいた（実測の band_focus / checklist）。
+# 箇条書きは**続きの項目へずらす**（段ごと消すと本文が薄くなる）。
+# ======================================================================
+
+@pytest.mark.parametrize("template_id", ["checklist", "band_focus", "short", "objective"])
+def test_the_bullets_do_not_repeat_what_the_opening_quoted(tmp_path, template_id):
+    item = _book(name="お前は私じゃないし、私はお前じゃない 悩みが0になる人間関係術",
+                 label="働き方の本")
+    benefit = B.book_benefit_for(item.item_name)
+    assert benefit is not None
+
+    draft = _builder(tmp_path).build(
+        "product", [item], template_id=template_id, with_affiliate_link=True,
+        today=datetime.date(2026, 9, 16), link_position=LINK_LAST,
+    )
+    text = draft.text
+    lines = text.splitlines()
+    bullets = [ln.lstrip("・").strip() for ln in lines if ln.startswith("・")]
+    if not bullets:
+        return  # 箇条書きの無い型は対象外
+
+    # 鍵括弧で引用された項目
+    quoted = [tip for tip in benefit.tips if tip and f"「{tip}」" in text]
+    overlap = sorted(set(quoted) & set(bullets))
+    assert not overlap, f"引用と箇条書きで重複している: {overlap}\n{text}"
+
+
+def test_the_shift_counts_only_tips_that_are_really_quoted(tmp_path):
+    """引用が無いときはずらさない（毎回同じ項目から始まるのを避ける仕組みを壊さない）。"""
+    from src.content.templates import _tips_used_in
+
+    class Ctx:
+        category = "働き方の本"
+        items = [_book(name="伝え方が9割（2） [ 佐々木圭一 ]", label="働き方の本")]
+        item = items[0]
+
+    assert _tips_used_in(Ctx(), "ぜんぜん関係のない書き出し") == 0
+    benefit = B.book_benefit_for(Ctx.item.item_name)
+    lead = f"「{benefit.tips[0]}」と「{benefit.tips[1]}」"
+    assert _tips_used_in(Ctx(), lead) == 2

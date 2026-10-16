@@ -212,6 +212,13 @@ def _curiosity(c: AppealContext) -> str | None:
     tip = c.tip()
     if not tip:
         return None
+    if is_book(c.category):
+        # 「意外と知られてないのが『職場の話か、家族や友人の話か』」は文にならない。
+        # 疑問形の確認項目は、言い切りの後ろに置く形だけ使う。
+        return c.pick((
+            f"{c.category}、ここで差が出る。\n\n「{tip}」",
+            f"{c.category}選びで見落とされがちな違いがある。\n\n「{tip}」",
+        ))
     return c.pick((
         f"{c.category}で意外と知られてないのが「{tip}」",
         f"{c.category}、ここで差が出る。\n\n「{tip}」",
@@ -226,6 +233,15 @@ def _contrast(c: AppealContext) -> str | None:
     if len(c.tips) < 2:
         return None
     a, b = c.tip(), c.tip(1)
+    if is_book(c.category):
+        # **本の確認項目は疑問形**（「職場の話か、家族や友人の話か」）なので、
+        # 「〜派」「〜重視」の枠に入れると文にならない。実測（2026-10-16）で
+        # 「『職場の話か、家族や友人の話か』派と…派で選ぶものが変わる」が出た。
+        # 値段で分かれる言い方も、本はほぼ定価なので使えない。
+        return c.pick((
+            f"{c.category}で迷うなら、見るところはここ。\n\n「{a}」と「{b}」",
+            f"{c.category}は、先にどっちを優先するか決めると早い。\n\n「{a}」か、「{b}」か",
+        ))
     return c.pick((
         f"{c.category}、「{a}」派と「{b}」派で選ぶものが変わる",
         f"{c.category}で迷うなら、違いはここ。\n\n「{a}」か「{b}」か",
@@ -336,6 +352,14 @@ def _negative(c: AppealContext) -> str | None:
     tip = c.tip()
     if not tip:
         return None
+    if is_book(c.category):
+        # **「弱点もある」は読んでいない本については言えない**（CLAUDE.md §5-4）。
+        # 化粧品では商品データ（容量・成分）から言える欠点だったが、
+        # 本の中身は一次情報を持っていない。«誰向けか» までにとどめる。
+        return c.pick((
+            f"全員に要る本ではないと思う。「{tip}」が引っかかる人向け",
+            f"{c.category}を一冊も持っていない人には、ここから。\n\n「{tip}」を気にするなら",
+        ))
     return c.pick((
         f"これは万人向けではないと思う。「{tip}」が合う人向け",
         f"{c.category}にこだわりが無い人には、たぶん要らない。\n\n「{tip}」を気にする人向け",

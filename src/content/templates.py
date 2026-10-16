@@ -34,6 +34,7 @@ from .books import (
     BOOK_GENERIC_TIPS,
     BOOK_RECOMMEND_CLOSINGS,
     BOOK_RECOMMEND_OPENINGS,
+    NEUTRAL_CATEGORY,
     BOOK_ROUNDUP_CLOSINGS,
     BOOK_ROUNDUP_OPENINGS,
     book_benefit_by_cursor,
@@ -215,13 +216,29 @@ def _tips_stage_unless_duplicated(ctx: RenderContext, lead: str) -> str:
 
     「省力化」「チェック・診断」「ランキング」の軸は本文に箇条書きを含む。
     そこへ tips 段を重ねると、同じ項目が二度並ぶ。
+
+    **箇条書きでなくても、訴求文が確認項目を引用していることがある。**
+    「比較・対立」「答え」「意外性」の軸は項目を鍵括弧で本文に埋める。
+    実測（2026-10-16）では、書き出しが2項目を挙げたすぐ下に、同じ2項目を
+    含む箇条書きが並んでいた。その場合は**続きの項目へずらす**
+    （段ごと消すと本文が薄くなる）。
     """
     if "・" in lead or "1. " in lead:
         return ""
-    return _tips_stage(ctx)
+    return _tips_stage(ctx, shift=_tips_used_in(ctx, lead))
 
 
-def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
+def _tips_used_in(ctx: RenderContext, lead: str) -> int:
+    """訴求文がすでに引用している確認項目の数。"""
+    if not ctx.items:
+        return 0
+    benefit = _pools(ctx).find_benefit(ctx.item.display_name(60))
+    if benefit is None or not benefit.tips:
+        return 0
+    return sum(1 for tip in benefit.tips if tip and tip in lead)
+
+
+def _tips_stage(ctx: RenderContext, heading: str | None = None, *, shift: int = 0) -> str:
     """箇条書きのノウハウ段。
 
     商品の剤形に対応した「選ぶとき見るところ」を並べ、
@@ -247,7 +264,7 @@ def _tips_stage(ctx: RenderContext, heading: str | None = None) -> str:
         # その剤形に許された効能を別の商品に付けることになる。
         return _generic_tips(ctx, heading)
 
-    return tips_block(benefit, heading, cursor=_variation_cursor(ctx))
+    return tips_block(benefit, heading, cursor=_variation_cursor(ctx) + shift)
 
 
 # 剤形が分からない商品向け。効能に触れず、買い方の話だけにする。
@@ -408,7 +425,8 @@ def _lead_opening(ctx: RenderContext, rendered: Rendered) -> str:
         benefit = pools.find_benefit(ctx.item.display_name(60))
         cursor = _variation_cursor(ctx)
         built = build_appeal(
-            ctx.item, benefit, ctx.category,
+            # 名乗る語は書名から決める（ジャンルラベルをそのまま渡さない）
+            ctx.item, benefit, _category_word(ctx),
             cursor=cursor,
             avoid=set(ctx.recent_appeals),
             voices=_voices(ctx),
@@ -437,9 +455,28 @@ def _lead_closing(ctx: RenderContext, rendered: Rendered) -> str:
     return part.text
 
 
+def _category_word(ctx: RenderContext) -> str:
+    """文章の中で «何の本か» と名乗るときの語。
+
+    **ジャンルラベルは «楽天のどのジャンルで取ってきたか» でしかない。**
+    2026-10-16 の実測では「考える人のメモの技術 …万能の問題解決術」が
+    PC・IT資格のジャンルに入っていて、«資格本は、名前を聞いたことがあるかより…»
+    と名乗る投稿が出た。書名が種類を示しているときだけラベルを名乗り、
+    示していなければ3つのジャンルすべてに当てはまる中立の語にする
+    （CLAUDE.md §5-4「書名から種類が分からない本に、別の種類の話を付けない」）。
+
+    化粧品（休止中）は従来どおりラベルをそのまま使う。剤形は商品名に出る。
+    """
+    if not is_book(ctx.category):
+        return ctx.category
+    if ctx.items and book_benefit_for(ctx.item.display_name(60)) is not None:
+        return ctx.category
+    return NEUTRAL_CATEGORY
+
+
 def _opening_text(part: Part, ctx: RenderContext) -> str:
     return part.text.format(
-        category=ctx.category,
+        category=_category_word(ctx),
         band=F.format_price_band(ctx.item.item_price),
         band_range="",
     )
@@ -612,7 +649,10 @@ def render_checklist(ctx: RenderContext) -> Rendered:
 
     _split_for_thread(ctx, r, [
         opening_text,
-        _tips_stage(ctx),
+        # 書き出しが確認項目を引用していたら、続きの項目へずらす。
+        # この型は箇条書きが主役なので、段ごと消さずにずらす
+        # （実測 2026-10-16: 書き出しの2項目がそのまま下の箇条書きにも並んでいた）。
+        _tips_stage(ctx, shift=_tips_used_in(ctx, opening_text)),
         f"{_concern_stage(ctx)}\n\n{closing_text}",
     ])
     return r
@@ -657,7 +697,7 @@ def _roundup(ctx: RenderContext, kind: str) -> Rendered:
     r.allowed_numbers |= {F.normalize_number(str(lo)), F.normalize_number(str(hi))}
 
     headline = opening.text.format(
-        category=ctx.category, band=band_range, band_range=band_range
+        category=_category_word(ctx), band=band_range, band_range=band_range
     )
     r.blocks.append(Block(headline, 0))
 
@@ -741,7 +781,7 @@ def render_longform(ctx: RenderContext) -> Rendered:
     r.allowed_numbers |= {F.normalize_number(str(lo)), F.normalize_number(str(hi))}
 
     headline = opening.text.format(
-        category=ctx.category, band=band_range, band_range=band_range
+        category=_category_word(ctx), band=band_range, band_range=band_range
     )
 
     # 選ぶ観点。長い型なので、短い型より多めに出す。
