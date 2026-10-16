@@ -174,7 +174,8 @@
       "cm_mayoi",
       "cm_friday_night",
       "cm_bonus",
-      "cm_kaeritai"
+      "cm_kaeritai",
+      "cm_hanakin"
     ],
     "casual_brand": [
       "brand",
@@ -802,7 +803,7 @@
   "rotation_cursor": {
     "afternoon": 6,
     "autoreply_shape": 3,
-    "earlynight": 0,
+    "earlynight": 1,
     "evening": 6,
     "late": 3,
     "latemorning": 4,
@@ -814,7 +815,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "topic_thread",
@@ -833,7 +833,8 @@
     "topic_thread",
     "topic",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
