@@ -535,7 +535,9 @@
       "q_first_tensyoku_age",
       "q_fukurikousei",
       "q_shikaku_benkyou",
-      "q_nenshu_or_zangyou"
+      "q_nenshu_or_zangyou",
+      "q_tensyoku_kaisuu",
+      "q_remote_or_nenshu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -801,7 +803,7 @@
     "afternoon": 6,
     "autoreply_shape": 3,
     "earlynight": 0,
-    "evening": 5,
+    "evening": 6,
     "late": 3,
     "latemorning": 4,
     "midmorning": 3,
@@ -812,7 +814,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -831,7 +832,8 @@
     "casual",
     "topic_thread",
     "topic",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
