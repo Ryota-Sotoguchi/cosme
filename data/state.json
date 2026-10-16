@@ -793,7 +793,8 @@
       "tt_scout_mendan",
       "tt_nenshu_down",
       "tt_kyougyou",
-      "tt_referral"
+      "tt_referral",
+      "tt_teitaijin"
     ]
   },
   "rotation_cursor": {
@@ -807,11 +808,10 @@
     "morning": 6,
     "night": 5,
     "noon": 2,
-    "predinner": 4,
+    "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "casual",
     "casual",
@@ -830,7 +830,8 @@
     "topic",
     "casual",
     "topic_thread",
-    "topic"
+    "topic",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
