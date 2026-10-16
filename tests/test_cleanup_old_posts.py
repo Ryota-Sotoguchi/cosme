@@ -485,7 +485,7 @@ def test_a_post_that_never_disappears_stops_the_run(cleanup, monkeypatch):
     _patch_delete_steps(cleanup, monkeypatch, session)
 
     entry = {"shortcode": "X1", "url": "https://www.threads.com/@career_powerup/post/X1"}
-    with pytest.raises(RuntimeError, match="削除を確認できません"):
+    with pytest.raises(cleanup.DeletionUnverified, match="削除を確認できません"):
         cleanup.delete_one(session, entry, "career_powerup")
     assert len(session.opened) == 1 + cleanup.VERIFY_ATTEMPTS
 
@@ -541,6 +541,89 @@ def test_the_last_check_still_waits_long_before_giving_up(cleanup, monkeypatch):
     session = Session(present_until=99)
     _patch_delete_steps(cleanup, monkeypatch, session)
     entry = {"shortcode": "X1", "url": "https://www.threads.com/@career_powerup/post/X1"}
-    with pytest.raises(RuntimeError, match="削除を確認できません"):
+    with pytest.raises(cleanup.DeletionUnverified, match="削除を確認できません"):
         cleanup.delete_one(session, entry, "career_powerup")
     assert waits[-1] >= 10000, "最後の判定が短い。描画の遅れを «消えた» と取り違える"
+
+
+
+# ======================================================================
+# 1件の失敗で全体を止めない（2026-10-16）
+#
+# 実測では5件に1件くらい «確認できない» が出る。止めていたぶん1回で4件しか
+# 進まず、残り170件が片付かなかった。記録しないので次の実行でもう一度見る
+# （10/13 に失敗した投稿が 10/16 にふつうに消せた）。
+# ======================================================================
+
+def test_unverified_is_its_own_error_type(cleanup):
+    """«確認できない» と «仕組みが壊れた» を取り違えない。"""
+    assert issubclass(cleanup.DeletionUnverified, RuntimeError)
+    assert cleanup.DeletionUnverified is not RuntimeError
+
+
+def test_a_single_miss_does_not_stop_the_batch(cleanup, tmp_path, monkeypatch, capsys):
+    plan = [{"shortcode": f"X{i}", "class": "B", "excerpt": f"本文{i}",
+             "url": f"https://www.threads.com/@career_powerup/post/X{i}"} for i in range(4)]
+    seen: list[str] = []
+
+    def fake_delete(session, entry, username):
+        seen.append(entry["shortcode"])
+        if entry["shortcode"] == "X1":
+            raise cleanup.DeletionUnverified("削除を確認できません（X1）。")
+        return "deleted"
+
+    _run_plan(cleanup, tmp_path, monkeypatch, plan, fake_delete)
+    out = capsys.readouterr().out
+    assert seen == ["X0", "X1", "X2", "X3"], "失敗したところで止まっている"
+    assert "次の実行でもう一度見ます" in out
+    assert "今回の処理: 3件" in out
+
+    # 失敗したものは記録しない（次の実行で拾い直せる）
+    logged = (tmp_path / cleanup.DELETED_LOG).read_text(encoding="utf-8")
+    assert "X1" not in logged
+
+
+def test_many_misses_in_a_row_stop_the_batch(cleanup, tmp_path, monkeypatch, capsys):
+    """続けて出るなら、押し損ねではなく仕組みが変わっている。"""
+    plan = [{"shortcode": f"X{i}", "class": "B", "excerpt": "本文",
+             "url": f"https://www.threads.com/@career_powerup/post/X{i}"} for i in range(8)]
+    seen: list[str] = []
+
+    def always_miss(session, entry, username):
+        seen.append(entry["shortcode"])
+        raise cleanup.DeletionUnverified("削除を確認できません。")
+
+    _run_plan(cleanup, tmp_path, monkeypatch, plan, always_miss)
+    assert len(seen) == cleanup.MAX_CONSECUTIVE_MISSES
+    assert "止めます" in capsys.readouterr().out
+
+
+def _run_plan(cleanup, tmp_path, monkeypatch, plan, fake_delete):
+    """実削除の本体（_execute 相当）を、ブラウザ無しで回す。"""
+    import argparse
+
+    monkeypatch.setattr(cleanup, "delete_one", fake_delete)
+    monkeypatch.setattr(cleanup.time, "sleep", lambda s: None)
+    monkeypatch.setattr(cleanup.random, "randint", lambda a, b: 0)
+
+    class Session:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *a):
+            return False
+
+        def require_login(self):
+            pass
+
+    # **関数の中で import しているので、モジュール側を差し替える。**
+    import src.engage.browser.session as browser_session
+
+    monkeypatch.setattr(browser_session, "ThreadsSession", lambda *a, **kw: Session())
+
+    class Lock:
+        def close(self):
+            pass
+
+    args = argparse.Namespace(out_dir=tmp_path, headed=False)
+    cleanup._execute_plan(None, plan, "career_powerup", args, Lock())

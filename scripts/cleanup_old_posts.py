@@ -412,6 +412,19 @@ DELETE_SELECTORS = ("post_more_button", "delete_menu_item", "delete_confirm_butt
 # 投稿を表示したままだった。開き直せば消えているが、4秒では間に合わない日がある。
 VERIFY_ATTEMPTS = 3
 VERIFY_WAIT_MS = 5000
+# 続けてこの回数 «確認できない» が出たら止める。
+# 1件ずつなら押し損ねの可能性があるが、続くなら仕組みが変わっている。
+MAX_CONSECUTIVE_MISSES = 3
+
+
+class DeletionUnverified(RuntimeError):
+    """押したが、消えたことを確かめられなかった。
+
+    **«仕組みが壊れた» とは別物として扱う。** 実測では5件に1件くらい出て、
+    次の実行では同じ投稿がふつうに消せる。1件で全体を止めると、
+    1回の実行で4件しか進まない。
+    """
+
 # 途中の回で «まだあるか» を見る長さ。短くても、見切ったらもう一度開き直すだけ。
 # 最後の回は 15 秒（描画の遅れを «消えた» と取り違えないため）。
 VERIFY_QUICK_MS = 4000
@@ -609,8 +622,8 @@ def delete_one(session: Any, entry: dict[str, Any], username: str) -> str:
         timeout_ms = 15000 if last else VERIFY_QUICK_MS
         if not _post_is_present(page, code, timeout_ms=timeout_ms):
             return "deleted"
-    raise RuntimeError(
-        f"削除を確認できません（{url}）。{VERIFY_ATTEMPTS}回開き直しました。ここで止めます。")
+    raise DeletionUnverified(
+        f"削除を確認できません（{url}）。{VERIFY_ATTEMPTS}回開き直しました。")
 
 
 # 確認ダイアログのボタンが引けなかったときに、実測の材料を残す（押さない。読むだけ）
@@ -806,24 +819,52 @@ def _execute(args: argparse.Namespace) -> int:
         print("自動返信が動いています。終わってからもう一度実行してください")
         return 1
 
+    print(f"\n候補ファイル: {path}\nユーザー名: @{username}\n今回消す: {len(plan)}件\n")
+    return _execute_plan(config, plan, username, args, lock)
+
+
+def _execute_plan(config: Any, plan: list[dict[str, Any]], username: str,
+                  args: argparse.Namespace, lock: Any) -> int:
+    """実削除の本体。**ここだけはブラウザ無しでも回せるように切り出してある**
+    （1件の失敗で止めるか続けるか、という判断をテストで見張るため）。
+    """
     from src.engage.browser.session import ThreadsSession
     from src.errors import SelectorMissError, ThrottledError
 
-    print(f"\n候補ファイル: {path}\nユーザー名: @{username}\n今回消す: {len(plan)}件\n")
     done = 0
     try:
         with ThreadsSession(config, headless=not args.headed) as session:
             session.require_login()
+            misses = 0
             for index, entry in enumerate(plan):
                 if index:
                     wait = random.randint(*INTERVAL_SECONDS)
                     print(f"  … {wait}秒あけます")
                     time.sleep(wait)
-                outcome = delete_one(session, entry, username)
+                try:
+                    outcome = delete_one(session, entry, username)
+                except DeletionUnverified as exc:
+                    # **1件の失敗で全体を止めない。**
+                    # 実測（2026-10-16）では5件に1件くらい «確認できない» が出る。
+                    # 止めていたぶん1回で4件しか進まず、残り170件が片付かなかった。
+                    #
+                    # 記録しないので、その投稿は**次の実行でもう一度見る**。
+                    # そのとき実は消えていれば already_gone になるだけで害がない
+                    # （実際に 10/13 に失敗した投稿が 10/16 に消せた）。
+                    # **この回で押し直すことはしない**（二重に消える）。
+                    misses += 1
+                    print(f"  ⚠️  {exc}（次の実行でもう一度見ます）")
+                    if misses >= MAX_CONSECUTIVE_MISSES:
+                        print(f"\n⛔ 続けて{misses}件 «確認できない» が出ました。"
+                              "仕組みが変わっている可能性があるので止めます。")
+                        return 1
+                    continue
+                misses = 0
                 append_deleted(args.out_dir, entry, outcome)
                 done += 1
                 label = "削除しました" if outcome == "deleted" else "すでにありません"
-                print(f"  [{entry['class']}] {label}: {entry['excerpt']}  {post_url(username, entry['shortcode'])}")
+                print(f"  [{entry['class']}] {label}: {entry['excerpt']}  "
+                      f"{post_url(username, entry['shortcode'])}")
     except ThrottledError as exc:
         print(f"\n⛔ 絞られています。ここで止めます: {exc}")
         return 1
