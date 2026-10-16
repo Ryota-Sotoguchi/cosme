@@ -175,7 +175,8 @@
       "cm_friday_night",
       "cm_bonus",
       "cm_kaeritai",
-      "cm_hanakin"
+      "cm_hanakin",
+      "cm_zangyou"
     ],
     "casual_brand": [
       "brand",
@@ -809,13 +810,12 @@
     "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
-    "night": 5,
+    "night": 6,
     "noon": 2,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "topic_thread",
     "casual",
@@ -834,6 +834,7 @@
     "topic",
     "topic_thread",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
