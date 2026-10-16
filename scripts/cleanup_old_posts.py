@@ -412,6 +412,9 @@ DELETE_SELECTORS = ("post_more_button", "delete_menu_item", "delete_confirm_butt
 # 投稿を表示したままだった。開き直せば消えているが、4秒では間に合わない日がある。
 VERIFY_ATTEMPTS = 3
 VERIFY_WAIT_MS = 5000
+# 途中の回で «まだあるか» を見る長さ。短くても、見切ったらもう一度開き直すだけ。
+# 最後の回は 15 秒（描画の遅れを «消えた» と取り違えないため）。
+VERIFY_QUICK_MS = 4000
 
 
 def execution_refusal(*, execute: bool, env: dict[str, str],
@@ -599,7 +602,12 @@ def delete_one(session: Any, entry: dict[str, Any], username: str) -> str:
         page.wait_for_timeout(2000)
         if _throttled(page):
             raise ThrottledError("削除後の確認で Threads に拒否されました。削除できたかは手で確認してください。")
-        if not _post_is_present(page, code):
+        # **途中の回は短く見切る。** «まだある» と出てももう一度開き直すだけなので、
+        # ここで長く待つ意味がない（消えている投稿では毎回その時間を丸ごと待つ）。
+        # 最後の回だけ既定の長さで待ち、そこで «ある» なら止める。
+        last = attempt == VERIFY_ATTEMPTS - 1
+        timeout_ms = 15000 if last else VERIFY_QUICK_MS
+        if not _post_is_present(page, code, timeout_ms=timeout_ms):
             return "deleted"
     raise RuntimeError(
         f"削除を確認できません（{url}）。{VERIFY_ATTEMPTS}回開き直しました。ここで止めます。")

@@ -494,3 +494,53 @@ def test_the_number_of_reloads_is_bounded(cleanup):
     """無限に待たない。間隔をあけて数回まで。"""
     assert 2 <= cleanup.VERIFY_ATTEMPTS <= 5
     assert cleanup.VERIFY_WAIT_MS >= 3000
+
+
+def test_the_intermediate_checks_are_quick_but_the_last_one_waits(cleanup, monkeypatch):
+    """消えている投稿で、毎回15秒を丸ごと待たない。
+
+    実測（2026-10-16）では1件あたり約6分かかっていた。«まだある» と見切っても
+    もう一度開き直すだけなので、途中の回を長く待つ意味がない。
+    最後の回だけは長く待つ（描画の遅れを «消えた» と取り違えないため）。
+    """
+    waits: list[int] = []
+
+    class Page(_DeletePage):
+        def wait_for_selector(self, css, **kwargs):
+            waits.append(kwargs.get("timeout"))
+            if not self.present:
+                raise TimeoutError(css)
+
+    class Session(_DeleteSession):
+        def goto(self, url):
+            self.opened.append(url)
+            return Page(present=len(self.opened) <= self.present_until)
+
+    session = Session(present_until=1)   # 最初に開いた回だけ «ある»
+    _patch_delete_steps(cleanup, monkeypatch, session)
+    entry = {"shortcode": "X1", "url": "https://www.threads.com/@career_powerup/post/X1"}
+    assert cleanup.delete_one(session, entry, "career_powerup") == "deleted"
+
+    # 1回目は削除前の在庫確認（長い）、2回目は確認の1回目（短い）
+    assert waits[0] >= 10000, "削除前の在庫確認を短くしてはいけない"
+    assert waits[1] == cleanup.VERIFY_QUICK_MS
+
+
+def test_the_last_check_still_waits_long_before_giving_up(cleanup, monkeypatch):
+    waits: list[int] = []
+
+    class Page(_DeletePage):
+        def wait_for_selector(self, css, **kwargs):
+            waits.append(kwargs.get("timeout"))
+
+    class Session(_DeleteSession):
+        def goto(self, url):
+            self.opened.append(url)
+            return Page(present=True)
+
+    session = Session(present_until=99)
+    _patch_delete_steps(cleanup, monkeypatch, session)
+    entry = {"shortcode": "X1", "url": "https://www.threads.com/@career_powerup/post/X1"}
+    with pytest.raises(RuntimeError, match="削除を確認できません"):
+        cleanup.delete_one(session, entry, "career_powerup")
+    assert waits[-1] >= 10000, "最後の判定が短い。描画の遅れを «消えた» と取り違える"
