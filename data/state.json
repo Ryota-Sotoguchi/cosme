@@ -176,7 +176,8 @@
       "cm_bonus",
       "cm_kaeritai",
       "cm_hanakin",
-      "cm_zangyou"
+      "cm_zangyou",
+      "cm_short_tensyoku"
     ],
     "casual_brand": [
       "brand",
@@ -810,14 +811,13 @@
     "late": 4,
     "latemorning": 4,
     "midmorning": 3,
-    "morning": 6,
+    "morning": 0,
     "night": 6,
     "noon": 2,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "question",
     "band_focus",
@@ -836,7 +836,8 @@
     "question",
     "casual",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
