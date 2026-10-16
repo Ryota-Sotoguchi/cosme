@@ -28,6 +28,7 @@ from datetime import datetime, timedelta, timezone
 
 from .compliance.checker import ComplianceChecker
 from .config import Config, load_config
+from .content.books import is_book
 from .content.builder import ContentBuilder
 from .errors import (
     AuthError,
@@ -809,9 +810,12 @@ def _review_flags(config, posts, link_posts, attributable, revenue,
     ]
     if drift_skips and attempted:
         share = len(drift_skips) / len(attempted) * 100
+        # **最後に捨てられた日を添える。** 直した後も14日の窓に残るので、
+        # 日付が無いと «いまも壊れている» と読めてしまう（2026-10-16 に気づいた）。
+        last = max(r.posted_at for r in drift_skips)[:10]
         flags.append(
             f"直近{REVIEW_WINDOW_DAYS}日で {len(drift_skips)}/{len(attempted)}本"
-            f"（{share:.0f}%）が遅れすぎて捨てられている。"
+            f"（{share:.0f}%）が遅れすぎて捨てられている（最後は {last}）。"
             "定期実行の遅れが max_drift_minutes を超えている"
             "（発火の前倒しと上限の見直しを一緒にやる。CLAUDE.md の «投稿時刻» の節）"
         )
@@ -845,8 +849,16 @@ def _review_flags(config, posts, link_posts, attributable, revenue,
         )
 
     # --- 使った人の感想の在庫 ---
+    #
+    # **本は数に入れない。** 本の投稿には感想を渡さない設計なので
+    # （CLAUDE.md §5-4。化粧品の語で本のレビューを数えると
+    # 「軽くて読みやすい」が「軽いつけ心地」になる）、ここに混ぜると
+    # «材料が足りない» と言い続ける欄になる。休止中の化粧品だけを見る。
     voices = load_voices(config.data_dir / "voices.json")
-    posted_codes = {r.item_code for r in posts if r.item_code}
+    posted_codes = {
+        r.item_code for r in posts
+        if r.item_code and not is_book(r.category or "")
+    }
     if posted_codes:
         covered = len(posted_codes & set(voices))
         ratio = covered / len(posted_codes)

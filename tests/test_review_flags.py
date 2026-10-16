@@ -115,3 +115,35 @@ def test_within_days_ignores_unreadable_timestamps():
 def test_within_days_treats_a_naive_timestamp_as_jst():
     naive = (NOW - timedelta(days=1)).replace(tzinfo=None).isoformat()
     assert _within_days(naive, 14, now=NOW) is True
+
+
+def test_the_flag_says_when_the_last_drop_happened(config):
+    """直した後も14日の窓に残るので、日付が無いと «いまも壊れている» と読める。"""
+    records = [dropped(days_ago=9) for _ in range(5)] + [record(days_ago=d) for d in range(1, 6)]
+    hit = [f for f in _flags(config, records) if "捨てられている" in f]
+    assert hit
+    expected = (NOW - timedelta(days=9)).date().isoformat()
+    assert f"最後は {expected}" in hit[0], hit[0]
+
+
+def test_books_are_left_out_of_the_voices_check(config, tmp_path):
+    """本には «使った人の感想» を渡さない設計なので、数に入れない。
+
+    混ぜると «材料が足りない» と言い続ける欄になる（CLAUDE.md §5-4）。
+    """
+    from src.main import _review_flags
+
+    def item(code, category):
+        r = record(days_ago=1)
+        object.__setattr__(r, "item_code", code)
+        object.__setattr__(r, "category", category)
+        return r
+
+    posts = [item(f"book:{i}", "転職本") for i in range(10)]
+    flags = _review_flags(config, posts, [], [], _NoRevenue(), all_records=posts)
+    assert not [f for f in flags if "使った人の感想" in f], \
+        "本だけの週に «感想が足りない» と言っている"
+
+    cosme = [item(f"cosme:{i}", "スキンケア") for i in range(10)]
+    flags = _review_flags(config, cosme, [], [], _NoRevenue(), all_records=cosme)
+    assert [f for f in flags if "使った人の感想" in f], "化粧品では従来どおり見る"
