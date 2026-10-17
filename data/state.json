@@ -544,7 +544,9 @@
       "q_tensyoku_kaisuu",
       "q_remote_or_nenshu",
       "q_kuchikomi",
-      "q_nenshu_koushou"
+      "q_nenshu_koushou",
+      "q_teiji",
+      "q_shigoto_yume"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -816,7 +818,7 @@
   "rotation_cursor": {
     "afternoon": 0,
     "autoreply_shape": 3,
-    "earlynight": 1,
+    "earlynight": 2,
     "evening": 0,
     "late": 4,
     "latemorning": 5,
@@ -828,7 +830,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "topic_thread",
     "question",
     "question",
@@ -847,7 +848,8 @@
     "site_link",
     "casual",
     "question",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
