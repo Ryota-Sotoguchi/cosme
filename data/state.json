@@ -177,7 +177,8 @@
       "cm_kaeritai",
       "cm_hanakin",
       "cm_zangyou",
-      "cm_short_tensyoku"
+      "cm_short_tensyoku",
+      "cm_fukugyou"
     ],
     "casual_brand": [
       "brand",
@@ -803,11 +804,15 @@
       "tt_referral",
       "tt_teitaijin",
       "tt_tensyoku_kaisuu",
-      "tt_saishuu"
+      "tt_saishuu",
+      "tt_sankagetsu",
+      "tt_hanbouki",
+      "tt_hikitsugi_mijikai",
+      "tt_shibou_juni"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 6,
+    "afternoon": 0,
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 6,
@@ -821,7 +826,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "topic",
     "topic",
@@ -840,7 +844,8 @@
     "casual",
     "question",
     "topic_thread",
-    "site_link"
+    "site_link",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
