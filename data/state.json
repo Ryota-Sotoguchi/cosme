@@ -617,7 +617,8 @@
       "site_kouteki",
       "site_kibou_nenshu",
       "site_mikeiken",
-      "site_mitakoto"
+      "site_mitakoto",
+      "site_ochitsuku"
     ],
     "thread_bridge": [
       "br_found"
@@ -815,12 +816,11 @@
     "midmorning": 4,
     "morning": 0,
     "night": 6,
-    "noon": 2,
+    "noon": 3,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "band_focus",
     "question",
     "topic_thread",
     "topic",
@@ -839,7 +839,8 @@
     "topic_thread",
     "casual",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
