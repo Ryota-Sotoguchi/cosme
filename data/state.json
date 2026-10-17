@@ -179,7 +179,8 @@
       "cm_zangyou",
       "cm_short_tensyoku",
       "cm_fukugyou",
-      "cm_short_teiji"
+      "cm_short_teiji",
+      "cm_zangyou_dai"
     ],
     "casual_brand": [
       "brand",
@@ -826,14 +827,13 @@
     "late": 5,
     "latemorning": 5,
     "midmorning": 4,
-    "morning": 0,
+    "morning": 1,
     "night": 0,
     "noon": 3,
     "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic",
     "casual",
     "topic_thread",
@@ -852,7 +852,8 @@
     "casual",
     "question",
     "question",
-    "site_link"
+    "site_link",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
