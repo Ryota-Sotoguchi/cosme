@@ -550,7 +550,9 @@
       "q_teiji",
       "q_shigoto_yume",
       "q_senpai",
-      "q_kyuujin_mitemiru"
+      "q_kyuujin_mitemiru",
+      "q_seichou",
+      "q_remote_shuuchuu"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -830,7 +832,7 @@
     "earlynight": 2,
     "evening": 0,
     "late": 5,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
     "night": 0,
@@ -839,7 +841,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "topic",
     "topic_thread",
@@ -858,7 +859,8 @@
     "question",
     "site_link",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
