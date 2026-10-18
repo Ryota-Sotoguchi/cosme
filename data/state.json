@@ -559,7 +559,8 @@
       "q_teinen",
       "q_mensetsu_shitsumon",
       "q_boss_type",
-      "q_tensyoku_kikkake"
+      "q_tensyoku_kikkake",
+      "q_monday"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -849,14 +850,13 @@
     "late": 6,
     "latemorning": 6,
     "midmorning": 5,
-    "morning": 1,
+    "morning": 2,
     "night": 1,
     "noon": 4,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "site_link",
@@ -874,6 +874,7 @@
     "casual",
     "casual",
     "casual",
+    "question",
     "question",
     "question"
   ],
