@@ -553,7 +553,8 @@
       "q_kyuujin_mitemiru",
       "q_seichou",
       "q_remote_shuuchuu",
-      "q_teinen"
+      "q_teinen",
+      "q_mensetsu_shitsumon"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -828,7 +829,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 2,
     "evening": 0,
@@ -842,7 +843,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "topic_thread",
     "question",
     "casual",
@@ -860,6 +860,7 @@
     "site_link",
     "casual",
     "casual",
+    "question",
     "question",
     "question"
   ],
