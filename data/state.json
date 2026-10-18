@@ -181,7 +181,8 @@
       "cm_fukugyou",
       "cm_short_teiji",
       "cm_zangyou_dai",
-      "cm_nomikai"
+      "cm_nomikai",
+      "cm_teiji"
     ],
     "casual_brand": [
       "brand",
@@ -839,11 +840,10 @@
     "morning": 1,
     "night": 0,
     "noon": 4,
-    "predinner": 6,
+    "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "casual",
@@ -862,7 +862,8 @@
     "casual",
     "question",
     "question",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
