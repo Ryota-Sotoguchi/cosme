@@ -557,7 +557,8 @@
       "q_seichou",
       "q_remote_shuuchuu",
       "q_teinen",
-      "q_mensetsu_shitsumon"
+      "q_mensetsu_shitsumon",
+      "q_boss_type"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -848,13 +849,12 @@
     "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
-    "night": 0,
+    "night": 1,
     "noon": 4,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "question",
@@ -873,7 +873,8 @@
     "question",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-10T21:39:29.739750+00:00",
