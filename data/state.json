@@ -188,7 +188,8 @@
       "cm_kaisha_kanji",
       "cm_remote_day",
       "cm_toshi",
-      "cm_job_site"
+      "cm_job_site",
+      "cm_quit_words"
     ],
     "casual_brand": [
       "brand",
@@ -865,11 +866,10 @@
     "morning": 2,
     "night": 1,
     "noon": 5,
-    "predinner": 0,
+    "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "question",
@@ -885,6 +885,7 @@
     "question",
     "question",
     "question",
+    "casual",
     "casual",
     "casual",
     "casual",
