@@ -189,7 +189,8 @@
       "cm_remote_day",
       "cm_toshi",
       "cm_job_site",
-      "cm_quit_words"
+      "cm_quit_words",
+      "cm_lunch"
     ],
     "casual_brand": [
       "brand",
@@ -859,7 +860,7 @@
     "afternoon": 2,
     "autoreply_shape": 3,
     "earlynight": 3,
-    "evening": 1,
+    "evening": 2,
     "late": 6,
     "latemorning": 0,
     "midmorning": 6,
@@ -870,7 +871,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "site_link",
@@ -885,6 +885,7 @@
     "question",
     "question",
     "question",
+    "casual",
     "casual",
     "casual",
     "casual",
