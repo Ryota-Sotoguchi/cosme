@@ -185,7 +185,8 @@
       "cm_teiji",
       "cm_gakureki",
       "cm_tomodachi",
-      "cm_kaisha_kanji"
+      "cm_kaisha_kanji",
+      "cm_remote_day"
     ],
     "casual_brand": [
       "brand",
@@ -853,7 +854,7 @@
     "earlynight": 3,
     "evening": 1,
     "late": 6,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
     "night": 1,
@@ -862,7 +863,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "site_link",
     "casual",
     "question",
@@ -881,6 +881,7 @@
     "question",
     "question",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
