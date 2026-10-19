@@ -186,7 +186,8 @@
       "cm_gakureki",
       "cm_tomodachi",
       "cm_kaisha_kanji",
-      "cm_remote_day"
+      "cm_remote_day",
+      "cm_toshi"
     ],
     "casual_brand": [
       "brand",
@@ -845,7 +846,11 @@
       "tt_yaritakunai",
       "tt_scout_mendan",
       "tt_nenshu_down",
-      "tt_kyougyou"
+      "tt_kyougyou",
+      "tt_referral",
+      "tt_teitaijin",
+      "tt_tensyoku_kaisuu",
+      "tt_saishuu"
     ]
   },
   "rotation_cursor": {
@@ -858,12 +863,11 @@
     "midmorning": 6,
     "morning": 2,
     "night": 1,
-    "noon": 4,
+    "noon": 5,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "casual",
     "question",
     "casual",
@@ -881,6 +885,7 @@
     "question",
     "question",
     "question",
+    "casual",
     "casual",
     "casual"
   ],
