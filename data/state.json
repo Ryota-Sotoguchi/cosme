@@ -644,7 +644,8 @@
       "site_mikeiken",
       "site_mitakoto",
       "site_ochitsuku",
-      "site_heikin"
+      "site_heikin",
+      "site_chiiki"
     ],
     "thread_bridge": [
       "br_found"
@@ -859,7 +860,7 @@
   "rotation_cursor": {
     "afternoon": 2,
     "autoreply_shape": 3,
-    "earlynight": 3,
+    "earlynight": 4,
     "evening": 2,
     "late": 6,
     "latemorning": 0,
@@ -871,7 +872,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "site_link",
     "casual",
@@ -890,7 +890,8 @@
     "casual",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
