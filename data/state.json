@@ -187,7 +187,8 @@
       "cm_tomodachi",
       "cm_kaisha_kanji",
       "cm_remote_day",
-      "cm_toshi"
+      "cm_toshi",
+      "cm_job_site"
     ],
     "casual_brand": [
       "brand",
@@ -854,7 +855,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 1,
+    "afternoon": 2,
     "autoreply_shape": 3,
     "earlynight": 3,
     "evening": 1,
@@ -868,7 +869,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "question",
@@ -885,6 +885,7 @@
     "question",
     "question",
     "question",
+    "casual",
     "casual",
     "casual",
     "casual"
