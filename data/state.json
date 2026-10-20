@@ -570,7 +570,8 @@
       "q_tensyoku_kikkake",
       "q_monday",
       "q_shokumukeirekisho",
-      "q_shukkin"
+      "q_shukkin",
+      "q_friday"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -870,7 +871,7 @@
     "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 4,
-    "evening": 2,
+    "evening": 3,
     "late": 0,
     "latemorning": 1,
     "midmorning": 0,
@@ -882,7 +883,6 @@
   },
   "template_history": [
     "casual",
-    "casual",
     "question",
     "question",
     "question",
@@ -900,6 +900,7 @@
     "casual",
     "casual",
     "site_link",
+    "question",
     "question"
   ],
   "threads_token": {
