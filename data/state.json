@@ -571,7 +571,8 @@
       "q_monday",
       "q_shokumukeirekisho",
       "q_shukkin",
-      "q_friday"
+      "q_friday",
+      "q_meeting"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -870,7 +871,7 @@
   "rotation_cursor": {
     "afternoon": 3,
     "autoreply_shape": 3,
-    "earlynight": 4,
+    "earlynight": 5,
     "evening": 3,
     "late": 0,
     "latemorning": 1,
@@ -882,7 +883,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "question",
@@ -900,6 +900,7 @@
     "casual",
     "casual",
     "site_link",
+    "question",
     "question",
     "question"
   ],
