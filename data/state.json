@@ -191,7 +191,8 @@
       "cm_job_site",
       "cm_quit_words",
       "cm_lunch",
-      "cm_online_mtg"
+      "cm_online_mtg",
+      "cm_tanin"
     ],
     "casual_brand": [
       "brand",
@@ -873,12 +874,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 5,
+    "noon": 6,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "casual",
     "casual",
@@ -897,6 +897,7 @@
     "topic_thread",
     "topic_thread",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
