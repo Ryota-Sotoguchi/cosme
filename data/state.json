@@ -566,7 +566,8 @@
       "q_mensetsu_shitsumon",
       "q_boss_type",
       "q_tensyoku_kikkake",
-      "q_monday"
+      "q_monday",
+      "q_shokumukeirekisho"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -868,7 +869,7 @@
     "evening": 2,
     "late": 0,
     "latemorning": 0,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 3,
     "night": 2,
     "noon": 5,
@@ -876,7 +877,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "question",
@@ -895,7 +895,8 @@
     "site_link",
     "topic_thread",
     "topic_thread",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
