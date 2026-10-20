@@ -569,7 +569,8 @@
       "q_boss_type",
       "q_tensyoku_kikkake",
       "q_monday",
-      "q_shokumukeirekisho"
+      "q_shokumukeirekisho",
+      "q_shukkin"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -876,11 +877,10 @@
     "morning": 3,
     "night": 2,
     "noon": 6,
-    "predinner": 1,
+    "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "question",
@@ -899,7 +899,8 @@
     "question",
     "casual",
     "casual",
-    "site_link"
+    "site_link",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
