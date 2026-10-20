@@ -190,7 +190,8 @@
       "cm_toshi",
       "cm_job_site",
       "cm_quit_words",
-      "cm_lunch"
+      "cm_lunch",
+      "cm_online_mtg"
     ],
     "casual_brand": [
       "brand",
@@ -868,7 +869,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 0,
-    "latemorning": 0,
+    "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -877,7 +878,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "question",
     "casual",
@@ -896,7 +896,8 @@
     "topic_thread",
     "topic_thread",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
