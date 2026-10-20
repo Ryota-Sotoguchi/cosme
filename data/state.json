@@ -720,7 +720,8 @@
       "nl_20dai",
       "nl_kanrishoku",
       "nl_tenshoku_katsudou_jikan",
-      "nl_nyuusha_bi"
+      "nl_nyuusha_bi",
+      "nl_mensetsu_hajime"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -874,7 +875,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
-    "late": 0,
+    "late": 1,
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
@@ -885,7 +886,6 @@
   },
   "template_history": [
     "question",
-    "question",
     "casual",
     "casual",
     "casual",
@@ -903,7 +903,8 @@
     "question",
     "question",
     "question",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
