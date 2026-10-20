@@ -193,7 +193,8 @@
       "cm_lunch",
       "cm_online_mtg",
       "cm_tanin",
-      "cm_sunday_night"
+      "cm_sunday_night",
+      "cm_teate"
     ],
     "casual_brand": [
       "brand",
@@ -878,14 +879,13 @@
     "late": 1,
     "latemorning": 1,
     "midmorning": 0,
-    "morning": 3,
+    "morning": 4,
     "night": 3,
     "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "casual",
     "casual",
@@ -904,7 +904,8 @@
     "question",
     "question",
     "casual",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
