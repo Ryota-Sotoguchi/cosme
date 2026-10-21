@@ -196,7 +196,8 @@
       "cm_sunday_night",
       "cm_teate",
       "cm_rejected",
-      "cm_rencyuu_mae"
+      "cm_rencyuu_mae",
+      "cm_dm_boss"
     ],
     "casual_brand": [
       "brand",
@@ -884,7 +885,7 @@
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 4,
-    "late": 1,
+    "late": 2,
     "latemorning": 2,
     "midmorning": 1,
     "morning": 4,
@@ -894,7 +895,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "topic_thread",
     "question",
     "casual",
@@ -913,7 +913,8 @@
     "topic",
     "casual",
     "casual",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
