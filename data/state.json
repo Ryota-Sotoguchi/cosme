@@ -723,7 +723,8 @@
       "nl_kanrishoku",
       "nl_tenshoku_katsudou_jikan",
       "nl_nyuusha_bi",
-      "nl_mensetsu_hajime"
+      "nl_mensetsu_hajime",
+      "nl_fukuri"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -883,12 +884,11 @@
     "midmorning": 1,
     "morning": 4,
     "night": 3,
-    "noon": 6,
+    "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -907,7 +907,8 @@
     "topic",
     "casual",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
