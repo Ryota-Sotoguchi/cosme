@@ -194,7 +194,8 @@
       "cm_online_mtg",
       "cm_tanin",
       "cm_sunday_night",
-      "cm_teate"
+      "cm_teate",
+      "cm_rejected"
     ],
     "casual_brand": [
       "brand",
@@ -880,7 +881,7 @@
     "afternoon": 4,
     "autoreply_shape": 3,
     "earlynight": 5,
-    "evening": 3,
+    "evening": 4,
     "late": 1,
     "latemorning": 2,
     "midmorning": 1,
@@ -891,7 +892,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "topic_thread",
     "topic_thread",
@@ -910,7 +910,8 @@
     "topic_thread",
     "topic",
     "topic_thread",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
