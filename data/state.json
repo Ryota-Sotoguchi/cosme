@@ -195,7 +195,8 @@
       "cm_tanin",
       "cm_sunday_night",
       "cm_teate",
-      "cm_rejected"
+      "cm_rejected",
+      "cm_rencyuu_mae"
     ],
     "casual_brand": [
       "brand",
@@ -880,7 +881,7 @@
   "rotation_cursor": {
     "afternoon": 4,
     "autoreply_shape": 3,
-    "earlynight": 5,
+    "earlynight": 6,
     "evening": 4,
     "late": 1,
     "latemorning": 2,
@@ -892,7 +893,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "topic_thread",
     "topic_thread",
     "topic_thread",
@@ -911,6 +911,7 @@
     "topic",
     "topic_thread",
     "topic",
+    "casual",
     "casual"
   ],
   "threads_token": {
