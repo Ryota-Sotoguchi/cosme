@@ -877,7 +877,8 @@
       "tt_hikitsugi_mijikai",
       "tt_shibou_juni",
       "tt_yowami",
-      "tt_bonus_taishoku"
+      "tt_bonus_taishoku",
+      "tt_kanrishoku_kotowaru"
     ]
   },
   "rotation_cursor": {
@@ -888,14 +889,13 @@
     "late": 2,
     "latemorning": 2,
     "midmorning": 1,
-    "morning": 4,
+    "morning": 5,
     "night": 4,
     "noon": 0,
     "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "casual",
@@ -914,7 +914,8 @@
     "casual",
     "casual",
     "question",
-    "casual"
+    "casual",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
