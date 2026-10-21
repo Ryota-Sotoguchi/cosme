@@ -871,11 +871,12 @@
       "tt_hanbouki",
       "tt_hikitsugi_mijikai",
       "tt_shibou_juni",
-      "tt_yowami"
+      "tt_yowami",
+      "tt_bonus_taishoku"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 3,
+    "afternoon": 4,
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
@@ -889,7 +890,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "site_link",
@@ -908,7 +908,8 @@
     "casual",
     "question",
     "topic_thread",
-    "topic"
+    "topic",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
