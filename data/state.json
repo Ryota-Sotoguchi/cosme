@@ -580,7 +580,8 @@
       "q_friday",
       "q_meeting",
       "q_40_tensyoku",
-      "q_mensetsu_kinchou"
+      "q_mensetsu_kinchou",
+      "q_joushi_hitokoto"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -888,7 +889,7 @@
     "earlynight": 6,
     "evening": 4,
     "late": 2,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 2,
     "morning": 5,
     "night": 4,
@@ -897,7 +898,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "site_link",
     "question",
@@ -916,7 +916,8 @@
     "question",
     "casual",
     "topic_thread",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
