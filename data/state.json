@@ -581,7 +581,8 @@
       "q_meeting",
       "q_40_tensyoku",
       "q_mensetsu_kinchou",
-      "q_joushi_hitokoto"
+      "q_joushi_hitokoto",
+      "q_yameta_ato"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -893,12 +894,11 @@
     "midmorning": 2,
     "morning": 5,
     "night": 4,
-    "noon": 0,
+    "noon": 1,
     "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "question",
     "question",
@@ -917,6 +917,7 @@
     "casual",
     "topic_thread",
     "casual",
+    "question",
     "question"
   ],
   "threads_token": {
