@@ -584,7 +584,8 @@
       "q_joushi_hitokoto",
       "q_yameta_ato",
       "q_nenshu_or_yarigai",
-      "q_mensetsu_shippai"
+      "q_mensetsu_shippai",
+      "q_keirekisho_kakikata"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -901,14 +902,13 @@
     "late": 3,
     "latemorning": 3,
     "midmorning": 2,
-    "morning": 5,
+    "morning": 6,
     "night": 5,
     "noon": 1,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "topic_thread",
     "topic",
@@ -927,6 +927,7 @@
     "topic",
     "topic",
     "topic_thread",
+    "question",
     "question"
   ],
   "threads_token": {
