@@ -582,7 +582,8 @@
       "q_40_tensyoku",
       "q_mensetsu_kinchou",
       "q_joushi_hitokoto",
-      "q_yameta_ato"
+      "q_yameta_ato",
+      "q_nenshu_or_yarigai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -885,7 +886,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 4,
+    "afternoon": 5,
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 4,
@@ -899,7 +900,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "question",
     "question",
     "question",
@@ -917,6 +917,7 @@
     "casual",
     "topic_thread",
     "casual",
+    "question",
     "question",
     "question"
   ],
