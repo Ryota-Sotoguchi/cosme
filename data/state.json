@@ -198,7 +198,8 @@
       "cm_rejected",
       "cm_rencyuu_mae",
       "cm_dm_boss",
-      "cm_owatta"
+      "cm_owatta",
+      "cm_nemui"
     ],
     "casual_brand": [
       "brand",
@@ -901,7 +902,7 @@
     "earlynight": 0,
     "evening": 5,
     "late": 3,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
     "night": 5,
@@ -910,7 +911,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "topic",
     "topic_thread",
     "topic",
@@ -929,7 +929,8 @@
     "topic_thread",
     "question",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
