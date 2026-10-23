@@ -586,7 +586,8 @@
       "q_yameta_ato",
       "q_nenshu_or_yarigai",
       "q_mensetsu_shippai",
-      "q_keirekisho_kakikata"
+      "q_keirekisho_kakikata",
+      "q_tensyoku_soudan"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -904,7 +905,7 @@
     "afternoon": 6,
     "autoreply_shape": 3,
     "earlynight": 0,
-    "evening": 5,
+    "evening": 6,
     "late": 3,
     "latemorning": 4,
     "midmorning": 3,
@@ -916,7 +917,6 @@
   },
   "template_history": [
     "casual",
-    "casual",
     "question",
     "casual",
     "topic_thread",
@@ -934,7 +934,8 @@
     "casual",
     "topic_thread",
     "topic",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
