@@ -201,7 +201,8 @@
       "cm_owatta",
       "cm_nemui",
       "cm_offer_letter",
-      "cm_hyouka"
+      "cm_hyouka",
+      "cm_tsukareta"
     ],
     "casual_brand": [
       "brand",
@@ -900,7 +901,11 @@
       "tt_fukugyou_chikai",
       "tt_shanai_ido",
       "tt_naitei_jitai",
-      "tt_seichou_kankyou"
+      "tt_seichou_kankyou",
+      "tt_rireki_shashin",
+      "tt_yaritakunai",
+      "tt_scout_mendan",
+      "tt_nenshu_down"
     ]
   },
   "rotation_cursor": {
@@ -908,7 +913,7 @@
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 6,
-    "late": 3,
+    "late": 4,
     "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
@@ -918,7 +923,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "casual",
     "question",
@@ -936,6 +940,7 @@
     "topic",
     "topic_thread",
     "question",
+    "casual",
     "casual",
     "casual"
   ],
