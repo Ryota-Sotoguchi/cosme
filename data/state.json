@@ -199,7 +199,8 @@
       "cm_rencyuu_mae",
       "cm_dm_boss",
       "cm_owatta",
-      "cm_nemui"
+      "cm_nemui",
+      "cm_offer_letter"
     ],
     "casual_brand": [
       "brand",
@@ -904,7 +905,7 @@
   "rotation_cursor": {
     "afternoon": 6,
     "autoreply_shape": 3,
-    "earlynight": 0,
+    "earlynight": 1,
     "evening": 6,
     "late": 3,
     "latemorning": 4,
@@ -916,7 +917,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "topic_thread",
@@ -935,7 +935,8 @@
     "topic_thread",
     "topic",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
