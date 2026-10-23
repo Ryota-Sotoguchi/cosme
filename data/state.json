@@ -737,7 +737,8 @@
       "nl_fukuri",
       "nl_black_sign",
       "nl_ningen_kankei",
-      "nl_taishoku_mae"
+      "nl_taishoku_mae",
+      "nl_hyouka"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -901,7 +902,7 @@
     "evening": 5,
     "late": 3,
     "latemorning": 3,
-    "midmorning": 2,
+    "midmorning": 3,
     "morning": 6,
     "night": 5,
     "noon": 1,
@@ -909,7 +910,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic_thread",
     "topic",
     "topic_thread",
@@ -928,7 +928,8 @@
     "topic",
     "topic_thread",
     "question",
-    "question"
+    "question",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
