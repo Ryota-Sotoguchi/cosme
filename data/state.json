@@ -739,7 +739,8 @@
       "nl_black_sign",
       "nl_ningen_kankei",
       "nl_taishoku_mae",
-      "nl_hyouka"
+      "nl_hyouka",
+      "nl_nenshu_vs_zangyou"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -899,7 +900,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 5,
+    "afternoon": 6,
     "autoreply_shape": 3,
     "earlynight": 0,
     "evening": 5,
@@ -913,7 +914,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "topic",
     "casual",
     "casual",
@@ -932,7 +932,8 @@
     "question",
     "topic",
     "casual",
-    "topic_thread"
+    "topic_thread",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
