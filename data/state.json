@@ -896,7 +896,8 @@
       "tt_warukuchi",
       "tt_fukugyou_chikai",
       "tt_shanai_ido",
-      "tt_naitei_jitai"
+      "tt_naitei_jitai",
+      "tt_seichou_kankyou"
     ]
   },
   "rotation_cursor": {
@@ -910,11 +911,10 @@
     "morning": 6,
     "night": 5,
     "noon": 2,
-    "predinner": 4,
+    "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "casual",
     "question",
@@ -933,7 +933,8 @@
     "topic",
     "casual",
     "topic_thread",
-    "topic"
+    "topic",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
