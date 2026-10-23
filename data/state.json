@@ -591,7 +591,8 @@
       "q_nenshu_or_yarigai",
       "q_mensetsu_shippai",
       "q_keirekisho_kakikata",
-      "q_tensyoku_soudan"
+      "q_tensyoku_soudan",
+      "q_30_500"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -916,7 +917,7 @@
     "evening": 6,
     "late": 4,
     "latemorning": 4,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 6,
     "noon": 2,
@@ -924,7 +925,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "question",
@@ -943,7 +943,8 @@
     "casual",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
