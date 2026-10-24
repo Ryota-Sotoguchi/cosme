@@ -673,7 +673,8 @@
       "site_ochitsuku",
       "site_heikin",
       "site_chiiki",
-      "site_ima_no_nenshu"
+      "site_ima_no_nenshu",
+      "site_mensetsukan"
     ],
     "thread_bridge": [
       "br_found"
@@ -925,13 +926,12 @@
     "midmorning": 4,
     "morning": 0,
     "night": 6,
-    "noon": 2,
+    "noon": 3,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
     "question",
-    "question",
     "topic_thread",
     "topic",
     "topic",
@@ -949,7 +949,8 @@
     "casual",
     "casual",
     "question",
-    "casual"
+    "casual",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
