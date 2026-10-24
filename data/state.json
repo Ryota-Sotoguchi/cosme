@@ -205,7 +205,8 @@
       "cm_tsukareta",
       "cm_morning_mail",
       "cm_coffee",
-      "cm_hanko"
+      "cm_hanko",
+      "cm_shigoto_yume"
     ],
     "casual_brand": [
       "brand",
@@ -931,14 +932,13 @@
     "late": 5,
     "latemorning": 5,
     "midmorning": 4,
-    "morning": 0,
+    "morning": 1,
     "night": 0,
     "noon": 3,
     "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "topic",
     "casual",
     "topic_thread",
@@ -957,7 +957,8 @@
     "casual",
     "question",
     "question",
-    "site_link"
+    "site_link",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
