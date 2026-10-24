@@ -203,7 +203,8 @@
       "cm_offer_letter",
       "cm_hyouka",
       "cm_tsukareta",
-      "cm_morning_mail"
+      "cm_morning_mail",
+      "cm_coffee"
     ],
     "casual_brand": [
       "brand",
@@ -907,7 +908,11 @@
       "tt_rireki_shashin",
       "tt_yaritakunai",
       "tt_scout_mendan",
-      "tt_nenshu_down"
+      "tt_nenshu_down",
+      "tt_kyougyou",
+      "tt_referral",
+      "tt_teitaijin",
+      "tt_tensyoku_kaisuu"
     ]
   },
   "rotation_cursor": {
@@ -916,7 +921,7 @@
     "earlynight": 1,
     "evening": 6,
     "late": 4,
-    "latemorning": 4,
+    "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
     "night": 6,
@@ -927,7 +932,6 @@
   "template_history": [
     "question",
     "question",
-    "question",
     "topic_thread",
     "topic",
     "topic",
@@ -944,7 +948,8 @@
     "casual",
     "casual",
     "casual",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
