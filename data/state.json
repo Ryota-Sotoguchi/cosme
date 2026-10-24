@@ -398,7 +398,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_bath_time",
       "q_morning_night",
       "q_how_many",
       "q_price_line",
@@ -596,7 +595,9 @@
       "q_tensyoku_soudan",
       "q_30_500",
       "q_yameru_riyu",
-      "q_yuukyu"
+      "q_yuukyu",
+      "q_fukugyou",
+      "q_kaisha_kimete"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -930,13 +931,12 @@
     "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
-    "night": 6,
+    "night": 0,
     "noon": 3,
     "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "question",
     "topic",
@@ -955,6 +955,7 @@
     "topic_thread",
     "question",
     "casual",
+    "question",
     "question"
   ],
   "threads_token": {
