@@ -400,8 +400,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_price_line",
-      "q_review",
       "q_season",
       "q_shampoo_freq",
       "q_fail",
@@ -599,7 +597,9 @@
       "q_fukugyou",
       "q_kaisha_kimete",
       "q_bonus",
-      "q_tedori"
+      "q_tedori",
+      "q_kanrishoku",
+      "q_skill"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -930,7 +930,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 2,
     "evening": 0,
@@ -944,7 +944,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "topic_thread",
     "question",
     "casual",
@@ -962,6 +961,7 @@
     "site_link",
     "casual",
     "casual",
+    "question",
     "question",
     "question"
   ],
