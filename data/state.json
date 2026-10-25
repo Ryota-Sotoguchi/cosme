@@ -400,7 +400,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_morning_night",
       "q_how_many",
       "q_price_line",
       "q_review",
@@ -599,7 +598,8 @@
       "q_yameru_riyu",
       "q_yuukyu",
       "q_fukugyou",
-      "q_kaisha_kimete"
+      "q_kaisha_kimete",
+      "q_bonus"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -935,7 +935,7 @@
     "earlynight": 2,
     "evening": 0,
     "late": 5,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
     "night": 0,
@@ -944,7 +944,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "topic",
     "topic_thread",
@@ -963,7 +962,8 @@
     "question",
     "site_link",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
