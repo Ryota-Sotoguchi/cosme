@@ -401,7 +401,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_shampoo_freq",
       "q_fail",
       "q_hair_dry",
       "q_sale",
@@ -600,7 +599,8 @@
       "q_tedori",
       "q_kanrishoku",
       "q_skill",
-      "q_mikeiken"
+      "q_mikeiken",
+      "q_shikaku"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -939,7 +939,7 @@
     "autoreply_shape": 3,
     "earlynight": 3,
     "evening": 1,
-    "late": 5,
+    "late": 6,
     "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
@@ -950,7 +950,6 @@
   },
   "template_history": [
     "casual",
-    "casual",
     "question",
     "casual",
     "site_link",
@@ -968,6 +967,7 @@
     "casual",
     "topic_thread",
     "topic_thread",
+    "question",
     "question"
   ],
   "threads_token": {
