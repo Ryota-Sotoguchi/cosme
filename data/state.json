@@ -930,13 +930,14 @@
       "tt_yowami",
       "tt_bonus_taishoku",
       "tt_kanrishoku_kotowaru",
-      "tt_jiku_mittsu"
+      "tt_jiku_mittsu",
+      "tt_nenshu_moru"
     ]
   },
   "rotation_cursor": {
     "afternoon": 1,
     "autoreply_shape": 3,
-    "earlynight": 2,
+    "earlynight": 3,
     "evening": 1,
     "late": 5,
     "latemorning": 6,
@@ -948,7 +949,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "casual",
@@ -967,6 +967,7 @@
     "question",
     "question",
     "casual",
+    "topic_thread",
     "topic_thread"
   ],
   "threads_token": {
