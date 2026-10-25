@@ -401,7 +401,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_season",
       "q_shampoo_freq",
       "q_fail",
       "q_hair_dry",
@@ -600,7 +599,8 @@
       "q_bonus",
       "q_tedori",
       "q_kanrishoku",
-      "q_skill"
+      "q_skill",
+      "q_mikeiken"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -943,7 +943,7 @@
     "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
-    "night": 0,
+    "night": 1,
     "noon": 4,
     "predinner": 0,
     "price_band_window": 2
@@ -951,7 +951,6 @@
   "template_history": [
     "casual",
     "casual",
-    "casual",
     "question",
     "casual",
     "site_link",
@@ -968,7 +967,8 @@
     "question",
     "casual",
     "topic_thread",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-17T20:18:59.766540+00:00",
