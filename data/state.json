@@ -211,7 +211,8 @@
       "cm_getsumatsu",
       "cm_menkyo",
       "cm_naitei",
-      "cm_short_getsu"
+      "cm_short_getsu",
+      "cm_saiyou"
     ],
     "casual_brand": [
       "brand",
@@ -945,7 +946,7 @@
     "afternoon": 2,
     "autoreply_shape": 3,
     "earlynight": 3,
-    "evening": 1,
+    "evening": 2,
     "late": 6,
     "latemorning": 0,
     "midmorning": 6,
@@ -956,7 +957,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "site_link",
@@ -974,6 +974,7 @@
     "topic_thread",
     "casual",
     "topic_thread",
+    "casual",
     "casual",
     "casual"
   ],
