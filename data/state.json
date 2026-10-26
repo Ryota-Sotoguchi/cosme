@@ -214,7 +214,8 @@
       "cm_short_getsu",
       "cm_saiyou",
       "cm_skill",
-      "cm_kyuujitsu"
+      "cm_kyuujitsu",
+      "cm_commute"
     ],
     "casual_brand": [
       "brand",
@@ -950,7 +951,11 @@
       "tt_scout_mendan",
       "tt_nenshu_down",
       "tt_kyougyou",
-      "tt_referral"
+      "tt_referral",
+      "tt_teitaijin",
+      "tt_tensyoku_kaisuu",
+      "tt_saishuu",
+      "tt_sankagetsu"
     ]
   },
   "rotation_cursor": {
@@ -961,14 +966,13 @@
     "late": 0,
     "latemorning": 0,
     "midmorning": 6,
-    "morning": 2,
+    "morning": 3,
     "night": 2,
     "noon": 5,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "question",
@@ -986,6 +990,7 @@
     "casual",
     "casual",
     "site_link",
+    "casual",
     "casual",
     "casual"
   ],
