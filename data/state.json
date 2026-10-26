@@ -212,7 +212,8 @@
       "cm_menkyo",
       "cm_naitei",
       "cm_short_getsu",
-      "cm_saiyou"
+      "cm_saiyou",
+      "cm_skill"
     ],
     "casual_brand": [
       "brand",
@@ -940,7 +941,11 @@
       "tt_yametai_sankagetsu",
       "tt_warukuchi",
       "tt_fukugyou_chikai",
-      "tt_shanai_ido"
+      "tt_shanai_ido",
+      "tt_naitei_jitai",
+      "tt_seichou_kankyou",
+      "tt_rireki_shashin",
+      "tt_yaritakunai"
     ]
   },
   "rotation_cursor": {
@@ -952,13 +957,12 @@
     "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
-    "night": 1,
+    "night": 2,
     "noon": 5,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "site_link",
     "casual",
     "casual",
@@ -977,7 +981,8 @@
     "casual",
     "casual",
     "casual",
-    "site_link"
+    "site_link",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
