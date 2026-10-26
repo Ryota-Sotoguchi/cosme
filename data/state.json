@@ -210,7 +210,8 @@
       "cm_scout",
       "cm_getsumatsu",
       "cm_menkyo",
-      "cm_naitei"
+      "cm_naitei",
+      "cm_short_getsu"
     ],
     "casual_brand": [
       "brand",
@@ -951,11 +952,10 @@
     "morning": 2,
     "night": 1,
     "noon": 5,
-    "predinner": 0,
+    "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "question",
     "question",
@@ -974,6 +974,7 @@
     "topic_thread",
     "casual",
     "topic_thread",
+    "casual",
     "casual"
   ],
   "threads_token": {
