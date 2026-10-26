@@ -208,7 +208,8 @@
       "cm_hanko",
       "cm_shigoto_yume",
       "cm_scout",
-      "cm_getsumatsu"
+      "cm_getsumatsu",
+      "cm_menkyo"
     ],
     "casual_brand": [
       "brand",
@@ -941,7 +942,7 @@
     "earlynight": 3,
     "evening": 1,
     "late": 6,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
     "night": 1,
@@ -950,7 +951,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "topic_thread",
     "question",
@@ -969,7 +969,8 @@
     "question",
     "question",
     "question",
-    "topic_thread"
+    "topic_thread",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
