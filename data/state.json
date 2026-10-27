@@ -215,7 +215,8 @@
       "cm_saiyou",
       "cm_skill",
       "cm_kyuujitsu",
-      "cm_commute"
+      "cm_commute",
+      "cm_seat"
     ],
     "casual_brand": [
       "brand",
@@ -964,7 +965,7 @@
     "earlynight": 4,
     "evening": 2,
     "late": 0,
-    "latemorning": 0,
+    "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -973,7 +974,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "question",
     "casual",
@@ -992,7 +992,8 @@
     "casual",
     "casual",
     "casual",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
