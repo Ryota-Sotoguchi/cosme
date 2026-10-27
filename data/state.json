@@ -408,9 +408,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_hair_dry",
-      "q_sale",
-      "q_travel",
       "q_recommend",
       "q_time_of_day",
       "q_refill",
@@ -607,7 +604,10 @@
       "q_skill",
       "q_mikeiken",
       "q_shikaku",
-      "q_first_salary"
+      "q_first_salary",
+      "q_kuchikomi",
+      "q_nenshu_koushou",
+      "q_teiji"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -965,7 +965,7 @@
     "evening": 2,
     "late": 0,
     "latemorning": 0,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 3,
     "night": 2,
     "noon": 5,
@@ -973,7 +973,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "question",
     "question",
@@ -992,7 +991,8 @@
     "site_link",
     "casual",
     "casual",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
