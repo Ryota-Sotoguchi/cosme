@@ -507,6 +507,12 @@ allow_affiliate = false
 # （parts.INSIDER_NOTES）。**効果を測れるよう casual とは別の型にしてある。**
 # casual を6枠残したのは、反応率（いいねか返信が付いた割合）では
 # casual 17% が question 14% より高かったため。生活の断片も要る。
+#
+# 2026-10-28（2回目）: question 22枠のうち8枠を practical に替えた。
+# question は表示はいちばん出る（中央182）が、**伸びた上位4本とも いいね0**で、
+# 見られても反応もフォローも生まれていなかった。
+# practical は「知らないと損する手続きの話」（parts.PRACTICAL_NOTES）。
+# 調べないと分からないことは保存される見込みがあるので、そこに賭ける。
 # 2026-09-14: site_link（年収相場チェッカーを置く投稿）を afternoon / earlynight / late に1つずつ入れた。
 # 各枠7要素なので、それぞれ週1回前後 ＝ 合計で週3回前後。毎回は出さない。
 # 2026-09-03: 8/31 の組み替えを差し戻して組み直した。
@@ -540,7 +546,7 @@ allow_affiliate = false
 # 書ききる型をリンク投稿にしか入れないと、9割の投稿に効かない。
 morning = [
     "insider",
-    "question",
+    "practical",
     "thread_topic",
     "casual",
     "thread_topic",
@@ -551,7 +557,7 @@ midmorning = [
     "question",
     "insider",
     "no_link",
-    "question",
+    "practical",
     "thread_topic",
     "thread_topic",
     "question",
@@ -559,14 +565,14 @@ midmorning = [
 latemorning = [
     "insider",
     "thread_topic",
-    "question",
+    "practical",
     "casual",
     "thread_topic",
     "question",
     "insider",
 ]
 afternoon = [
-    "question",
+    "practical",
     "insider",
     "site_link",
     "thread_topic",
@@ -580,7 +586,7 @@ predinner = [
     "no_link",
     "thread_topic",
     "thread_topic",
-    "question",
+    "practical",
     "casual",
 ]
 evening = [
@@ -589,7 +595,7 @@ evening = [
     "question",
     "casual",
     "no_link",
-    "question",
+    "practical",
     "insider",
 ]
 earlynight = [
@@ -597,7 +603,7 @@ earlynight = [
     "question",
     "thread_topic",
     "site_link",
-    "question",
+    "practical",
     "casual",
     "no_link",
 ]
@@ -619,7 +625,7 @@ noon = [
     "question",
     "thread_topic",
     "site_link",
-    "question",
+    "practical",
     "thread_topic",
     "insider",
     "no_link",

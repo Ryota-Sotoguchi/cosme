@@ -48,6 +48,7 @@ from .parts import (
     FACT_INTROS,
     CASUAL_MURMURS,
     INSIDER_NOTES,
+    PRACTICAL_NOTES,
     HOWTO_POSTS,
     NO_LINK_TOPICS,
     QUESTION_POSTS,
@@ -993,6 +994,25 @@ def render_insider(ctx: RenderContext) -> Rendered:
 
 
 
+def render_practical(ctx: RenderContext) -> Rendered:
+    """知らないと損する手続きの話を1本置く。
+
+    形は `topic`（見出し＋説明の2段）と同じだが、**プールを分けてある**。
+    `no_link` は求人票の読み方・面接の受け答えが中心で、
+    «調べないと分からない手続き» が無かった。転職の前後で実際に困るのはそこ。
+
+    書くときの決まりは `parts.PRACTICAL_NOTES` のコメントに置いた。
+    要点は **法律を断定しない／金額と日数を書かない／着地は «何を確認すればいいか»**。
+    """
+    r = Rendered(blocks=[])
+    note = ctx.pick("practical", PRACTICAL_NOTES, **ctx.flags())
+    r.part_ids["practical"] = note.id
+    r.blocks.append(Block(note.text, 0))
+    r.allowed_numbers |= set(F.extract_numbers(note.text))
+    return r
+
+
+
 def render_question(ctx: RenderContext) -> Rendered:
     """短い問いかけ。
 
@@ -1103,6 +1123,8 @@ TEMPLATES: tuple[Template, ...] = (
              requires_affiliate=False),
     Template("casual", render_casual, ("casual",), item_count=0, requires_affiliate=False),
     Template("insider", render_insider, ("insider",), item_count=0,
+             requires_affiliate=False),
+    Template("practical", render_practical, ("practical",), item_count=0,
              requires_affiliate=False),
     Template("question", render_question, ("question",), item_count=0,
              requires_affiliate=False),

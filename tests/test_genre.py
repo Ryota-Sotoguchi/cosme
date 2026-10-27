@@ -40,7 +40,7 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/executor.py    … 着弾確認で下までスクロールする（2026-09-24）。返信は投稿の下に
 #                           描かれるので、再読み込みだけでは見つからず、実際に付いた返信3件中2件を
 #                           «確認できなかった» と記録していた。送信・再送しない方針は変えていない
-#   pipeline.py           … ITEMS_NEEDED に投稿型 "insider" を1行足した（2026-10-28）。
+#   pipeline.py           … ITEMS_NEEDED に投稿型 "insider" と "practical" を足した（2026-10-28）。
 #                           **データの追加だけで、選び方・組み立て方は変えていない。**
 #                           ここに無いと .get(post_type, 1) が 1 を返し、商品を使わない型なのに
 #                           商品を1件取りに行ってしまう。型を増やすときは必ずここも足す
@@ -58,7 +58,7 @@ ROOT = Path(__file__).resolve().parent.parent
 #                           原因が追えなかった。呼び出し方・判断の仕組みは変えていない
 # ======================================================================
 UNCHANGED_MECHANISM = {
-    "src/pipeline.py": "5ac350486b71830703a5807d86ad14dac7cff320",
+    "src/pipeline.py": "411a08a41bd251c74b86144fa8f7f81ff322bc5a",
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
