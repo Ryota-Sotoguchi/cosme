@@ -500,6 +500,13 @@ allow_affiliate = false
 # 人がふだんThreadsに書くのは結論のない一行や答えのない疑問なので、
 # casual と question を主役にして、整った型は少数派にする。
 [rotation]
+# 2026-10-28: casual（誰でも書ける雑談）19枠のうち13枠を insider に替えた。
+# 実測の表示中央値は question 182 / no_link 165 / thread_topic 119 / casual 49 で、
+# casual がいちばん低いのにいちばん枠を持っていた。
+# insider は「面接官席から見えること」で、このアカウントにしか書けない材料
+# （parts.INSIDER_NOTES）。**効果を測れるよう casual とは別の型にしてある。**
+# casual を6枠残したのは、反応率（いいねか返信が付いた割合）では
+# casual 17% が question 14% より高かったため。生活の断片も要る。
 # 2026-09-14: site_link（年収相場チェッカーを置く投稿）を afternoon / earlynight / late に1つずつ入れた。
 # 各枠7要素なので、それぞれ週1回前後 ＝ 合計で週3回前後。毎回は出さない。
 # 2026-09-03: 8/31 の組み替えを差し戻して組み直した。
@@ -532,17 +539,17 @@ allow_affiliate = false
 # 上限500字に対して実測は中央値60字。1日10枠のうち9枠がリンクなしなので、
 # 書ききる型をリンク投稿にしか入れないと、9割の投稿に効かない。
 morning = [
-    "casual",
+    "insider",
     "question",
     "thread_topic",
     "casual",
     "thread_topic",
     "question",
-    "casual",
+    "insider",
 ]
 midmorning = [
     "question",
-    "casual",
+    "insider",
     "no_link",
     "question",
     "thread_topic",
@@ -550,17 +557,17 @@ midmorning = [
     "question",
 ]
 latemorning = [
-    "casual",
+    "insider",
     "thread_topic",
     "question",
     "casual",
     "thread_topic",
     "question",
-    "casual",
+    "insider",
 ]
 afternoon = [
     "question",
-    "casual",
+    "insider",
     "site_link",
     "thread_topic",
     "question",
@@ -568,7 +575,7 @@ afternoon = [
     "thread_topic",
 ]
 predinner = [
-    "casual",
+    "insider",
     "question",
     "no_link",
     "thread_topic",
@@ -578,15 +585,15 @@ predinner = [
 ]
 evening = [
     "thread_topic",
-    "casual",
+    "insider",
     "question",
     "casual",
     "no_link",
     "question",
-    "casual",
+    "insider",
 ]
 earlynight = [
-    "casual",
+    "insider",
     "question",
     "thread_topic",
     "site_link",
@@ -614,14 +621,14 @@ noon = [
     "site_link",
     "question",
     "thread_topic",
-    "casual",
+    "insider",
     "no_link",
 ]
 # night / late は 2026-09-03 にリンク許可を外したので、リンクなしの型で回す。
 night = [
     "question",
     "thread_topic",
-    "casual",
+    "insider",
     "question",
     "thread_topic",
     "casual",
@@ -629,7 +636,7 @@ night = [
 ]
 late = [
     "no_link",
-    "casual",
+    "insider",
     "question",
     "thread_topic",
     "site_link",
@@ -744,6 +751,10 @@ max_per_day = 8
 # 同じ上限（max_per_day = 8）を取り合わせると、コメントが来た日に
 # 外向きの返信が出せなくなる。別枠にして、こちらにも上限を置く。
 max_own_replies_per_day = 5
+# **古いコメントには返さない。** 2026-10-28 に動かしたら、9月のコスメ時代の
+# 投稿に付いた1か月前のコメントへ返信を書こうとした。1か月遅れの返信は
+# 会話として不自然だし、ジャンルも違う投稿に紐づいている。
+max_comment_age_days = 14
 # 同じ相手に張り付かない
 same_account_cooldown_days = 7
 # 候補のうち美容・コスメが占める割合。

@@ -248,3 +248,53 @@ def test_the_env_kill_switch_also_stops_it(config, monkeypatch, capsys):
     monkeypatch.setenv("AUTOREPLY_OFF", "true")
     assert cmd_replies(config, argparse.Namespace(live=True)) == 0
     assert "AUTOREPLY_OFF" in capsys.readouterr().out
+
+
+# ======================================================================
+# 古いコメントには返さない（2026-10-28）
+#
+# 動かしたら、9月のコスメ時代の投稿に付いた **62日前**の
+# 「何時にお風呂入る？」への返信を書こうとした。1か月以上遅れて返すのは
+# 会話として不自然だし、ジャンルも違う投稿に紐づいている。
+# ======================================================================
+
+def _comment(cid, text, days_ago=None, username="someone"):
+    d = {"id": cid, "text": text, "username": username}
+    if days_ago is not None:
+        d["timestamp"] = (datetime.now(JST) - timedelta(days=days_ago)).isoformat()
+    return d
+
+
+def test_an_old_comment_is_left_alone(responder_factory):
+    r, http, state = responder_factory({"p1": [_comment("c9", "18時20分ぐらいです", days_ago=62)]})
+    r.max_comment_age_days = 14
+    assert r.run(dry_run=False, post_ids=["p1"]) == []
+    assert http.posted == []
+    # **«見た» 扱いにしない。** 時刻の読み方を直したときに拾い直せなくなる
+    assert "c9" not in state.get("answered_replies", [])
+
+
+def test_a_fresh_comment_is_answered(responder_factory):
+    r, http, _ = responder_factory({"p1": [_comment("c10", "面接の話、参考になりました", days_ago=2)]})
+    r.max_comment_age_days = 14
+    planned = r.run(dry_run=False, post_ids=["p1"])
+    assert len(planned) == 1 and planned[0]["posted"] is True
+
+
+def test_a_comment_without_a_timestamp_is_still_answered(responder_factory):
+    """時刻が読めないものまで落とすと、取りこぼしが増える。安全側は «返す» 。"""
+    r, _, _ = responder_factory({"p1": [_comment("c11", "そうなんですね")]})
+    assert len(r.run(dry_run=False, post_ids=["p1"])) == 1
+
+
+def test_the_age_is_read_from_the_api_timestamp():
+    from src.threads.replies import Reply
+
+    now = datetime.now(JST)
+    old = Reply("x", "t", "u", created_at=(now - timedelta(days=30)).isoformat())
+    assert 29 < old.age_days(now) < 31
+    assert Reply("x", "t", "u").age_days(now) is None
+    assert Reply("x", "t", "u", created_at="きのう").age_days(now) is None
+    # Threads は Z 付きの UTC で返す
+    utc = Reply("x", "t", "u", created_at="2026-10-01T00:00:00Z")
+    assert utc.age_days(now) is not None

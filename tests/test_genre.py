@@ -40,6 +40,10 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/executor.py    … 着弾確認で下までスクロールする（2026-09-24）。返信は投稿の下に
 #                           描かれるので、再読み込みだけでは見つからず、実際に付いた返信3件中2件を
 #                           «確認できなかった» と記録していた。送信・再送しない方針は変えていない
+#   pipeline.py           … ITEMS_NEEDED に投稿型 "insider" を1行足した（2026-10-28）。
+#                           **データの追加だけで、選び方・組み立て方は変えていない。**
+#                           ここに無いと .get(post_type, 1) が 1 を返し、商品を使わない型なのに
+#                           商品を1件取りに行ってしまう。型を増やすときは必ずここも足す
 #   threads/replies.py    … 自分の投稿へのコメントに «一度だけ» 自動で返す（2026-10-16）。
 #                           仕組みは前からあったが «下書きを出すだけ» の前提で、他人から付いた
 #                           返信38件のうち答えたのは1件だった。返信文の書き手を差し込みにし、
@@ -54,11 +58,11 @@ ROOT = Path(__file__).resolve().parent.parent
 #                           原因が追えなかった。呼び出し方・判断の仕組みは変えていない
 # ======================================================================
 UNCHANGED_MECHANISM = {
-    "src/pipeline.py": "cb553ce7c70b8d4e53f4b786479005916fbdf0e1",
+    "src/pipeline.py": "5ac350486b71830703a5807d86ad14dac7cff320",
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
-    "src/threads/replies.py": "cf2cd2eed4b9c4380537d033b385ccd4c79d2cf1",
+    "src/threads/replies.py": "cadd15d13bdd76f167d7037dbc6ec09371348824",
     "src/threads/token.py": "80973d116b5aaaca06b2a3783b841add0a6cd65a",
     "src/storage/history.py": "ec367dd090d26b0e2c6922a7ee9543a96661d9c1",
     "src/storage/state.py": "f3236916c3f92eaa1bfb2871bf2fcb77c7abc0f1",

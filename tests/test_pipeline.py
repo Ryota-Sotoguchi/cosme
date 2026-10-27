@@ -627,26 +627,39 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
 # ======================================================================
 # つぶやき投稿
 # ======================================================================
-def test_casual_posts_dominate_the_rotation(config, tmp_path):
-    """つぶやきが主役であること。
+def test_the_rotation_favours_what_actually_gets_seen(config, tmp_path):
+    """**伸びている型に枠を寄せていること。**
 
-    2026-08-31 に実績で組み替えた。
+    2026-08-31（コスメ時代）は casual が表示中央値320でいちばん伸びていたので、
+    つぶやきを主役にしていた。**2026-10-28 の実測で逆転した。**
 
-      型            表示中央値  反応率
-      casual            320     0.23%   ← 表示がいちばん伸びる
-      thread_topic      190     0.93%   ← 反応率がいちばん高い
-      question          114     0.81%
-      no_link           132     0.19%   ← いちばん多く出していたのに割に合わない
-      howto              62     0.00%   ← 表示も反応も最下位
+      型            表示中央値（10/14以降）
+      question          182
+      no_link           165
+      thread_topic      119
+      casual             49   ← いちばん低いのに19枠を持っていた
+      product             3   （楽天リンク。10/16 に休止）
+      site_link           1
 
-    no_link と howto を削って、上の3つに寄せた。
+    casual の13枠を insider（面接官席から見えること）に替えた。
+    casual を6枠残したのは、反応率では casual 17% が question 14% より
+    高かったため（生活の断片も要る）。
     """
     pipeline = make_pipeline(config, tmp_path)
     seen = [pipeline.resolve_post_type("morning") for _ in range(8)]
-    assert "casual" in seen
+    assert "insider" in seen, f"この口座にしか書けない型が出ていない: {seen}"
     assert "thread_topic" in seen
     assert "question" in seen
-    assert seen.count("casual") >= 3, f"つぶやきが少ない: {seen}"
+
+
+def test_the_weakest_type_no_longer_holds_the_most_slots(config):
+    """表示がいちばん低い型が、いちばん枠を持っている状態に戻さない。"""
+    from collections import Counter
+
+    share = Counter(t for types in config.rotation.values() for t in types)
+    assert share["casual"] < share["insider"], (
+        f"誰でも書ける雑談が、この口座にしか書けない型より多い: {dict(share)}")
+    assert share["casual"] < share["question"]
 
 
 def test_low_performing_types_are_rare(config):

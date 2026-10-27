@@ -25,7 +25,9 @@ from src.main import _review_flags, _within_days
 from src.storage.history import PostRecord
 
 JST = timezone(timedelta(hours=9))
-NOW = datetime(2026, 10, 13, 20, 0, tzinfo=JST)
+# **固定の日付にしない。** 検査しているのが「直近14日」なので、
+# 固定にすると日が進んだだけでテストが落ちる（2026-10-28 に実際に落ちた）。
+NOW = datetime.now(JST)
 
 
 def record(*, days_ago=1, status="success", error_type=None, slot="noon") -> PostRecord:

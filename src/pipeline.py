@@ -40,6 +40,9 @@ ITEMS_NEEDED = {
     "thread_topic": 0,
     "question": 0,
     "casual": 0,
+    # 面接官席から見えること（2026-10-28）。casual と同じ «商品を使わない» 型。
+    # **ここに無いと .get(post_type, 1) が 1 を返し、商品を1件取りに行ってしまう。**
+    "insider": 0,
     "howto": 0,
     "essay": 0,
     "site_link": 0,

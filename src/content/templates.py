@@ -47,6 +47,7 @@ from .parts import (
     ESSAY_QUESTIONS,
     FACT_INTROS,
     CASUAL_MURMURS,
+    INSIDER_NOTES,
     HOWTO_POSTS,
     NO_LINK_TOPICS,
     QUESTION_POSTS,
@@ -973,6 +974,25 @@ def render_casual(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_insider(ctx: RenderContext) -> Rendered:
+    """面接官席から見えることを1本置く。
+
+    `casual` と形は同じ（短い独白1本）だが、**プールを分けてある**。
+    中身が違うものを同じ型に混ぜると、どちらが効いたのか測れなくなる。
+
+    2026-10-28 に足した。2か月半で560本出してフォロワー9人だったので、
+    「誰でも書ける雑談」をやめて、**採用する側の席に座ったことがある**という
+    このアカウントだけの材料に寄せる（parts.INSIDER_NOTES のコメント）。
+    """
+    r = Rendered(blocks=[])
+    note = ctx.pick("insider", INSIDER_NOTES, **ctx.flags())
+    r.part_ids["insider"] = note.id
+    r.blocks.append(Block(note.text, 0))
+    r.allowed_numbers |= set(F.extract_numbers(note.text))
+    return r
+
+
+
 def render_question(ctx: RenderContext) -> Rendered:
     """短い問いかけ。
 
@@ -1082,6 +1102,8 @@ TEMPLATES: tuple[Template, ...] = (
     Template("topic_thread", render_topic_thread, ("thread_topic",), item_count=0,
              requires_affiliate=False),
     Template("casual", render_casual, ("casual",), item_count=0, requires_affiliate=False),
+    Template("insider", render_insider, ("insider",), item_count=0,
+             requires_affiliate=False),
     Template("question", render_question, ("question",), item_count=0,
              requires_affiliate=False),
     Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),

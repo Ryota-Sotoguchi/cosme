@@ -61,6 +61,19 @@ class Reply:
     reply_id: str
     text: str
     username: str | None
+    created_at: str = ""
+
+    def age_days(self, now: datetime | None = None) -> float | None:
+        """何日前のコメントか。時刻が読めなければ None。"""
+        if not self.created_at:
+            return None
+        try:
+            when = datetime.fromisoformat(self.created_at.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if when.tzinfo is None:
+            when = when.replace(tzinfo=_JST)
+        return ((now or datetime.now(_JST)) - when).total_seconds() / 86400
 
     @property
     def is_question(self) -> bool:
@@ -91,6 +104,14 @@ class ReplyResponder:
         # それでも「繰り返しコメント」に見えないよう上限は置く。
         self.max_per_day: int = int(
             config.raw.get("engagement", {}).get("max_own_replies_per_day", 5)
+        )
+        # **古いコメントには返さない。**
+        # 2026-10-28 に動かしたら、9月のコスメ時代の投稿に付いた1か月前の
+        # 「何時にお風呂入る？」への返信を書こうとした。1か月遅れで返すのは
+        # 会話として不自然だし、ジャンルも違う。時刻が読めないものは返す
+        # （昔の投稿の取りこぼしを増やさない）。
+        self.max_comment_age_days: float = float(
+            config.raw.get("engagement", {}).get("max_comment_age_days", 14)
         )
         # 通常投稿と同じく、コンテナ作成から公開まで待つ。
         # 待たずに公開すると "The requested resource does not exist" になる。
@@ -150,7 +171,7 @@ class ReplyResponder:
     def replies_on(self, post_id: str) -> list[Reply]:
         response = self.http.get(
             f"{self.api_base}/{post_id}/replies",
-            params={"fields": "id,text,username", "access_token": self._token},
+            params={"fields": "id,text,username,timestamp", "access_token": self._token},
         )
         payload = response.json()
         if "error" in payload:
@@ -164,7 +185,8 @@ class ReplyResponder:
             if own and str(d.get("username") or "") == own:
                 continue
             out.append(Reply(reply_id=str(d["id"]), text=d.get("text") or "",
-                             username=d.get("username")))
+                             username=d.get("username"),
+                             created_at=str(d.get("timestamp") or "")))
         return out
 
     def _reply_text(self, reply: Reply, cursor: int, post_text: str = "") -> str:
@@ -282,6 +304,13 @@ class ReplyResponder:
                 if len(planned) >= limit:
                     break
                 if reply.reply_id in answered:
+                    continue
+                age = reply.age_days()
+                if age is not None and age > self.max_comment_age_days:
+                    # 記録しない。**古いだけで «見た» 扱いにすると、
+                    # 時刻の読み方を直したときに拾い直せなくなる。**
+                    logger.info("古いコメントなので返しません（@%s / %.0f日前）",
+                                reply.username, age)
                     continue
                 if reply.should_skip:
                     logger.info("返信をスキップ (@%s): 宣伝・空文のため", reply.username)
