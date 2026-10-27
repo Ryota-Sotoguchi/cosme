@@ -410,8 +410,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_recommend",
-      "q_time_of_day",
       "q_refill",
       "q_same_or_new",
       "q_stock",
@@ -609,7 +607,9 @@
       "q_first_salary",
       "q_kuchikomi",
       "q_nenshu_koushou",
-      "q_teiji"
+      "q_teiji",
+      "q_shigoto_yume",
+      "q_senpai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -972,11 +972,10 @@
     "morning": 3,
     "night": 2,
     "noon": 6,
-    "predinner": 1,
+    "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "topic_thread",
     "question",
@@ -995,7 +994,8 @@
     "question",
     "casual",
     "casual",
-    "site_link"
+    "site_link",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
