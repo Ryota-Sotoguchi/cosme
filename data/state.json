@@ -410,8 +410,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_same_or_new",
-      "q_stock",
       "q_night_care",
       "q_lip_or_eye",
       "q_deciding",
@@ -609,7 +607,9 @@
       "q_teiji",
       "q_shigoto_yume",
       "q_senpai",
-      "q_nenshu_kijun"
+      "q_nenshu_kijun",
+      "q_kyuujin_mitemiru",
+      "q_taishoku_tsutaeru"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -964,7 +964,7 @@
   "rotation_cursor": {
     "afternoon": 3,
     "autoreply_shape": 3,
-    "earlynight": 4,
+    "earlynight": 5,
     "evening": 3,
     "late": 0,
     "latemorning": 1,
@@ -976,7 +976,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "question",
     "question",
@@ -994,6 +993,7 @@
     "casual",
     "casual",
     "site_link",
+    "question",
     "question",
     "question"
   ],
