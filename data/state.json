@@ -217,7 +217,8 @@
       "cm_kyuujitsu",
       "cm_commute",
       "cm_seat",
-      "cm_slack"
+      "cm_slack",
+      "cm_otsukare"
     ],
     "casual_brand": [
       "brand",
@@ -970,7 +971,7 @@
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
-    "night": 2,
+    "night": 3,
     "noon": 6,
     "predinner": 2,
     "price_band_window": 2
@@ -978,7 +979,6 @@
   "template_history": [
     "question",
     "question",
-    "question",
     "topic_thread",
     "casual",
     "topic_thread",
@@ -995,7 +995,8 @@
     "site_link",
     "question",
     "question",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
