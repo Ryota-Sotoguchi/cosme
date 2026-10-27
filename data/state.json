@@ -410,7 +410,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_refill",
       "q_same_or_new",
       "q_stock",
       "q_night_care",
@@ -609,7 +608,8 @@
       "q_nenshu_koushou",
       "q_teiji",
       "q_shigoto_yume",
-      "q_senpai"
+      "q_senpai",
+      "q_nenshu_kijun"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -965,7 +965,7 @@
     "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 4,
-    "evening": 2,
+    "evening": 3,
     "late": 0,
     "latemorning": 1,
     "midmorning": 0,
@@ -977,7 +977,6 @@
   },
   "template_history": [
     "topic_thread",
-    "topic_thread",
     "question",
     "question",
     "question",
@@ -995,6 +994,7 @@
     "casual",
     "casual",
     "site_link",
+    "question",
     "question"
   ],
   "threads_token": {
