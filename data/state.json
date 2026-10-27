@@ -216,7 +216,8 @@
       "cm_skill",
       "cm_kyuujitsu",
       "cm_commute",
-      "cm_seat"
+      "cm_seat",
+      "cm_slack"
     ],
     "casual_brand": [
       "brand",
@@ -969,12 +970,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 5,
+    "noon": 6,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "casual",
     "topic_thread",
@@ -993,6 +993,7 @@
     "casual",
     "casual",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
