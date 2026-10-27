@@ -768,7 +768,8 @@
       "nl_ningen_kankei",
       "nl_taishoku_mae",
       "nl_hyouka",
-      "nl_nenshu_vs_zangyou"
+      "nl_nenshu_vs_zangyou",
+      "nl_scout"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -967,7 +968,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
-    "late": 0,
+    "late": 1,
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
@@ -978,7 +979,6 @@
   },
   "template_history": [
     "question",
-    "question",
     "topic_thread",
     "casual",
     "topic_thread",
@@ -996,7 +996,8 @@
     "question",
     "question",
     "question",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
