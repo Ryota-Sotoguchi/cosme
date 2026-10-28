@@ -77,7 +77,11 @@ jobs:
       # **レビュー本文は保存しない。** 使用感の語が何件のレビューに
       # 出たかという数だけを残す（本文は書いた人の著作物）。
       - name: Collect product reviews
-        run: python scripts/collect_reviews.py --limit 12
+        # --candidates: これから投稿されそうな候補からも集める（2026-10-28）。
+        # 履歴ぶんだけだと «同じ商品をもう一度出すとき» にしか声が使えず、
+        # 30日クールダウンがあるので実際にはほぼ使われていなかった
+        # （投稿45件に対して声があるのは15件）。
+        run: python scripts/collect_reviews.py --candidates 8 --limit 16
 
       # 収集した生データには第三者のユーザー名と本文が含まれる。
       # 公開リポジトリに残さず、成果物として90日だけ保持する。

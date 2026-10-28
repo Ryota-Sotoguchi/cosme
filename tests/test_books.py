@@ -131,9 +131,14 @@ def test_book_categories_match_the_configured_genres(config):
     2026-09-28 に実APIで確かめたジャンル（208962 / 208967 / 101937 / 208679）へ
     差し替えた。化粧品のジャンルは config にコメントで残してあるだけ。
     """
+    from src.content.tools import TOOL_CATEGORIES
+
     labels = {genre["label"] for genre in config.genres}
     assert labels, "ジャンルが1つも設定されていない"
-    assert labels <= B.BOOK_CATEGORIES, f"本以外のジャンルが残っている: {labels - B.BOOK_CATEGORIES}"
+    # 2026-10-28 に «仕事の道具»（手帳・ノート・バッグ）を足した。
+    # 化粧品が戻っていないことが、ここで見たいこと。
+    allowed = B.BOOK_CATEGORIES | TOOL_CATEGORIES
+    assert labels <= allowed, f"本でも道具でもないジャンルが入っている: {labels - allowed}"
 
 
 # ======================================================================
@@ -316,7 +321,13 @@ def test_advising_the_reader_to_read_is_not_a_reading_claim():
 # ======================================================================
 # 7. 使用感の収集は本を対象にしない
 # ======================================================================
-def test_review_collection_skips_books(tmp_path, monkeypatch):
+def test_review_collection_counts_each_category_with_its_own_words(tmp_path, monkeypatch):
+    """**カテゴリーごとに語彙を分けて数える**（2026-10-28 に変更）。
+
+    それまでは本を丸ごと集計から外していた。化粧品の語で本のレビューを数えると
+    「軽くて読みやすい」が「軽いつけ心地」になるため。
+    `voices.VOCABULARIES` に本と道具の語彙を足したので、外す必要がなくなった。
+    """
     spec = importlib.util.spec_from_file_location("collect_reviews", ROOT / "scripts" / "collect_reviews.py")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -341,8 +352,22 @@ def test_review_collection_skips_books(tmp_path, monkeypatch):
     monkeypatch.setattr(module, "fetch_reviews", fake_fetch)
     monkeypatch.setattr(sys, "argv", ["collect_reviews.py", "--interval", "0"])
 
+    used: list[tuple[str, dict]] = []
+    real_extract = module.extract_voices
+
+    def spy(code, bodies, vocabulary=None):
+        used.append((code, vocabulary))
+        return real_extract(code, bodies, vocabulary)
+
+    monkeypatch.setattr(module, "extract_voices", spy)
+
     assert module.main() == 0
-    assert fetched == ["https://item.rakuten.co.jp/a/1/"]
+    # **本も道具も集める**（外さない）
+    assert fetched == [
+        "https://item.rakuten.co.jp/a/1/",
+        "https://item.rakuten.co.jp/b/1/",
+        "https://item.rakuten.co.jp/b/2/",
+    ]
 
 
 # ======================================================================

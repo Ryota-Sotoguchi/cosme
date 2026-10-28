@@ -42,7 +42,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.content.books import is_book  # noqa: E402
-from src.content.voices import extract_voices  # noqa: E402
+from src.content.voices import extract_voices, vocabulary_for  # noqa: E402
 
 JST = timezone(timedelta(hours=9))
 ROOT = Path(__file__).resolve().parent.parent
@@ -164,6 +164,41 @@ def load_existing() -> dict:
         return {}
 
 
+
+def _candidate_targets(limit: int) -> list[tuple[str, str, str]]:
+    """これから投稿されそうな候補を、スコアの高い順に返す。
+
+    本番の選び方（collect_candidates → filter_items → score_items）をそのまま使う。
+    順番が本番と揃っていないと、集めた声が使われないまま終わる。
+    """
+    from src.config import load_config
+    from src.content.facts import category_label
+    from src.rakuten.client import RakutenClient
+    from src.selector.filters import filter_items
+    from src.selector.scoring import score_items
+
+    config = load_config()
+    try:
+        pool = RakutenClient(config).collect_candidates(
+            config.genres,
+            min_price=config.selection.get("min_price"),
+            max_price=config.selection.get("max_price"),
+        )
+    except Exception as exc:  # noqa: BLE001 — 候補が取れなくても履歴ぶんは集める
+        print(f"候補を取得できませんでした: {exc}", file=sys.stderr)
+        return []
+
+    kept = filter_items(pool, config.exclusion, config.selection)
+    scored = score_items(kept, config.raw.get("scoring", {}), config.selection)
+    out: list[tuple[str, str, str]] = []
+    for entry in scored[:limit]:
+        item = entry.item
+        if item.item_code and item.item_url:
+            out.append((item.item_code, item.item_url, category_label(item)))
+    print(f"候補から {len(out)}件", file=sys.stderr)
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--item-code", action="append", default=None,
@@ -173,35 +208,51 @@ def main() -> int:
     parser.add_argument("--timeout-ms", type=int, default=45000)
     parser.add_argument("--interval", type=float, default=3.0,
                         help="商品間の間隔（秒）。まとめて叩かない")
+    parser.add_argument("--candidates", type=int, default=0,
+                        help="これから投稿されそうな候補からも集める件数")
     args = parser.parse_args()
 
-    # 投稿済みの商品を対象にする。新しく候補を取ると
-    # その商品が30日クールダウンに入ってしまう。
+    # 対象は2系統ある。
+    #
+    # 1. **投稿済みの商品**（従来）。履歴にある itemCode と item_url を使う
+    # 2. **これから投稿されそうな候補**（--candidates、2026-10-28 に追加）
+    #
+    # 1だけだと、声は «もう一度同じ商品を投稿するとき» にしか使えない。
+    # 同じ商品は30日クールダウンに入るので、実際にはほとんど使われていなかった
+    # （投稿45件に対して声があるのは15件）。
+    # これから出る候補を先に集めておけば、**初めて出す商品にも声が付く**。
+    #
+    # 候補を取るだけではクールダウンに入らない（履歴に書かないので）。
     #
     # レビューURLの数値IDは商品ページからしか分からないので、
     # itemCode と item_url を組で持つ。
-    targets: list[tuple[str, str]] = []
+    targets: list[tuple[str, str, str]] = []
+
+    if args.candidates > 0:
+        targets.extend(_candidate_targets(args.candidates))
+
     history = ROOT / "data" / "history.jsonl"
     if history.exists():
-        seen: set[str] = set()
+        seen: set[str] = {code for code, _, _ in targets}
         for line in history.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             record = json.loads(line)
             code, url = record.get("item_code"), record.get("item_url")
-            # 本（2026-09-15 に再開した商品リンク投稿）は数えない。ここの語は化粧品の使用感で、
-            # 本のレビューを数えると「軽くて読みやすい」が「軽いつけ心地」になる。
-            if is_book(str(record.get("category") or "")):
-                continue
+            # **カテゴリーごとに語彙を分けて数える**（2026-10-28）。
+            # それまでは本を丸ごと除いていた。化粧品の語で本のレビューを数えると
+            # 「軽くて読みやすい」が「軽いつけ心地」になるため。
+            # voices.VOCABULARIES に本と道具の語彙を足したので、除かずに数える。
             if code and url and code not in seen:
                 seen.add(code)
-                targets.append((code, url))
+                targets.append((code, url, str(record.get("category") or "")))
 
     if args.item_code:
         wanted = set(args.item_code)
         targets = [t for t in targets if t[0] in wanted]
     else:
-        targets = targets[-args.limit:]
+        # 候補は先頭にあるので、そちらを優先して残す
+        targets = targets[:args.limit] if args.candidates else targets[-args.limit:]
 
     if not targets:
         print("対象の商品がありません", file=sys.stderr)
@@ -209,7 +260,7 @@ def main() -> int:
 
     store = load_existing()
     ok = 0
-    for i, (code, item_url) in enumerate(targets):
+    for i, (code, item_url, category) in enumerate(targets):
         if i:
             time.sleep(args.interval)
         bodies, error = fetch_reviews(item_url, wait_ms=args.wait_ms,
@@ -217,7 +268,7 @@ def main() -> int:
         if error:
             print(f"NG  {code}: {error}", file=sys.stderr)
             continue
-        summary = extract_voices(code, bodies)
+        summary = extract_voices(code, bodies, vocabulary_for(category))
         if not summary.counts:
             print(f"--  {code}: 使用感を拾えず（レビュー{len(bodies)}件）", file=sys.stderr)
             continue

@@ -155,3 +155,94 @@ def test_the_type_needs_no_product(post_type):
     from src.pipeline import ITEMS_NEEDED
 
     assert ITEMS_NEEDED.get(post_type) == 0, f"{post_type} が ITEMS_NEEDED に無い"
+
+
+# ======================================================================
+# 仕事の道具（2026-10-28）
+#
+# 本と違って **レビューが桁違いに多い**（実測で手帳 中央87件 / 本 中央4件）。
+# 使った人の声を «誰の感想か分かる形» で引用できるのが、ここを足した理由。
+# **こちらが使った体にはしない**（CLAUDE.md §4）。
+# ======================================================================
+
+from src.content import tools as T  # noqa: E402
+from src.content.voices import BOOK_WORDS, TEXTURE_WORDS, TOOL_WORDS, vocabulary_for  # noqa: E402
+
+TOOL_TEXTS = [
+    (b.id, t)
+    for b in T.TOOL_BENEFITS
+    for t in (b.line, b.concern, b.pain, b.future, *b.tips)
+]
+
+
+@pytest.mark.parametrize("pid,text", TOOL_TEXTS, ids=[f"{i}-{n}" for n, (i, _) in enumerate(TOOL_TEXTS)])
+def test_tool_texts_are_clean(pid, text):
+    assert not scan(text), f"{pid}: {[h.label for h in scan(text)]}"
+    assert not persona.contradicts(text), f"{pid}: {persona.contradicts(text)}"
+
+
+FIRST_PERSON_USE = ("使ってみた", "愛用", "リピ確定", "買ってよかった",
+                    "持ってます", "使ってます", "届いた", "開封")
+
+
+@pytest.mark.parametrize("pid,text", TOOL_TEXTS, ids=[f"{i}-{n}" for n, (i, _) in enumerate(TOOL_TEXTS)])
+def test_tool_texts_never_claim_we_own_it(pid, text):
+    """**このアカウントは商品を持っていない。** 出すのは «使った人はこう書いている» まで。"""
+    for word in FIRST_PERSON_USE:
+        assert word not in text, f"{pid}: 自分が使った体になっている（{word}）"
+
+
+def test_each_category_counts_reviews_with_its_own_words():
+    """**語彙を取り違えると «軽くて読みやすい» が «軽いつけ心地» になる。**"""
+    assert vocabulary_for("手帳") is TOOL_WORDS
+    assert vocabulary_for("ノート・文具") is TOOL_WORDS
+    assert vocabulary_for("ビジネスバッグ") is TOOL_WORDS
+    assert vocabulary_for("転職本") is BOOK_WORDS
+    assert vocabulary_for("働き方の本") is BOOK_WORDS
+    assert vocabulary_for("スキンケア") is TEXTURE_WORDS
+    assert vocabulary_for("") is TEXTURE_WORDS
+
+
+def test_every_configured_genre_has_a_vocabulary(config):
+    """**ジャンルを足したら語彙も足す。** 忘れると化粧品の語で数えてしまう。"""
+    from src.content.voices import VOCABULARIES
+
+    for genre in config.genres:
+        label = genre["label"]
+        assert label in VOCABULARIES, f"{label} の語彙が voices.VOCABULARIES に無い"
+
+
+def test_the_tool_words_say_nothing_about_results():
+    """**成果の話を入れない。** 「はかどる」は使った人の解釈で、こちらは裏を取れない。"""
+    banned = ("はかどる", "効率", "生産性", "仕事が早く", "年収", "評価が上が", "変わった")
+    for label in TOOL_WORDS:
+        for word in banned:
+            assert word not in label, f"{label}: 成果の語が入っている"
+    for label in BOOK_WORDS:
+        for word in ("受かった", "合格", "年収", "成功", "人生が"):
+            assert word not in label, f"{label}: 成果の語が入っている"
+
+
+def test_the_roundup_openings_have_every_key_the_templates_ask_for():
+    """**欠けると KeyError で投稿が落ちる**（2026-10-28 に実際に落ちた）。"""
+    from src.content.books import BOOK_ROUNDUP_OPENINGS
+    from src.content.parts import ROUNDUP_OPENINGS
+
+    needed = set(ROUNDUP_OPENINGS)
+    assert set(BOOK_ROUNDUP_OPENINGS) >= needed, "本のまとめ形式にキーが足りない"
+    assert set(T.TOOL_ROUNDUP_OPENINGS) >= needed, "道具のまとめ形式にキーが足りない"
+
+
+@pytest.mark.parametrize("name,expected", [
+    ("高橋 手帳 2026年 A5 ウィークリー リングダイアリー", "tool_techou_weekly"),
+    ("ハイタイド 手帳 2027 マンスリー", "tool_techou_monthly"),
+    ("ロルバーン ダイアリー 2026年3月始まり L", "tool_techou"),
+    ("方眼ノート A5 5mm ドット方眼", "tool_note_hougan"),
+    ("コクヨ キャンパスノート セミB5 B罫", "tool_note"),
+    ("ビジネスリュック メンズ 大容量 3way", "tool_bag_ryukku"),
+    ("ブリーフケース 本革 トートバッグ", "tool_bag"),
+])
+def test_the_kind_of_tool_comes_from_the_product_name(name, expected):
+    benefit = T.tool_benefit_for(name)
+    assert benefit is not None, f"種類が判定できない: {name}"
+    assert benefit.id == expected, f"{name} → {benefit.id}（期待 {expected}）"

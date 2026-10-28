@@ -40,6 +40,10 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/executor.py    … 着弾確認で下までスクロールする（2026-09-24）。返信は投稿の下に
 #                           描かれるので、再読み込みだけでは見つからず、実際に付いた返信3件中2件を
 #                           «確認できなかった» と記録していた。送信・再送しない方針は変えていない
+#   .github/workflows/research.yml … レビュー収集に --candidates を渡す（2026-10-28）。
+#                           履歴ぶんだけだと «同じ商品をもう一度出すとき» にしか声が使えず、
+#                           30日クールダウンがあるので実際にはほぼ使われていなかった。
+#                           収集の中身・保存先・間隔は変えていない
 #   pipeline.py           … ITEMS_NEEDED に投稿型 "insider" と "practical" を足した（2026-10-28）。
 #                           **データの追加だけで、選び方・組み立て方は変えていない。**
 #                           ここに無いと .get(post_type, 1) が 1 を返し、商品を使わない型なのに
@@ -79,7 +83,7 @@ UNCHANGED_MECHANISM = {
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
     ".github/workflows/post.yml": "7ffd7a2dca466ccf4a5b3df57d4b39733985520a",
-    ".github/workflows/research.yml": "3c9422f1e4e8d1d55636307d1d546b78059c630c",
+    ".github/workflows/research.yml": "1e74e197272bdbf70e85c7f0a4d66b7330cb39b4",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
     ".github/workflows/token-refresh.yml": "4883e910e89e91bcd7217369dcecd380624d61fe",
@@ -173,15 +177,20 @@ def test_the_money_path_is_still_in_the_rotation(config):
     assert len(slots) >= 3, f"site_link の枠が少なすぎる: {slots}"
 
 
-def test_the_affiliate_slot_sells_books_not_cosmetics(config):
+def test_the_affiliate_slot_sells_books_or_work_tools(config):
     """**発信ジャンルと合わないアフィリエイトを混ぜない**（2026-09-14 決定）。
 
     コスメのジャンルIDが戻っていたら、それは混ざっているということ。
+    2026-10-28 に «仕事の道具»（手帳・ノート・バッグ）まで広げた。
+    転職・仕事・キャリアの文脈で説明できるものだけにする。
     """
     from src.content.books import BOOK_CATEGORIES
+    from src.content.tools import TOOL_CATEGORIES
 
     labels = {genre["label"] for genre in config.genres}
-    assert labels and labels <= BOOK_CATEGORIES, f"本以外のジャンルがある: {labels}"
+    allowed = BOOK_CATEGORIES | TOOL_CATEGORIES
+    assert labels, "ジャンルが1つも無い"
+    assert labels <= allowed, f"本でも仕事の道具でもないジャンルがある: {labels - allowed}"
 
 
 def test_product_types_stay_in_the_affiliate_slot(config):

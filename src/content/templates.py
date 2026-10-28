@@ -41,6 +41,18 @@ from .books import (
     book_benefit_for,
     is_book,
 )
+from .tools import (
+    TOOL_CTA_PARTS,
+    TOOL_DISCLAIMERS,
+    TOOL_GENERIC_TIPS,
+    TOOL_RECOMMEND_CLOSINGS,
+    TOOL_RECOMMEND_OPENINGS,
+    TOOL_ROUNDUP_CLOSINGS,
+    TOOL_ROUNDUP_OPENINGS,
+    is_tool,
+    tool_benefit_by_cursor,
+    tool_benefit_for,
+)
 from .parts import (
     CTA_PARTS,
     DISCLAIMERS,
@@ -334,6 +346,25 @@ COSME_POOLS = ProductPools(
 
 # 本は、読んだことにも中身を知っていることにもしない（books.py）。
 # 入りと締めはリンクの有無で分けない。
+# 道具（手帳・ノート・バッグ）。**本と違って «使った人の声» が使える。**
+# レビューの件数が桁違いに多く（2026-10-28 の実測で手帳は中央87件、本は4件）、
+# voices.TOOL_WORDS の語彙で数えるので «軽くて読みやすい» の取り違えも起きない。
+TOOL_POOLS = ProductPools(
+    openings=TOOL_RECOMMEND_OPENINGS,
+    recommend_openings=TOOL_RECOMMEND_OPENINGS,
+    closings=TOOL_RECOMMEND_CLOSINGS,
+    recommend_closings=TOOL_RECOMMEND_CLOSINGS,
+    cta=TOOL_CTA_PARTS,
+    disclaimers=TOOL_DISCLAIMERS,
+    roundup_openings=TOOL_ROUNDUP_OPENINGS,
+    roundup_closings=TOOL_ROUNDUP_CLOSINGS,
+    generic_tips=TOOL_GENERIC_TIPS,
+    find_benefit=tool_benefit_for,
+    fallback_benefit=tool_benefit_by_cursor,
+    uses_voices=True,
+)
+
+
 BOOK_POOLS = ProductPools(
     openings=BOOK_RECOMMEND_OPENINGS,
     recommend_openings=BOOK_RECOMMEND_OPENINGS,
@@ -351,7 +382,11 @@ BOOK_POOLS = ProductPools(
 
 
 def _pools(ctx: RenderContext) -> ProductPools:
-    return BOOK_POOLS if is_book(ctx.category) else COSME_POOLS
+    if is_book(ctx.category):
+        return BOOK_POOLS
+    if is_tool(ctx.category):
+        return TOOL_POOLS
+    return COSME_POOLS
 
 
 def _item_name(ctx: RenderContext, item: RakutenItem, max_length: int) -> str:
