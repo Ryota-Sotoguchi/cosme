@@ -172,7 +172,15 @@ def test_saved_file_never_contains_review_bodies():
     if not path.exists():
         pytest.skip("まだ収集していない")
     raw = json.loads(path.read_text(encoding="utf-8"))
+    # **許すのは «決めた語» 全部。** 2026-10-28 にカテゴリーごとの語彙を足したので、
+    # 化粧品の語彙だけを見ていると、道具や本の語が «本文の混入» に見えてしまう。
+    # ここで見たいのは「レビュー本文が保存されていないこと」なので、
+    # どの語彙に載っている語かは問わない。
+    from src.content.voices import VOCABULARIES
+
     allowed = set(TEXTURE_WORDS)
+    for vocabulary in VOCABULARIES.values():
+        allowed |= set(vocabulary)
     for code, entry in raw.items():
         assert set(entry) <= {"updated_at", "reviews_seen", "voices", "counts"}, code
         for word in entry["voices"]:
