@@ -220,7 +220,8 @@
       "cm_slack",
       "cm_otsukare",
       "cm_mae_no_kaisha",
-      "cm_interviewer"
+      "cm_interviewer",
+      "cm_kyuukei"
     ],
     "casual_brand": [
       "brand",
@@ -967,11 +968,15 @@
       "tt_hanbouki",
       "tt_hikitsugi_mijikai",
       "tt_shibou_juni",
-      "tt_yowami"
+      "tt_yowami",
+      "tt_bonus_taishoku",
+      "tt_kanrishoku_kotowaru",
+      "tt_jiku_mittsu",
+      "tt_nenshu_moru"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 3,
+    "afternoon": 4,
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 3,
@@ -985,7 +990,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "casual",
     "site_link",
@@ -1004,7 +1008,8 @@
     "casual",
     "question",
     "casual",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
