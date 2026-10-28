@@ -412,7 +412,6 @@
       "ro_forwho"
     ],
     "question": [
-      "q_night_care",
       "q_lip_or_eye",
       "q_deciding",
       "q_package",
@@ -611,7 +610,8 @@
       "q_senpai",
       "q_nenshu_kijun",
       "q_kyuujin_mitemiru",
-      "q_taishoku_tsutaeru"
+      "q_taishoku_tsutaeru",
+      "q_scout"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -971,7 +971,7 @@
     "evening": 3,
     "late": 1,
     "latemorning": 1,
-    "midmorning": 0,
+    "midmorning": 1,
     "morning": 4,
     "night": 3,
     "noon": 6,
@@ -979,7 +979,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "topic_thread",
     "casual",
@@ -998,7 +997,8 @@
     "question",
     "casual",
     "topic",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
