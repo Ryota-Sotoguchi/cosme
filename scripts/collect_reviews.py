@@ -34,6 +34,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+import urllib.parse
 import sys
 import time
 from datetime import datetime, timedelta, timezone
@@ -66,8 +68,18 @@ EXTRACT_JS = """
   // 集まらず、「2件以上が同じことを言っている」の判定に届かない
   // 商品が半分あった。全部の当たり方を試して、本文で重複を除く。
   const seen = new Set();
+  // **2026-10-29 の実測で当たり数がまるで違った。**
+  //
+  //   [class*="review-body"]   5件   ← それまで実質これだけ当たっていた
+  //   [class*="no-ellipsis"]  25件   ← 本文そのもの
+  //   [class*="text-display"] 144件  ← 日付・品番・画面の文言まで拾うので使わない
+  //
+  // レビューが103件ある商品でも5件しか集まらず、
+  // 「2件以上が同じことを言っている」の判定にまるで届いていなかった。
+  // クラス名は難読化されている（no-ellipsis--2jV9- のような形）ので前方一致で引く。
   const sels = [
     '[class*="review-body"]', '[class*="reviewBody"]', '[class*="ReviewBody"]',
+    '[class*="no-ellipsis"]',
     '[class*="comment"]', 'dd.comment',
     '[class*="review"] p', '[data-testid*="review"]',
   ];
@@ -120,6 +132,85 @@ def resolve_review_url(page, item_url: str, *, wait_ms: int, timeout_ms: int) ->
     return page.evaluate(REVIEW_LINK_JS)
 
 
+
+# レビューページを何ページまで送るか。
+#
+# **1ページ目だけでは材料が足りない。** 2026-10-28 の実測では、
+# レビューが87〜118件ある商品でも**取れたのは5〜7件**で、
+# 「2件以上が同じことを言っている」の判定に届かず、
+# 6商品のうち声を拾えたのは1商品だけだった。
+#
+# 1ページあたり15件前後なので、4ページで60件ほど。
+# それ以上は時間がかかるわりに、言われることが増えない。
+MAX_REVIEW_PAGES = 4
+
+
+def _page_url(review_url: str, page_no: int) -> str:
+    """レビューページのURLの «ページ番号» を差し替える。
+
+        https://review.rakuten.co.jp/item/1/358413_10000288/1.1/
+                                                            ↑ページ番号.並び順
+
+    **前がページ番号。** 2026-10-29 に実測した。後ろを変えても同じレビューが返る
+    （並び順が変わるだけ）ので、最初それでページ送りが効いていなかった。
+
+        1.1/ → 可愛いらしいイラストで…
+        1.2/ → 可愛いらしいイラストで…   （同じ ＝ 並び順違い）
+        2.1/ → とても可愛いスケジュール帳です！…（別のレビュー ＝ 2ページ目）
+
+    形が想定と違えば、元のURLをそのまま返す（1ページ目だけ読むことになる）。
+    """
+    # **クエリを落としてから見る。** 商品ページから拾ったURLには
+    # `?l2-id=item_review` が付いていて、末尾一致だとページ番号に届かない
+    # （2026-10-28: これでページ送りが丸ごと効いていなかった）。
+    # 計測用のパラメータなので、落として困るものではない。
+    split = urllib.parse.urlsplit(review_url)
+    match = re.search(r"/(\d+)\.(\d+)/?$", split.path)
+    if not match:
+        return review_url
+    sort = match.group(2)
+    path = split.path[: match.start()] + f"/{page_no}.{sort}/"
+    return urllib.parse.urlunsplit((split.scheme, split.netloc, path, "", ""))
+
+
+def _read_pages(page, review_url: str, *, wait_ms: int, timeout_ms: int) -> list[str]:
+    """レビューページを送りながら本文を集める。
+
+    **増えなくなったら止める。** 最後のページを超えると、
+    楽天は1ページ目と同じ内容を返すことがあるので、
+    «新しい本文が1件も増えなかった» を終わりの合図にする。
+    """
+    seen: list[str] = []
+    known: set[str] = set()
+    for page_no in range(1, MAX_REVIEW_PAGES + 1):
+        url = _page_url(review_url, page_no)
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
+            page.wait_for_timeout(wait_ms)
+            # 遅延読み込みぶんを出してから読む。
+            # 失敗しても、画面に出ているぶんだけで続行する。
+            try:
+                page.evaluate(SCROLL_JS)
+                page.wait_for_timeout(1500)
+            except Exception:  # noqa: BLE001
+                pass
+            bodies = page.evaluate(EXTRACT_JS) or []
+        except Exception as exc:  # noqa: BLE001 — 途中のページで落ちても、それまでのぶんを使う
+            print(f"    {page_no}ページ目を読めません: {type(exc).__name__}", file=sys.stderr)
+            break
+
+        print(f"    {page_no}ページ目 {url} → {len(bodies)}件", file=sys.stderr)
+        fresh = [b for b in bodies if b not in known]
+        if not fresh:
+            break
+        known.update(fresh)
+        seen.extend(fresh)
+        if page_no == 1 and not re.search(r"/\d+\.\d+/?$", urllib.parse.urlsplit(review_url).path):
+            # ページ番号を差し替えられない形だった。送っても同じものが来る
+            break
+    return seen
+
+
 def fetch_reviews(item_url: str, *, wait_ms: int, timeout_ms: int) -> tuple[list[str], str | None]:
     """商品ページ経由でレビュー本文を取る。
 
@@ -138,16 +229,7 @@ def fetch_reviews(item_url: str, *, wait_ms: int, timeout_ms: int) -> tuple[list
                                          timeout_ms=timeout_ms)
                 if not url:
                     return [], "レビューページへのリンクが見つかりません"
-                page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-                page.wait_for_timeout(wait_ms)
-                # 遅延読み込みぶんを出してから読む。
-                # 失敗しても、画面に出ているぶんだけで続行する。
-                try:
-                    page.evaluate(SCROLL_JS)
-                    page.wait_for_timeout(1500)
-                except Exception:  # noqa: BLE001
-                    pass
-                bodies = page.evaluate(EXTRACT_JS)
+                bodies = _read_pages(page, url, wait_ms=wait_ms, timeout_ms=timeout_ms)
             finally:
                 browser.close()
     except Exception as exc:  # noqa: BLE001 — 1件落ちても次の商品へ

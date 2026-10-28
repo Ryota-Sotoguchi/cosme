@@ -396,3 +396,120 @@ def test_voice_counts_round_trip(tmp_path):
     assert counts["shop:1"] == {"しっとり": 7}
     assert counts["shop:2"] == {}, "無い行は空。推測で埋めない"
 
+
+
+# ======================================================================
+# レビューページのページ送り（2026-10-28）
+#
+# 1ページ目だけを読んでいたため、**レビューが87〜118件ある商品でも
+# 取れたのは5〜7件**だった。「2件以上が同じことを言っている」の判定に届かず、
+# 6商品のうち声を拾えたのは1商品だけだった。
+# ======================================================================
+
+import importlib.util  # noqa: E402
+import sys as _sys  # noqa: E402
+
+
+def _collector():
+    spec = importlib.util.spec_from_file_location(
+        "collect_reviews", pathlib.Path("scripts/collect_reviews.py"))
+    module = importlib.util.module_from_spec(spec)
+    _sys.modules["collect_reviews"] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+# **前がページ番号、後ろが並び順**（2026-10-29 に実測）。
+# 後ろを変えても同じレビューが返るので、取り違えるとページ送りが丸ごと効かない。
+@pytest.mark.parametrize("url,page_no,expected", [
+    ("https://review.rakuten.co.jp/item/1/358413_10000288/1.1/", 3,
+     "https://review.rakuten.co.jp/item/1/358413_10000288/3.1/"),
+    ("https://review.rakuten.co.jp/item/1/358413_10000288/1.1", 2,
+     "https://review.rakuten.co.jp/item/1/358413_10000288/2.1/"),
+    # 商品ページから拾ったURLには計測用のクエリが付く。落としてから差し替える
+    ("https://review.rakuten.co.jp/item/1/271691_10004759/1.1/?l2-id=item_review", 2,
+     "https://review.rakuten.co.jp/item/1/271691_10004759/2.1/"),
+    # 並び順はそのまま残す
+    ("https://review.rakuten.co.jp/item/1/1_2/1.2/", 4,
+     "https://review.rakuten.co.jp/item/1/1_2/4.2/"),
+])
+def test_the_page_number_is_swapped_in_the_url(url, page_no, expected):
+    assert _collector()._page_url(url, page_no) == expected
+
+
+def test_an_unexpected_url_is_left_alone():
+    """形が違えば触らない。**壊れたURLを組み立てて404を踏むより、1ページ読むほうがいい。**"""
+    cr = _collector()
+    plain = "https://review.rakuten.co.jp/item/1/358413_10000288/"
+    assert cr._page_url(plain, 3) == plain
+
+
+class _FakePage:
+    """ページごとに別の本文を返す板。"""
+
+    def __init__(self, pages):
+        self.pages = pages
+        self.visited: list[str] = []
+        self._current = ""
+
+    def goto(self, url, **kwargs):
+        self.visited.append(url)
+        self._current = url
+
+    def wait_for_timeout(self, ms):
+        pass
+
+    def evaluate(self, js, *args):
+        if "scroll" in js.lower() or "scrollBy" in js:
+            return None
+        return self.pages.get(self._current, [])
+
+
+def test_it_reads_several_pages_and_keeps_every_body():
+    cr = _collector()
+    base = "https://review.rakuten.co.jp/item/1/1_2/1.1/"
+    pages = {
+        "https://review.rakuten.co.jp/item/1/1_2/1.1/": ["あ" * 20, "い" * 20],
+        "https://review.rakuten.co.jp/item/1/1_2/2.1/": ["う" * 20],
+        "https://review.rakuten.co.jp/item/1/1_2/3.1/": [],
+    }
+    page = _FakePage(pages)
+    bodies = cr._read_pages(page, base, wait_ms=0, timeout_ms=1000)
+    assert len(bodies) == 3, "ページ送りぶんが集まっていない"
+    assert len(page.visited) == 3, "空のページで止まっていない"
+
+
+def test_it_stops_when_the_same_bodies_come_back():
+    """**最後のページを超えると1ページ目と同じ内容が返ることがある。**
+
+    止まらないと、同じ本文を何度も数えて「多かった」が水増しになる。
+    """
+    cr = _collector()
+    base = "https://review.rakuten.co.jp/item/1/1_2/1.1/"
+    same = ["あ" * 20, "い" * 20]
+    pages = {cr._page_url(base, n): same for n in range(1, 6)}
+    page = _FakePage(pages)
+    bodies = cr._read_pages(page, base, wait_ms=0, timeout_ms=1000)
+    assert bodies == same, "同じ本文を重ねて数えている"
+    assert len(page.visited) == 2, "増えなくなっても送り続けている"
+
+
+def test_a_broken_page_keeps_what_was_already_read():
+    """途中のページで落ちても、それまでのぶんは使う。"""
+    cr = _collector()
+    base = "https://review.rakuten.co.jp/item/1/1_2/1.1/"
+
+    class Flaky(_FakePage):
+        def goto(self, url, **kwargs):
+            if url.endswith("1.2/"):
+                raise RuntimeError("timeout")
+            super().goto(url, **kwargs)
+
+    page = Flaky({base: ["あ" * 20]})
+    assert cr._read_pages(page, base, wait_ms=0, timeout_ms=1000) == ["あ" * 20]
+
+
+def test_the_page_limit_is_bounded():
+    """無限に送らない。時間がかかるわりに、言われることは増えない。"""
+    cr = _collector()
+    assert 2 <= cr.MAX_REVIEW_PAGES <= 8
