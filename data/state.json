@@ -773,7 +773,8 @@
       "nl_hyouka",
       "nl_nenshu_vs_zangyou",
       "nl_scout",
-      "nl_shiboudouki"
+      "nl_shiboudouki",
+      "nl_kaisha_size"
     ],
     "topic_thread": [
       "tt_cheap_vs_value",
@@ -986,12 +987,11 @@
     "morning": 4,
     "night": 3,
     "noon": 0,
-    "predinner": 2,
+    "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
     "casual",
-    "casual",
     "site_link",
     "casual",
     "casual",
@@ -1009,7 +1009,8 @@
     "question",
     "casual",
     "topic",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
