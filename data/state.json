@@ -409,6 +409,9 @@
       "hw_first_category",
       "hw_brush"
     ],
+    "insider": [
+      "in_nervous"
+    ],
     "opening": [
       "op_curious",
       "op_saved",
@@ -983,7 +986,7 @@
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 4,
-    "late": 1,
+    "late": 2,
     "latemorning": 2,
     "midmorning": 1,
     "morning": 4,
@@ -993,7 +996,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "casual",
@@ -1012,7 +1014,8 @@
     "topic",
     "casual",
     "casual",
-    "question"
+    "question",
+    "insider"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
