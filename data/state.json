@@ -25,7 +25,8 @@
       "curiosity",
       "loss_aversion",
       "surprise",
-      "discovery"
+      "discovery",
+      "timing"
     ],
     "casual": [
       "cm_humid",
@@ -349,7 +350,8 @@
       "bcta_price",
       "bcta_now",
       "bcta_detail",
-      "bcta_compare"
+      "bcta_compare",
+      "tcta_detail"
     ],
     "disclaimer": [
       "dc_point",
@@ -999,12 +1001,11 @@
     "midmorning": 2,
     "morning": 5,
     "night": 4,
-    "noon": 0,
+    "noon": 1,
     "predinner": 3,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "question",
     "question",
@@ -1023,7 +1024,8 @@
     "insider",
     "casual",
     "insider",
-    "practical"
+    "practical",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
