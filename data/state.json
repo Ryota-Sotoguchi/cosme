@@ -225,7 +225,8 @@
       "cm_kyuukei",
       "cm_shukkin",
       "cm_gogo",
-      "cm_mail_yomi"
+      "cm_mail_yomi",
+      "cm_ryoushin"
     ],
     "casual_brand": [
       "brand",
@@ -789,10 +790,6 @@
       "nl_kaisha_size"
     ],
     "topic_thread": [
-      "tt_cheapest_trap",
-      "tt_too_many",
-      "tt_stock",
-      "tt_color",
       "tt_size",
       "tt_refill_first",
       "tt_stock_expiry",
@@ -988,7 +985,11 @@
       "tt_yametai_sankagetsu",
       "tt_warukuchi",
       "tt_fukugyou_chikai",
-      "tt_shanai_ido"
+      "tt_shanai_ido",
+      "tt_nenshu_down",
+      "tt_kyougyou",
+      "tt_naitei_jitai",
+      "tt_referral"
     ]
   },
   "rotation_cursor": {
@@ -1002,11 +1003,10 @@
     "morning": 5,
     "night": 4,
     "noon": 1,
-    "predinner": 3,
+    "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "question",
     "casual",
@@ -1025,7 +1025,8 @@
     "insider",
     "practical",
     "band_focus",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
