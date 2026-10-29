@@ -426,7 +426,6 @@
       "pn_taishokubi"
     ],
     "question": [
-      "q_bath_time",
       "q_morning_night",
       "q_price_line",
       "q_review",
@@ -625,7 +624,8 @@
       "q_remote_or_nenshu",
       "q_boss_type",
       "q_tensyoku_kikkake",
-      "q_zangyou_genkai"
+      "q_zangyou_genkai",
+      "q_seichou"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -992,7 +992,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 4,
+    "afternoon": 5,
     "autoreply_shape": 3,
     "earlynight": 6,
     "evening": 4,
@@ -1006,7 +1006,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "question",
     "question",
     "question",
@@ -1025,7 +1024,8 @@
     "casual",
     "insider",
     "practical",
-    "band_focus"
+    "band_focus",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
