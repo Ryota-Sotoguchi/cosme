@@ -788,7 +788,8 @@
       "nl_scout",
       "nl_shiboudouki",
       "nl_kaisha_size",
-      "nl_career_plan"
+      "nl_career_plan",
+      "nl_kyuujin_nenshu"
     ],
     "topic_thread": [
       "tt_size",
@@ -996,7 +997,7 @@
   "rotation_cursor": {
     "afternoon": 5,
     "autoreply_shape": 3,
-    "earlynight": 6,
+    "earlynight": 0,
     "evening": 5,
     "late": 2,
     "latemorning": 3,
@@ -1008,7 +1009,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic",
     "casual",
@@ -1027,6 +1027,7 @@
     "band_focus",
     "question",
     "casual",
+    "topic",
     "topic"
   ],
   "threads_token": {
