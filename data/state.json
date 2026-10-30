@@ -29,7 +29,6 @@
       "timing"
     ],
     "casual": [
-      "cm_sunscreen",
       "cm_lighting",
       "cm_night",
       "cm_hairtie",
@@ -228,7 +227,8 @@
       "cm_long_mensetsu",
       "cm_kaigi_hatsugen",
       "cm_resume_night",
-      "cm_raise"
+      "cm_raise",
+      "cm_hikitsugi"
     ],
     "casual_brand": [
       "brand",
@@ -798,10 +798,6 @@
       "nl_hikitomare"
     ],
     "topic_thread": [
-      "tt_switch",
-      "tt_two_axes",
-      "tt_first_buy",
-      "tt_low_review",
       "tt_shelf_first",
       "tt_cheap_vs_value",
       "tt_too_many",
@@ -997,7 +993,11 @@
       "tt_saishuu",
       "tt_sankagetsu",
       "tt_hanbouki",
-      "tt_seichou_kankyou"
+      "tt_seichou_kankyou",
+      "tt_hikitsugi_mijikai",
+      "tt_yowami",
+      "tt_bonus_taishoku",
+      "tt_kanrishoku_kotowaru"
     ]
   },
   "rotation_cursor": {
@@ -1005,7 +1005,7 @@
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 6,
-    "late": 3,
+    "late": 4,
     "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
@@ -1015,7 +1015,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "casual",
     "insider",
     "practical",
@@ -1034,6 +1033,7 @@
     "casual",
     "practical",
     "insider",
+    "casual",
     "casual"
   ],
   "threads_token": {
