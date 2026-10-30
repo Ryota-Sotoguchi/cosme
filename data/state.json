@@ -227,7 +227,8 @@
       "cm_gogo",
       "cm_mail_yomi",
       "cm_ryoushin",
-      "cm_long_mensetsu"
+      "cm_long_mensetsu",
+      "cm_kaigi_hatsugen"
     ],
     "casual_brand": [
       "brand",
@@ -1002,7 +1003,7 @@
     "earlynight": 0,
     "evening": 5,
     "late": 3,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
     "night": 5,
@@ -1011,7 +1012,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic",
     "casual",
     "topic",
@@ -1030,7 +1030,8 @@
     "topic_thread",
     "question",
     "casual",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
