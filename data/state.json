@@ -226,7 +226,8 @@
       "cm_shukkin",
       "cm_gogo",
       "cm_mail_yomi",
-      "cm_ryoushin"
+      "cm_ryoushin",
+      "cm_long_mensetsu"
     ],
     "casual_brand": [
       "brand",
@@ -427,10 +428,6 @@
       "pn_taishokubi"
     ],
     "question": [
-      "q_review",
-      "q_how_many",
-      "q_page",
-      "q_first_step",
       "q_sunscreen",
       "q_hair_dry",
       "q_travel",
@@ -626,7 +623,11 @@
       "q_zangyou_genkai",
       "q_seichou",
       "q_shukkin",
-      "q_fukurikousei"
+      "q_fukurikousei",
+      "q_meeting",
+      "q_40_tensyoku",
+      "q_friday",
+      "q_mensetsu_kinchou"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1002,14 +1003,13 @@
     "late": 3,
     "latemorning": 3,
     "midmorning": 2,
-    "morning": 5,
+    "morning": 6,
     "night": 5,
     "noon": 1,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "question",
     "casual",
     "topic",
@@ -1028,7 +1028,8 @@
     "topic",
     "topic",
     "topic_thread",
-    "question"
+    "question",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
