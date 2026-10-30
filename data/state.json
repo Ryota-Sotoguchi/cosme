@@ -790,7 +790,8 @@
       "nl_shiboudouki",
       "nl_kaisha_size",
       "nl_career_plan",
-      "nl_kyuujin_nenshu"
+      "nl_kyuujin_nenshu",
+      "nl_koushou_konkyo"
     ],
     "topic_thread": [
       "tt_refill_first",
@@ -1002,7 +1003,7 @@
     "evening": 5,
     "late": 3,
     "latemorning": 3,
-    "midmorning": 2,
+    "midmorning": 3,
     "morning": 6,
     "night": 5,
     "noon": 1,
@@ -1010,7 +1011,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic",
     "casual",
@@ -1029,7 +1029,8 @@
     "topic",
     "topic_thread",
     "question",
-    "casual"
+    "casual",
+    "topic"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
