@@ -29,7 +29,6 @@
       "timing"
     ],
     "casual": [
-      "cm_morning",
       "cm_sunscreen",
       "cm_lighting",
       "cm_night",
@@ -228,7 +227,8 @@
       "cm_ryoushin",
       "cm_long_mensetsu",
       "cm_kaigi_hatsugen",
-      "cm_resume_night"
+      "cm_resume_night",
+      "cm_raise"
     ],
     "casual_brand": [
       "brand",
@@ -1009,13 +1009,12 @@
     "latemorning": 4,
     "midmorning": 3,
     "morning": 6,
-    "night": 5,
+    "night": 6,
     "noon": 2,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "insider",
     "casual",
     "insider",
@@ -1034,7 +1033,8 @@
     "topic",
     "casual",
     "practical",
-    "insider"
+    "insider",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
