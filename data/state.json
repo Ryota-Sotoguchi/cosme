@@ -426,7 +426,8 @@
       "ro_forwho"
     ],
     "practical": [
-      "pn_taishokubi"
+      "pn_taishokubi",
+      "pn_juuminzei"
     ],
     "question": [
       "q_hair_dry",
@@ -1002,7 +1003,7 @@
     "afternoon": 6,
     "autoreply_shape": 3,
     "earlynight": 0,
-    "evening": 5,
+    "evening": 6,
     "late": 3,
     "latemorning": 4,
     "midmorning": 3,
@@ -1013,7 +1014,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "question",
     "insider",
@@ -1032,7 +1032,8 @@
     "casual",
     "question",
     "topic",
-    "casual"
+    "casual",
+    "practical"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
