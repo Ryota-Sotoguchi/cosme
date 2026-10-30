@@ -29,7 +29,6 @@
       "timing"
     ],
     "casual": [
-      "cm_humid",
       "cm_morning",
       "cm_sunscreen",
       "cm_lighting",
@@ -228,7 +227,8 @@
       "cm_mail_yomi",
       "cm_ryoushin",
       "cm_long_mensetsu",
-      "cm_kaigi_hatsugen"
+      "cm_kaigi_hatsugen",
+      "cm_resume_night"
     ],
     "casual_brand": [
       "brand",
@@ -796,10 +796,6 @@
       "nl_hikitomare"
     ],
     "topic_thread": [
-      "tt_refill_first",
-      "tt_stock_expiry",
-      "tt_same_brand",
-      "tt_review_count",
       "tt_switch",
       "tt_two_axes",
       "tt_first_buy",
@@ -995,7 +991,11 @@
       "tt_kyougyou",
       "tt_naitei_jitai",
       "tt_referral",
-      "tt_scout_mendan"
+      "tt_scout_mendan",
+      "tt_saishuu",
+      "tt_sankagetsu",
+      "tt_hanbouki",
+      "tt_seichou_kankyou"
     ]
   },
   "rotation_cursor": {
@@ -1009,11 +1009,10 @@
     "morning": 6,
     "night": 5,
     "noon": 2,
-    "predinner": 4,
+    "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "casual",
     "question",
@@ -1032,7 +1031,8 @@
     "topic",
     "casual",
     "question",
-    "topic"
+    "topic",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
