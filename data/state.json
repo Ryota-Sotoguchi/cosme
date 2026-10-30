@@ -418,7 +418,8 @@
     "insider": [
       "in_nervous",
       "in_recent",
-      "in_fuwatto"
+      "in_fuwatto",
+      "in_gyakushitsumon"
     ],
     "opening": [
       "op_curious",
@@ -1008,14 +1009,13 @@
     "late": 4,
     "latemorning": 4,
     "midmorning": 3,
-    "morning": 6,
+    "morning": 0,
     "night": 6,
     "noon": 2,
     "predinner": 5,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "insider",
     "practical",
     "band_focus",
@@ -1034,7 +1034,8 @@
     "practical",
     "insider",
     "casual",
-    "casual"
+    "casual",
+    "insider"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
