@@ -429,7 +429,6 @@
       "pn_taishokubi"
     ],
     "question": [
-      "q_sunscreen",
       "q_hair_dry",
       "q_travel",
       "q_time_of_day",
@@ -628,7 +627,8 @@
       "q_meeting",
       "q_40_tensyoku",
       "q_friday",
-      "q_mensetsu_kinchou"
+      "q_mensetsu_kinchou",
+      "q_tenkin"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1007,12 +1007,11 @@
     "midmorning": 3,
     "morning": 6,
     "night": 5,
-    "noon": 1,
+    "noon": 2,
     "predinner": 4,
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "topic",
     "casual",
@@ -1031,7 +1030,8 @@
     "question",
     "casual",
     "topic",
-    "casual"
+    "casual",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
