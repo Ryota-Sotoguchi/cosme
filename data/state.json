@@ -435,8 +435,6 @@
       "pn_dc"
     ],
     "question": [
-      "q_travel",
-      "q_time_of_day",
       "q_empty",
       "q_store_or_net",
       "q_season",
@@ -634,7 +632,9 @@
       "q_friday",
       "q_mensetsu_kinchou",
       "q_tenkin",
-      "q_shigoto_tanoshii"
+      "q_shigoto_tanoshii",
+      "q_joushi_hitokoto",
+      "q_first_tensyoku_age"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1014,13 +1014,12 @@
     "latemorning": 5,
     "midmorning": 4,
     "morning": 0,
-    "night": 6,
+    "night": 0,
     "noon": 3,
     "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "casual",
     "topic",
@@ -1039,6 +1038,7 @@
     "topic_thread",
     "practical",
     "insider",
+    "question",
     "question"
   ],
   "threads_token": {
