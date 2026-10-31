@@ -430,7 +430,8 @@
     "practical": [
       "pn_taishokubi",
       "pn_juuminzei",
-      "pn_kenpo"
+      "pn_kenpo",
+      "pn_dc"
     ],
     "question": [
       "q_hair_dry",
@@ -1014,11 +1015,10 @@
     "morning": 0,
     "night": 6,
     "noon": 3,
-    "predinner": 5,
+    "predinner": 6,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic",
     "topic",
     "topic_thread",
@@ -1037,7 +1037,8 @@
     "practical",
     "casual",
     "site_link",
-    "topic_thread"
+    "topic_thread",
+    "practical"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
