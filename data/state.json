@@ -801,9 +801,6 @@
       "nl_hikitomare"
     ],
     "topic_thread": [
-      "tt_impulse",
-      "tt_night_cart",
-      "tt_delivery_days",
       "tt_return_policy",
       "tt_sale",
       "tt_same_brand",
@@ -1000,11 +997,14 @@
       "tt_jiku_mittsu",
       "tt_nenshu_moru",
       "tt_yametai_sankagetsu",
-      "tt_warukuchi"
+      "tt_warukuchi",
+      "tt_fukugyou_chikai",
+      "tt_shanai_ido",
+      "tt_nenshu_down"
     ]
   },
   "rotation_cursor": {
-    "afternoon": 6,
+    "afternoon": 0,
     "autoreply_shape": 3,
     "earlynight": 1,
     "evening": 6,
@@ -1018,7 +1018,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "casual",
     "topic",
     "topic",
@@ -1037,7 +1036,8 @@
     "insider",
     "practical",
     "casual",
-    "site_link"
+    "site_link",
+    "topic_thread"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
