@@ -429,7 +429,8 @@
     ],
     "practical": [
       "pn_taishokubi",
-      "pn_juuminzei"
+      "pn_juuminzei",
+      "pn_kenpo"
     ],
     "question": [
       "q_hair_dry",
@@ -1008,7 +1009,7 @@
     "evening": 6,
     "late": 4,
     "latemorning": 4,
-    "midmorning": 3,
+    "midmorning": 4,
     "morning": 0,
     "night": 6,
     "noon": 2,
@@ -1016,7 +1017,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "practical",
     "band_focus",
     "question",
@@ -1035,7 +1035,8 @@
     "insider",
     "casual",
     "casual",
-    "insider"
+    "insider",
+    "practical"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
