@@ -435,7 +435,6 @@
       "pn_dc"
     ],
     "question": [
-      "q_hair_dry",
       "q_travel",
       "q_time_of_day",
       "q_empty",
@@ -634,7 +633,8 @@
       "q_40_tensyoku",
       "q_friday",
       "q_mensetsu_kinchou",
-      "q_tenkin"
+      "q_tenkin",
+      "q_shigoto_tanoshii"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1008,7 +1008,7 @@
   "rotation_cursor": {
     "afternoon": 0,
     "autoreply_shape": 3,
-    "earlynight": 1,
+    "earlynight": 2,
     "evening": 0,
     "late": 4,
     "latemorning": 5,
@@ -1020,7 +1020,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "topic_thread",
     "question",
     "casual",
@@ -1039,7 +1038,8 @@
     "site_link",
     "topic_thread",
     "practical",
-    "insider"
+    "insider",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
