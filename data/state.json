@@ -810,8 +810,6 @@
       "nl_hikitomare"
     ],
     "topic_thread": [
-      "tt_cheapest_trap",
-      "tt_color",
       "tt_size",
       "tt_refill_first",
       "tt_stock_expiry",
@@ -1009,13 +1007,15 @@
       "tt_nenshu_down",
       "tt_kyougyou",
       "tt_naitei_jitai",
-      "tt_referral"
+      "tt_referral",
+      "tt_scout_mendan",
+      "tt_saishuu"
     ]
   },
   "rotation_cursor": {
     "afternoon": 1,
     "autoreply_shape": 3,
-    "earlynight": 2,
+    "earlynight": 3,
     "evening": 1,
     "late": 5,
     "latemorning": 6,
@@ -1027,7 +1027,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "casual",
     "casual",
     "insider",
@@ -1046,6 +1045,7 @@
     "comparison",
     "practical",
     "casual",
+    "topic_thread",
     "topic_thread"
   ],
   "threads_token": {
