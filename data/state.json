@@ -435,7 +435,8 @@
       "pn_taishokubi",
       "pn_juuminzei",
       "pn_kenpo",
-      "pn_dc"
+      "pn_dc",
+      "pn_taishokukin"
     ],
     "question": [
       "q_stock",
@@ -1012,7 +1013,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 0,
+    "afternoon": 1,
     "autoreply_shape": 3,
     "earlynight": 2,
     "evening": 0,
@@ -1026,7 +1027,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic",
     "casual",
     "practical",
     "insider",
@@ -1045,7 +1045,8 @@
     "insider",
     "topic_thread",
     "casual",
-    "comparison"
+    "comparison",
+    "practical"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
