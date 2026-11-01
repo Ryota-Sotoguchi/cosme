@@ -439,10 +439,6 @@
       "pn_taishokukin"
     ],
     "question": [
-      "q_sale",
-      "q_night_care",
-      "q_change",
-      "q_bath_time",
       "q_refill",
       "q_price_line",
       "q_lip_or_eye",
@@ -638,7 +634,11 @@
       "q_shokumukeirekisho",
       "q_yameru_riyu",
       "q_yuukyu",
-      "q_fukugyou"
+      "q_fukugyou",
+      "q_kaisha_kimete",
+      "q_bonus",
+      "q_tedori",
+      "q_kanrishoku"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1017,7 +1017,7 @@
     "autoreply_shape": 3,
     "earlynight": 3,
     "evening": 1,
-    "late": 5,
+    "late": 6,
     "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
@@ -1027,7 +1027,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "insider",
     "practical",
     "casual",
@@ -1046,6 +1045,7 @@
     "casual",
     "topic_thread",
     "topic_thread",
+    "question",
     "question"
   ],
   "threads_token": {
