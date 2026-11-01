@@ -436,7 +436,8 @@
       "pn_juuminzei",
       "pn_kenpo",
       "pn_dc",
-      "pn_taishokukin"
+      "pn_taishokukin",
+      "pn_nenpou"
     ],
     "question": [
       "q_refill",
@@ -1020,14 +1021,13 @@
     "late": 6,
     "latemorning": 6,
     "midmorning": 5,
-    "morning": 1,
+    "morning": 2,
     "night": 1,
     "noon": 4,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "practical",
     "casual",
     "site_link",
@@ -1046,7 +1046,8 @@
     "topic_thread",
     "topic_thread",
     "question",
-    "question"
+    "question",
+    "practical"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
