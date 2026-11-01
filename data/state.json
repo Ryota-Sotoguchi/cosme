@@ -29,7 +29,6 @@
       "timing"
     ],
     "casual": [
-      "cm_hairtie",
       "cm_humid_makeup",
       "cm_face_wash_lazy",
       "cm_package",
@@ -228,7 +227,8 @@
       "cm_raise",
       "cm_hikitsugi",
       "cm_first_job",
-      "cm_short_kyuuyo"
+      "cm_short_kyuuyo",
+      "cm_mendan"
     ],
     "casual_brand": [
       "brand",
@@ -1023,11 +1023,10 @@
     "morning": 1,
     "night": 0,
     "noon": 4,
-    "predinner": 6,
+    "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "practical",
     "insider",
     "casual",
@@ -1046,7 +1045,8 @@
     "topic_thread",
     "casual",
     "comparison",
-    "practical"
+    "practical",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
