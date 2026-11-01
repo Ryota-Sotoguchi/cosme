@@ -439,7 +439,6 @@
       "pn_taishokukin"
     ],
     "question": [
-      "q_stock",
       "q_sale",
       "q_night_care",
       "q_change",
@@ -638,7 +637,8 @@
       "q_keirekisho_kakikata",
       "q_shokumukeirekisho",
       "q_yameru_riyu",
-      "q_yuukyu"
+      "q_yuukyu",
+      "q_fukugyou"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1021,13 +1021,12 @@
     "latemorning": 6,
     "midmorning": 5,
     "morning": 1,
-    "night": 0,
+    "night": 1,
     "noon": 4,
     "predinner": 0,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "insider",
     "practical",
@@ -1046,7 +1045,8 @@
     "practical",
     "casual",
     "topic_thread",
-    "topic_thread"
+    "topic_thread",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-24T20:35:13.613326+00:00",
