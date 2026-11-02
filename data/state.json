@@ -423,7 +423,8 @@
       "in_fuwatto",
       "in_gyakushitsumon",
       "in_muinsho",
-      "in_notpro"
+      "in_notpro",
+      "in_failure"
     ],
     "opening": [
       "op_curious",
@@ -1019,7 +1020,7 @@
     "earlynight": 3,
     "evening": 1,
     "late": 6,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 6,
     "morning": 2,
     "night": 1,
@@ -1028,7 +1029,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "site_link",
     "topic_thread",
     "practical",
@@ -1047,7 +1047,8 @@
     "question",
     "question",
     "practical",
-    "casual"
+    "casual",
+    "insider"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
