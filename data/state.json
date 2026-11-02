@@ -425,7 +425,8 @@
       "in_muinsho",
       "in_notpro",
       "in_failure",
-      "in_twice"
+      "in_twice",
+      "in_blank"
     ],
     "opening": [
       "op_curious",
@@ -1016,7 +1017,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 1,
+    "afternoon": 2,
     "autoreply_shape": 3,
     "earlynight": 3,
     "evening": 1,
@@ -1030,7 +1031,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "practical",
     "insider",
     "question",
@@ -1048,6 +1048,7 @@
     "question",
     "practical",
     "casual",
+    "insider",
     "insider",
     "insider"
   ],
