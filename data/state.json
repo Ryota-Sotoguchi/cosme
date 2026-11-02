@@ -426,7 +426,8 @@
       "in_notpro",
       "in_failure",
       "in_twice",
-      "in_blank"
+      "in_blank",
+      "in_kirei"
     ],
     "opening": [
       "op_curious",
@@ -1027,11 +1028,10 @@
     "morning": 2,
     "night": 1,
     "noon": 5,
-    "predinner": 0,
+    "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "practical",
     "insider",
     "question",
     "question",
@@ -1048,6 +1048,7 @@
     "question",
     "practical",
     "casual",
+    "insider",
     "insider",
     "insider",
     "insider"
