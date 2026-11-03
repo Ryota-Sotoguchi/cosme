@@ -26,7 +26,8 @@
       "loss_aversion",
       "surprise",
       "discovery",
-      "timing"
+      "timing",
+      "conditional"
     ],
     "casual": [
       "cm_cal_season",
@@ -355,7 +356,8 @@
       "bcta_detail",
       "bcta_compare",
       "tcta_detail",
-      "tcta_voice"
+      "tcta_voice",
+      "tcta_compare"
     ],
     "disclaimer": [
       "dc_point",
@@ -1029,12 +1031,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 1,
-    "noon": 5,
+    "noon": 6,
     "predinner": 1,
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "topic_thread",
     "casual",
     "comparison",
@@ -1053,7 +1054,8 @@
     "site_link",
     "casual",
     "casual",
-    "insider"
+    "insider",
+    "band_focus"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
