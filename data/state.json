@@ -735,7 +735,8 @@
       "site_kouteki",
       "site_mikeiken",
       "site_koushou_mae",
-      "site_touroku_nashi"
+      "site_touroku_nashi",
+      "site_heikin"
     ],
     "thread_bridge": [
       "br_found"
@@ -1022,7 +1023,7 @@
     ]
   },
   "rotation_cursor": {
-    "afternoon": 2,
+    "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 4,
     "evening": 1,
@@ -1036,7 +1037,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "casual",
     "comparison",
     "practical",
@@ -1055,7 +1055,8 @@
     "casual",
     "casual",
     "insider",
-    "band_focus"
+    "band_focus",
+    "site_link"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
