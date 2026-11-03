@@ -447,7 +447,6 @@
       "pn_nenpou"
     ],
     "question": [
-      "q_shampoo_freq",
       "q_deciding",
       "q_package",
       "q_recommend",
@@ -646,7 +645,8 @@
       "q_skill",
       "q_mikeiken",
       "q_shikaku",
-      "q_first_salary"
+      "q_first_salary",
+      "q_kuchikomi"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1033,11 +1033,10 @@
     "morning": 3,
     "night": 1,
     "noon": 6,
-    "predinner": 1,
+    "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "comparison",
     "practical",
     "casual",
@@ -1056,7 +1055,8 @@
     "casual",
     "insider",
     "band_focus",
-    "site_link"
+    "site_link",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
