@@ -48,7 +48,17 @@ ITEMS_NEEDED = {
     "howto": 0,
     "essay": 0,
     "site_link": 0,
+    # 書ききる長文の連投（2026-11-04）。guide_site は最後の1本で自サイトを紹介する
+    "guide": 0,
+    "guide_site": 0,
 }
+
+# 長文の型。在庫が尽きても短文（casual / question）へは最後まで逃がさない（2026-11-04）。
+LONG_FORM_TYPES = ("guide", "guide_site", "thread_topic", "practical")
+
+# 商品投稿を作れなかったとき（候補なし・リンク枠の上限）に代わりに出す型。
+# もとは no_link → casual の順に逃がしていたので、リンク枠が崩れると短文が出ていた。
+PRODUCT_FALLBACK = "guide"
 
 
 @dataclass
@@ -375,7 +385,7 @@ class Pipeline:
             logger.info(
                 "リンクを付けられないスロットなので、商品を消費せずリンクなし投稿にします"
             )
-            return self._run_no_link(recent_texts, slot=slot_name)
+            return self._run_no_link(recent_texts, post_type=PRODUCT_FALLBACK, slot=slot_name)
 
         # --- リンクなし投稿は商品取得が不要 ---
         if needed == 0:
@@ -386,7 +396,7 @@ class Pipeline:
         except NoDataError as exc:
             # 楽天側が一時的に返さない・全部除外された、等。枠は埋める。
             logger.warning("候補商品が取れないため、リンクなし投稿に切り替えます（%s）", exc)
-            return self._run_no_link(recent_texts, slot=slot_name)
+            return self._run_no_link(recent_texts, post_type=PRODUCT_FALLBACK, slot=slot_name)
         if needed > 1:
             scored = self._same_category_first(scored, needed)
         max_skips = int(self.config.compliance.get("max_item_skips", 12))
@@ -448,7 +458,7 @@ class Pipeline:
         logger.warning(
             "商品投稿を作れなかったため、リンクなし投稿に切り替えます（%s）", detail
         )
-        return self._run_no_link(recent_texts, slot=slot_name)
+        return self._run_no_link(recent_texts, post_type=PRODUCT_FALLBACK, slot=slot_name)
 
     # ------------------------------------------------------------------
     def _run_no_link(
@@ -502,6 +512,13 @@ class Pipeline:
         howto を最後に置いているのは在庫が最少というだけでなく、
         実績が4件で表示中央値62・反応ゼロだったから。
         逃がし先として増やしていい型ではない。
+
+        **長文の型は長文へ逃がす**（2026-11-04）。短文をやめて長文に寄せたのに、
+        在庫切れのたびに casual が出ると元に戻ってしまう。guide_site は逃がし先に入れない
+        （自サイトの頻度が読めなくなる。tests/test_site_link.py）。
         """
-        order = ["casual", "no_link", "question", "essay", "thread_topic", "howto"]
+        if post_type in LONG_FORM_TYPES:
+            order = ["guide", "thread_topic", "practical", "no_link", "casual", "howto"]
+        else:
+            order = ["casual", "no_link", "question", "essay", "thread_topic", "howto"]
         return [post_type, *[t for t in order if t != post_type]]

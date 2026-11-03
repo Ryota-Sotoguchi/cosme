@@ -60,9 +60,16 @@ ROOT = Path(__file__).resolve().parent.parent
 #   engage/llm.py         … CLI が exit!=0 のとき stdout も添えて理由を残す（2026-09-24）。
 #                           stderr だけだと «exit=1: » と空になり、自動返信が1件も返せない
 #                           原因が追えなかった。呼び出し方・判断の仕組みは変えていない
+#   pipeline.py           … **長文の型 guide / guide_site を足した（2026-11-04）。**本人の指示
+#                           「短文・つぶやきばかりで収益化を狙えていない。有益な発信を長文で」。
+#                           ITEMS_NEEDED に2行、在庫切れの逃がし先を «長文の型は長文へ» にし、
+#                           商品投稿を作れなかったときの代わりを no_link → guide にした。
+#                           商品の選び方・検査・再生成の流れは変えていない
+#   .github/workflows/post.yml … **1日10本 → 3本にした（2026-11-04）。**同じ指示による。
+#                           残した3枠（latemorning / noon / late）の発火時刻は変えていない
 # ======================================================================
 UNCHANGED_MECHANISM = {
-    "src/pipeline.py": "411a08a41bd251c74b86144fa8f7f81ff322bc5a",
+    "src/pipeline.py": "c1a2facc14e494e79d15a6f9f8e8e237d400d926",
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
@@ -82,7 +89,7 @@ UNCHANGED_MECHANISM = {
     "src/engage/browser/session.py": "b44a56ad0dacc9d5faf1ec90805d74ebb5d0bebe",
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
-    ".github/workflows/post.yml": "7ffd7a2dca466ccf4a5b3df57d4b39733985520a",
+    ".github/workflows/post.yml": "49ce506fe259ff26da229c3918125a2095334e22",
     ".github/workflows/research.yml": "1e74e197272bdbf70e85c7f0a4d66b7330cb39b4",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
@@ -121,13 +128,13 @@ def test_the_schedule_timing_is_unchanged(config):
     **2026-10-13 に夕方以降の5枠をさらに前倒しした。** 遅れが中央365分まで伸び、
     predinner 以降が `max_drift_minutes` を超えて 42/49 本が捨てられていた。
     1日10本と枠の名前は、どちらの変更でも変えていない。
+
+    **2026-11-04 に1日3本にした**（短文をやめて長文の連投にした）。
+    残した3枠の発火時刻は 10-13 のまま。
     """
     expected = {
-        "morning": ("05:30", "30 20 * * *"), "midmorning": ("06:30", "30 21 * * *"),
         "latemorning": ("08:00", "0 23 * * *"), "noon": ("09:30", "30 0 * * *"),
-        "afternoon": ("11:00", "0 2 * * *"), "predinner": ("12:00", "0 3 * * *"),
-        "evening": ("13:00", "0 4 * * *"), "earlynight": ("14:00", "0 5 * * *"),
-        "night": ("15:00", "0 6 * * *"), "late": ("16:00", "0 7 * * *"),
+        "late": ("16:00", "0 7 * * *"),
     }
     actual = {s.slot: (s.time_jst, s.cron_utc) for s in config.schedule}
     assert actual == expected
@@ -170,11 +177,17 @@ def test_the_money_path_is_still_in_the_rotation(config):
     楽天の本を外したとき、site_link まで消すと «収益化の経路がゼロ» になる。
     自サイト（年収相場チェッカー）には A8 の転職エージェント広告が載っていて、
     1件あたりの単価が本とは桁違い。そこへの導線が site_link。
+
+    **2026-11-04 に導線を guide_site へ移した。** 年収の話を長文で書ききり、
+    最後の1本でサイトを紹介する型。短い site_link は表示の中央値が1だった。
+    1日3本になったので «3枠以上» ではなく «週3回以上» で見る。
     """
-    appearances = [t for types in config.rotation.values() for t in types if t == "site_link"]
-    assert appearances, "site_link がローテーションから消えている"
-    slots = [slot for slot, types in config.rotation.items() if "site_link" in types]
-    assert len(slots) >= 3, f"site_link の枠が少なすぎる: {slots}"
+    money = ("site_link", "guide_site")
+    per_week = sum(
+        sum(types.count(t) for t in money) / len(types) * 7
+        for types in config.rotation.values()
+    )
+    assert per_week >= 3, f"自サイトへの導線が週 {per_week:.1f} 回しかない"
 
 
 def test_the_affiliate_slot_sells_books_or_work_tools(config):
@@ -203,8 +216,8 @@ def test_product_types_stay_in_the_affiliate_slot(config):
 
 
 def test_every_slot_still_has_seven_options(config):
-    """構成は変えていない（どの枠も7要素、1日10本）。"""
-    assert len(config.schedule) == 10
+    """どの枠も7要素（曜日で一巡）。本数は 2026-11-04 に 10 → 3 にした。"""
+    assert len(config.schedule) == 3
     for slot, options in config.rotation.items():
         assert len(options) == 7, f"{slot}: {options}"
 

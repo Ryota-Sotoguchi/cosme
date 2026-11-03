@@ -1817,6 +1817,9 @@ def cmd_selftest(config: Config, args: argparse.Namespace) -> int:
     for post_type, items in (
         ("product", [sample]),
         ("no_link", []),
+        # 2026-11-04 から投稿の主役は長文の連投（1日3本のうち楽天以外の全部）
+        ("guide", []),
+        ("guide_site", []),
     ):
         for _ in range(3):
             draft = builder.build(post_type, items)

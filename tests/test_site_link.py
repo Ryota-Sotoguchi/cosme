@@ -167,8 +167,9 @@ def test_the_site_link_post_passes_compliance(config, tmp_path):
 def test_no_other_post_type_ever_carries_a_url(tmp_path):
     """サイトが出るのは site_link 型だけ。ほかの投稿には一切出ない。"""
     builder = ContentBuilder(State(tmp_path / "state.json"), voices_path=tmp_path / "voices.json")
+    # guide_site も最後の1本で自サイトを置く型（2026-11-04）。検査は tests/test_guides.py
     others = sorted({t.post_types[0] for t in TEMPLATES
-                     if t.item_count == 0 and t.id != "site_link"})
+                     if t.item_count == 0 and t.id not in ("site_link", "guide_site")})
     start = date(2026, 9, 14)
     for day in range(7):
         today = start + timedelta(days=day)
@@ -184,39 +185,48 @@ def test_no_other_post_type_ever_carries_a_url(tmp_path):
 # ======================================================================
 # 4. 頻度 — 毎回は出さない
 # ======================================================================
+# 自サイトを置く型。2026-11-04 に短い site_link から長文の guide_site へ移した。
+SITE_TYPES = ("site_link", "guide_site")
+
+
 def test_the_site_appears_about_three_times_a_week(config):
     """各枠は1日1回、ローテーションを1つ進める。週あたりの出現回数を設定から計算する。"""
     per_week = sum(
-        options.count("site_link") / len(options) * 7
+        sum(options.count(t) for t in SITE_TYPES) / len(options) * 7
         for options in config.rotation.values()
     )
     assert 2 <= per_week <= 4, f"週 {per_week:.1f} 回"
 
 
-def test_no_slot_repeats_the_site_within_its_rotation(config):
+def test_no_slot_repeats_the_site_on_consecutive_days(config):
+    """同じ枠で2日続けて出さない（並ぶと «毎晩広告» に見える）。ローテーションは一巡するので輪で見る。"""
     for slot, options in config.rotation.items():
-        assert options.count("site_link") <= 1, f"{slot}: {options}"
+        marks = [t in SITE_TYPES for t in options]
+        for index, here in enumerate(marks):
+            assert not (here and marks[index - 1]), f"{slot}: {options}"
 
 
 def test_the_site_is_not_a_fallback_for_other_types():
-    """在庫が尽きた型の逃がし先に site_link を入れない。入れると頻度が読めなくなる。"""
-    for post_type in ("casual", "question", "no_link", "thread_topic", "howto", "essay"):
-        assert "site_link" not in Pipeline._no_link_fallbacks(post_type)
+    """在庫が尽きた型の逃がし先に自サイトの型を入れない。入れると頻度が読めなくなる。"""
+    for post_type in ("casual", "question", "no_link", "thread_topic", "howto", "essay",
+                      "guide", "practical", "guide_site"):
+        fallbacks = Pipeline._no_link_fallbacks(post_type)[1:]
+        assert not set(fallbacks) & set(SITE_TYPES), f"{post_type}: {fallbacks}"
 
 
 def test_the_pipeline_posts_the_site_when_the_rotation_reaches_it(config, tmp_path):
-    slot = next(name for name, options in config.rotation.items() if "site_link" in options)
+    slot = next(name for name, options in config.rotation.items() if "guide_site" in options)
     options = config.rotation[slot]
     state = State(tmp_path / "state.json")
-    state._data.setdefault("rotation_cursor", {})[slot] = options.index("site_link")
+    state._data.setdefault("rotation_cursor", {})[slot] = options.index("guide_site")
     pipeline = Pipeline(config, history=History(tmp_path / "history.jsonl"), state=state,
                         rakuten=object())
 
     result = pipeline.run(slot)
 
     assert result.check.passed, result.check.summary()
-    assert result.draft.template_id == "site_link"
-    assert P.SITE_URL in result.draft.text
+    assert result.draft.template_id == "guide_site"
+    assert P.SITE_URL in result.draft.segments[-1]
 
 
 # ======================================================================

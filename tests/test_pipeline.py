@@ -10,7 +10,7 @@ from datetime import datetime
 
 from src.errors import ComplianceSkip
 from src.main import cmd_post
-from src.pipeline import Pipeline
+from src.pipeline import PRODUCT_FALLBACK, Pipeline
 from src.storage.history import JST, History, PostRecord
 from src.storage.state import State
 from tests.conftest import make_item
@@ -80,7 +80,7 @@ def make_pipeline(config, tmp_path, items=None):
 
 
 # ======================================================================
-@pytest.mark.parametrize("slot", ["morning", "noon", "evening", "night", "late"])
+@pytest.mark.parametrize("slot", ["latemorning", "noon", "late"])
 def test_every_slot_produces_a_compliant_post(config, tmp_path, slot):
     pipeline = make_pipeline(config, tmp_path)
     result = pipeline.run(slot)
@@ -89,11 +89,22 @@ def test_every_slot_produces_a_compliant_post(config, tmp_path, slot):
 
 
 def test_no_link_slots_never_contain_urls(config, tmp_path):
+    """リンクなしの枠にアフィリエイトリンクは出ない。
+
+    late は週3回 guide_site（最後の1本で自サイトを紹介）になるので、
+    本文にURLが無いことは guide だけの latemorning で見る。
+    """
     pipeline = make_pipeline(config, tmp_path)
-    for slot in ("morning", "evening"):
-        draft = pipeline.run(slot).draft
+    for _ in range(7):
+        draft = pipeline.run("latemorning").draft
+        pipeline.builder.commit(draft)
         assert "http" not in draft.text
         assert not draft.has_affiliate_link
+    for _ in range(7):
+        draft = pipeline.run("late").draft
+        pipeline.builder.commit(draft)
+        assert not draft.has_affiliate_link
+        assert not draft.link_attachment
 
 
 def test_product_slot_includes_pr_marker_and_link(config, tmp_path):
@@ -123,7 +134,7 @@ def test_excluded_products_are_never_selected(config, tmp_path):
     pipeline = make_pipeline(config, tmp_path, items=banned)
     draft = pipeline.run("noon").draft
 
-    assert draft.post_type == "no_link"
+    assert draft.post_type == PRODUCT_FALLBACK
     assert not draft.items          # 除外商品は一切出てこない
 
 
@@ -167,7 +178,7 @@ def test_ramp_up_limits_affiliate_posts_on_early_days(config, tmp_path):
         )
     )
     pipeline.history._records = None
-    assert pipeline.affiliate_allowed("night") is False
+    assert pipeline.affiliate_allowed("late") is False
 
 
 def test_ramp_up_can_be_disabled(config, tmp_path):
@@ -210,7 +221,7 @@ def test_generated_numbers_always_match_source_data(config, tmp_path):
     from src.content.facts import extract_numbers
 
     pipeline = make_pipeline(config, tmp_path)
-    for slot in ("noon", "night", "late"):
+    for slot in ("noon", "latemorning", "late"):
         draft = pipeline.run(slot).draft
         allowed = set(draft.allowed_numbers)
         for item in draft.items:
@@ -419,7 +430,8 @@ def test_falls_back_to_topic_post_when_no_products(config, tmp_path):
     result = pipeline.run("noon")
 
     assert result.check.passed
-    assert result.draft.post_type == "no_link"
+    # 2026-11-04: 代わりに出すのは短い no_link ではなく長文（pipeline.PRODUCT_FALLBACK）
+    assert result.draft.post_type == PRODUCT_FALLBACK
     assert not result.draft.has_affiliate_link
     assert result.draft.text.strip()
 
@@ -433,7 +445,7 @@ def test_falls_back_when_every_product_is_excluded(config, tmp_path):
     # リンクを許可している唯一のスロット（2026-09-03 以降は noon だけ）
     result = pipeline.run("noon")
 
-    assert result.draft.post_type == "no_link"
+    assert result.draft.post_type == PRODUCT_FALLBACK
     assert result.check.passed
 
 
@@ -454,7 +466,7 @@ def test_falls_back_when_all_products_are_in_cooldown(config, tmp_path):
     pipeline.history._records = None
 
     result = pipeline.run("noon")
-    assert result.draft.post_type == "no_link"
+    assert result.draft.post_type == PRODUCT_FALLBACK
 
 
 # ======================================================================
@@ -607,7 +619,7 @@ def test_link_less_slot_does_not_consume_a_product(config, tmp_path):
 
     draft = pipeline.run("noon").draft
 
-    assert draft.post_type == "no_link"
+    assert draft.post_type == PRODUCT_FALLBACK
     assert draft.items == [], "リンクなしなのに商品を消費している"
     assert "円" not in draft.text, "リンクなしなのに商品情報が出ている"
 
@@ -627,39 +639,31 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
 # ======================================================================
 # つぶやき投稿
 # ======================================================================
-def test_the_rotation_favours_what_actually_gets_seen(config, tmp_path):
-    """**伸びている型に枠を寄せていること。**
+def test_the_rotation_is_long_form(config, tmp_path):
+    """**長文の連投を主役にしていること**（2026-11-04）。
 
-    2026-08-31（コスメ時代）は casual が表示中央値320でいちばん伸びていたので、
-    つぶやきを主役にしていた。**2026-10-28 の実測で逆転した。**
-
-      型            表示中央値（10/14以降）
-      question          182
-      no_link           165
-      thread_topic      119
-      casual             49   ← いちばん低いのに19枠を持っていた
-      product             3   （楽天リンク。10/16 に休止）
-      site_link           1
-
-    casual の13枠を insider（面接官席から見えること）に替えた。
-    casual を6枠残したのは、反応率では casual 17% が question 14% より
-    高かったため（生活の断片も要る）。
+    1日10本出していた3週間（180本）、枠ごとの表示中央値は2〜18で、
+    直近70本のうち42本が casual / question / insider の短文（本文の中央値17〜38字）だった。
+    本人の指示「短文・つぶやきばかりで収益化を狙えていない。有益な発信を長文で」で
+    1日3本の長文（guide / guide_site）に替えた。
     """
     pipeline = make_pipeline(config, tmp_path)
-    seen = [pipeline.resolve_post_type("morning") for _ in range(8)]
-    assert "insider" in seen, f"この口座にしか書けない型が出ていない: {seen}"
-    assert "thread_topic" in seen
-    assert "question" in seen
+    seen = [pipeline.resolve_post_type("latemorning") for _ in range(7)]
+    assert set(seen) == {"guide"}, seen
 
 
-def test_the_weakest_type_no_longer_holds_the_most_slots(config):
-    """表示がいちばん低い型が、いちばん枠を持っている状態に戻さない。"""
+def test_short_types_are_out_of_the_rotation(config):
+    """一行で終わる型を枠に戻さない。テンプレートは逃がし先として残してある。"""
     from collections import Counter
 
     share = Counter(t for types in config.rotation.values() for t in types)
-    assert share["casual"] < share["insider"], (
-        f"誰でも書ける雑談が、この口座にしか書けない型より多い: {dict(share)}")
-    assert share["casual"] < share["question"]
+    for short in ("casual", "question", "insider", "site_link", "no_link"):
+        assert share[short] == 0, f"短文の型 {short} が {share[short]} 枠ある: {dict(share)}"
+    # リンクなしの枠は全部長文（noon のリンク枠は商品の型が混ざる）
+    affiliate = {s.slot for s in config.schedule if s.allow_affiliate}
+    for slot, types in config.rotation.items():
+        if slot not in affiliate:
+            assert set(types) <= {"guide", "guide_site"}, f"{slot}: {types}"
 
 
 def test_low_performing_types_are_rare(config):
@@ -675,21 +679,16 @@ def test_low_performing_types_are_rare(config):
     初日のブーストを除いた80件で引き直すと、表示中央値は
     no_link 174 / question 168 / thread_topic 163 / casual 157 と横並びで、
     はっきり落ちているのは howto の 62 だけだった。
+
+    2026-11-04 に問いかけ（question）も枠から外したので、ここでは howto だけを見る。
     """
     from collections import Counter
 
     total = Counter()
     for options in config.rotation.values():
         total.update(options)
-    no_link_types = sum(total[t] for t in
-                        ("casual", "question", "thread_topic", "no_link", "howto"))
     assert total["howto"] == 0, (
         f"表示中央値62・反応ゼロの型を {total['howto']} 枠に入れている"
-    )
-    # 人が返信をくれた唯一の型。Threads は会話が続く投稿を高く評価するので、
-    # ここを痩せさせない。
-    assert total["question"] / no_link_types >= 0.20, (
-        f"問いかけが {total['question']}/{no_link_types} 枠しかない"
     )
 
 
@@ -883,7 +882,10 @@ def test_brand_murmur_falls_back_when_it_keeps_failing(config, tmp_path, cosme_m
     )
     pipeline.history._records = None
 
-    result = pipeline.run("evening")
+    # 2026-11-04 につぶやきの枠は無くなったので、型を指定して直接通す
+    result = pipeline._run_no_link(
+        pipeline.history.recent_texts(140), post_type="casual", slot="late"
+    )
     assert result.check.passed, "商品由来が弾かれた時点で枠ごと落ちている"
     assert result.draft.text.strip() != hint
 
@@ -917,13 +919,30 @@ def test_no_link_falls_back_to_another_type(config):
     """在庫が尽きた型は、別の型に逃がされること。"""
     from src.pipeline import Pipeline
 
-    order = Pipeline._no_link_fallbacks("thread_topic")
-    assert order[0] == "thread_topic", "まず本来の型を試すこと"
+    order = Pipeline._no_link_fallbacks("question")
+    assert order[0] == "question", "まず本来の型を試すこと"
     assert set(order) == {"casual", "no_link", "question", "essay", "thread_topic", "howto"}
     assert len(order) == len(set(order))
     # 反応ゼロだった型を逃がし先として増やさない
     assert order[-1] == "howto"
     assert order[1] == "casual", "在庫が最も厚い型に逃がすこと"
+
+
+@pytest.mark.parametrize("post_type", ["guide", "guide_site", "thread_topic", "practical"])
+def test_long_form_falls_back_to_long_form_first(post_type):
+    """**長文の型は、まず長文へ逃がす**（2026-11-04）。
+
+    在庫切れのたびに casual が出ると、短文をやめた意味が無くなる。
+    短文は長文の在庫を全部試したあとの最後の手段。
+    """
+    order = Pipeline._no_link_fallbacks(post_type)
+    assert order[0] == post_type
+    assert len(order) == len(set(order))
+    assert order.index("casual") > order.index("guide")
+    assert order.index("casual") > order.index("thread_topic")
+    assert order.index("casual") > order.index("practical")
+    assert "question" not in order
+    assert order[-1] == "howto"
 
 
 def test_exhausted_pool_never_loses_the_slot(config, tmp_path):

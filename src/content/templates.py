@@ -28,6 +28,7 @@ from .benefits import (
     tips_block,
 )
 from .voices import voice_sentence
+from .guides import GUIDES, SITE_GUIDES
 from .books import (
     BOOK_CTA_PARTS,
     BOOK_DISCLAIMERS,
@@ -1103,6 +1104,49 @@ def render_site_link(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_guide(ctx: RenderContext) -> Rendered:
+    """書ききる長文の連投（2026-11-04 追加）。
+
+    1日10本の短文（本文の中央値17〜38字）をやめて、1日3本の長文に寄せた。
+    中身は `guides.GUIDES` に置いた手書きの記事で、1本目で «何が分かるか» を言い切り、
+    2本目以降で順番に書ききる。リンクも #PR も付けない。
+
+    1本は500字まで。合計の上限は無い（checker は1本ずつ見る）。
+    """
+    r = Rendered(blocks=[])
+    guide = ctx.pick("guide", GUIDES, **ctx.flags())
+    r.part_ids["guide"] = guide.id
+    r.segments = list(guide.segments)
+    r.blocks = [Block(seg, 0) for seg in r.segments]
+    r.allowed_numbers |= set(F.extract_numbers(guide.text))
+    return r
+
+
+def render_guide_site(ctx: RenderContext) -> Rendered:
+    """年収の話を書ききって、最後の1本で年収相場チェッカーを紹介する（2026-11-04 追加）。
+
+    短い `site_link`（「目安が出るページ置いておく👇」＋URL）は表示の中央値が1で、
+    読まれる前に流されていた。読んで役に立つ記事の結論として置けば、押す理由がある。
+
+    ## 広告表示は «紹介が始まる1本» に置く
+
+    サイトには A8 の広告が載っているので、紹介する1本の最後の行に #PR を付ける。
+    それより前の本文はサイトに触れない（`guides.SITE_GUIDES` の決まり。テストが見張る）ので、
+    紹介が始まる投稿より前に広告は無い。checker の «商品の紹介が始まる投稿より後ろに
+    #PR を置かない» と同じ考え方で、楽天の連投（リンクは最後の1本）と同じ扱い。
+
+    `render_site_link` と同じく条件分岐にしない。サイトから広告を外すときはここも戻す。
+    """
+    r = Rendered(blocks=[])
+    guide = ctx.pick("guide_site", SITE_GUIDES, **ctx.flags())
+    r.part_ids["guide_site"] = guide.id
+    *body, invite = guide.segments
+    r.segments = [*body, f"{invite}\n{SITE_URL}\n\n{PR_TAG}"]
+    r.blocks = [Block(seg, 0) for seg in r.segments]
+    r.allowed_numbers |= set(F.extract_numbers(guide.text))
+    return r
+
+
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     topic = ctx.pick("topic", NO_LINK_TOPICS, **ctx.flags())
@@ -1166,6 +1210,9 @@ TEMPLATES: tuple[Template, ...] = (
     Template("howto", render_howto, ("howto",), item_count=0, requires_affiliate=False),
     Template("essay", render_essay, ("essay",), item_count=0, requires_affiliate=False),
     Template("site_link", render_site_link, ("site_link",), item_count=0,
+             requires_affiliate=False),
+    Template("guide", render_guide, ("guide",), item_count=0, requires_affiliate=False),
+    Template("guide_site", render_guide_site, ("guide_site",), item_count=0,
              requires_affiliate=False),
 )
 

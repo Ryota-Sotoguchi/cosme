@@ -132,8 +132,9 @@ def test_both_pools_are_deep_enough_for_two_weeks():
     for types in config["rotation"].values():
         for t in types:
             share[t] = share.get(t, 0) + 1
-    assert len(INSIDER_NOTES) > share["insider"] * 2, "insider の在庫が2週間ぶんに足りない"
-    assert len(PRACTICAL_NOTES) > share["practical"] * 2, "practical の在庫が2週間ぶんに足りない"
+    # 2026-11-04 にどちらもローテーションから外した（長文の在庫切れの逃がし先としては使う）。
+    assert len(INSIDER_NOTES) > share.get("insider", 0) * 2, "insider の在庫が2週間ぶんに足りない"
+    assert len(PRACTICAL_NOTES) > share.get("practical", 0) * 2, "practical の在庫が2週間ぶんに足りない"
 
 
 @pytest.mark.parametrize("post_type", ["insider", "practical"])

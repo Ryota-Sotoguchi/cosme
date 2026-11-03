@@ -101,6 +101,7 @@ class ComplianceChecker:
         self.own_site_needs_pr: bool = bool(compliance.get("own_site_needs_pr", True))
         self.max_urls: int = int(compliance.get("max_urls", 1))
         self.max_length = max_length
+        self.max_thread_posts: int = int(compliance.get("max_thread_posts", 8))
         self.max_similarity: float = float(dedup.get("max_similarity", 0.72))
 
     # ------------------------------------------------------------------
@@ -116,7 +117,7 @@ class ComplianceChecker:
         text = draft.text
 
         violations += self._check_expressions(text, draft)
-        violations += self._check_length(text)
+        violations += self._check_length(text, draft.segments)
         violations += self._check_urls(text, draft)
         violations += self._check_pr_marker(text, draft)
         violations += self._check_data_integrity(text, draft)
@@ -145,14 +146,26 @@ class ComplianceChecker:
             for rule in R.scan(text, has_link=has_link)
         ]
 
-    def _check_length(self, text: str) -> list[Violation]:
+    def _check_length(self, text: str, segments: Sequence[str]) -> list[Violation]:
+        """**上限は1本ずつ見る。** Threads の500字は投稿1本あたりの上限。
+
+        2026-11-04 まで連投を連結した全文で見ていたので、連投にしても
+        合計500字を超える長文は出せなかった（長文の型 guide で発覚）。
+        本数は max_thread_posts で別に抑える（自己返信も1投稿として数えられる）。
+        """
         if not text.strip():
             return [Violation("format", "本文が空です")]
-        if len(text) > self.max_length:
-            return [
-                Violation("format", f"文字数超過: {len(text)} > {self.max_length}")
-            ]
-        return []
+        segments = list(segments) or [text]
+        violations = [
+            Violation("format", f"{index + 1}本目の文字数超過: {len(segment)} > {self.max_length}")
+            for index, segment in enumerate(segments)
+            if len(segment) > self.max_length
+        ]
+        if len(segments) > self.max_thread_posts:
+            violations.append(
+                Violation("format", f"連投が長すぎます: {len(segments)}本 > {self.max_thread_posts}本")
+            )
+        return violations
 
     def _check_urls(self, text: str, draft: Draft) -> list[Violation]:
         # 本文中のURLと、リンクカードとして添付するURLの両方を検証する。

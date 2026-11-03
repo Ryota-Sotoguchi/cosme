@@ -48,8 +48,14 @@ def test_unknown_cron_raises_config_error(config):
         config.slot_for_cron("59 23 * * *")
 
 
-def test_ten_posts_per_day(config):
-    assert len(config.schedule) == 10
+def test_three_posts_per_day(config):
+    """**1日3本**（2026-11-04 に 10 → 3）。
+
+    10本出していた3週間は、枠ごとの表示中央値が2〜18で、中身は本文17〜38字の短文だった。
+    本人の指示「短文・高頻度だと適当すぎる」で、本数を絞って長文の連投にした。
+    戻すなら、長文の在庫（guides.py）と similarity_window も一緒に見ること。
+    """
+    assert len(config.schedule) == 3
 
 
 def test_most_slots_are_link_free(config):
@@ -60,7 +66,7 @@ def test_most_slots_are_link_free(config):
     ランプアップの上限に届くまで広告が増えてしまう。
     """
     link_free = [s for s in config.schedule if not s.allow_affiliate]
-    assert len(link_free) >= 5, "リンクなしの枠が少なすぎる"
+    assert len(link_free) >= 2, "リンクなしの枠が少なすぎる"
     assert len(link_free) > len(config.schedule) / 2, "広告枠のほうが多い"
 
 

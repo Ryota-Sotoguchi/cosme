@@ -362,7 +362,11 @@ shop_cooldown_days = 3
 # 実際に7日あけて同じつぶやきが再登場した（14日通しで9件）。
 # 10本/日 × 14日 = 140。2週間は同じ文を出さない。
 # test_similarity_window_covers_two_weeks が枠数との対応を見張る。
-similarity_window = 140
+#
+# 2026-11-04: 1日3本にしたので 3本/日 × 14日 = 42。
+# 140 のままだと射程が46日に伸び、長文（guide 32本を1日2本前後）が
+# 3週間足らずで尽きて、残りの日は短文へ逃げることになる。
+similarity_window = 42
 # 類似度がこれを超えたら不合格（0.0-1.0）
 max_similarity = 0.72
 # 同一テンプレートの連続使用禁止回数
@@ -407,22 +411,16 @@ template_cooldown = 4
 # **捨てる率をゼロにするより、深夜に出さない方を採った。**
 max_drift_minutes = 480
 
-[[schedule]]
-slot = "morning"
-# 実際に出るのは 09:00 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "05:30"
-cron_utc = "30 20 * * *"
-post_type = "rotation"
-allow_affiliate = false
-
-[[schedule]]
-slot = "midmorning"
-# 実際に出るのは 10:00 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "06:30"
-cron_utc = "30 21 * * *"
-post_type = "rotation"
-allow_affiliate = false
-
+# 2026-11-04: **1日10本 → 3本にした**（本人の指示「短文・高頻度だと適当すぎる」）。
+# 10本出していた直近3週間（180本）は、枠ごとの表示中央値が 2〜18 しかなかった
+# （いちばん高い late で 71.5）。数を出しても届いておらず、中身はほとんどが
+# 本文17〜38字の短文だった。残したのは次の3枠で、中身は長文の連投（guide）にした。
+#
+#   latemorning … 11:10 ごろ着地。昼休み前に読める
+#   noon        … 15:20 ごろ着地。楽天のリンク枠（2026-10-28 の本人の判断）なので残す
+#   late        … 23:10 ごろ着地。10本のうち表示中央値がいちばん高かった枠
+#
+# 発火時刻は変えていない（遅れの実測で合わせた時刻のまま）。
 [[schedule]]
 slot = "latemorning"
 # 実際に出るのは 11:10 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
@@ -462,58 +460,6 @@ post_type = "rotation"
 # **#PR の付く投稿が1〜15表示しか出ない状況は変わっていない。**
 # 成果が出るかはそれ次第なので、2週間たったら表示とクリックで測り直すこと。
 allow_affiliate = true
-
-# 12:15 から 18:00 まで5時間45分空いていたので、その間を埋める。
-# どちらもリンクなし。露出を増やすのが目的で、広告を増やすのが目的ではない。
-[[schedule]]
-slot = "afternoon"
-# 実際に出るのは 17:15 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "11:00"
-cron_utc = "0 2 * * *"
-post_type = "rotation"
-allow_affiliate = false
-
-[[schedule]]
-slot = "predinner"
-# 実際に出るのは 18:50 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "12:00"
-cron_utc = "0 3 * * *"
-post_type = "rotation"
-allow_affiliate = false
-
-[[schedule]]
-slot = "evening"
-# 実際に出るのは 19:50 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "13:00"
-cron_utc = "0 4 * * *"
-post_type = "rotation"
-allow_affiliate = false
-
-[[schedule]]
-slot = "earlynight"
-# 実際に出るのは 21:00 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "14:00"
-cron_utc = "0 5 * * *"
-post_type = "rotation"
-allow_affiliate = false
-
-# 2026-09-03: リンク投稿を1日1本（noon）に絞った。
-#
-# 楽天アフィリエイトのレポートは **日次のクリック数しか出せず**、
-# 投稿単位に割り当てられない。1日にリンク投稿が1本しか無ければ、
-# その日のクリック数がそのままその投稿のクリック数になる。
-# 追加のインフラも費用もなしに、投稿単位の CTR と EPC が測れる。
-#
-# 15日で総クリックが5件しか無い状態なので、露出を1本削る損より
-# 「どの形式がクリックを取れるか分かる」利益のほうが大きい。
-# [experiment] の A/B が終わったら戻してよい。
-[[schedule]]
-slot = "night"
-# 実際に出るのは 22:00 ごろ（GitHub Actions の遅れぶん。2026-10-13 に実測し直した）
-time_jst = "15:00"
-cron_utc = "0 6 * * *"
-post_type = "rotation"
-allow_affiliate = false
 
 [[schedule]]
 slot = "late"
@@ -598,110 +544,48 @@ allow_affiliate = false
 # 2026-09-07: essay（リンクなしで書ききる型）を4枠に入れた。
 # 上限500字に対して実測は中央値60字。1日10枠のうち9枠がリンクなしなので、
 # 書ききる型をリンク投稿にしか入れないと、9割の投稿に効かない。
-morning = [
-    "insider",
-    "practical",
-    "thread_topic",
-    "casual",
-    "thread_topic",
-    "question",
-    "insider",
-]
-midmorning = [
-    "question",
-    "insider",
-    "no_link",
-    "practical",
-    "thread_topic",
-    "thread_topic",
-    "question",
-]
+# 2026-11-04: **短文の型をローテーションから外し、長文の連投（guide）を主役にした。**
+# 本人の指示「短文・つぶやきばかりで収益化を狙えていない。有益な発信を長文で」。
+# 外した型（casual / question / insider / practical / no_link / thread_topic / site_link）の
+# テンプレートは残してある。thread_topic と practical は長文の在庫切れの逃がし先として使う。
+#
+#   guide       … 書ききる長文（guides.GUIDES 32本）。リンクも #PR も無い
+#   guide_site  … 年収の話を書ききり、最後の1本で年収相場チェッカーを紹介する
+#                 （guides.SITE_GUIDES 10本）。site_link の代わりの収益導線
+#
+# 週あたり: guide 15 / guide_site 3 / 楽天 3（noon）。広告の付く投稿は21本中6本。
+# guide は32本を1日2本前後なので、類似度の窓（2週間）の外で一巡する。
 latemorning = [
-    "insider",
-    "thread_topic",
-    "practical",
-    "casual",
-    "thread_topic",
-    "question",
-    "insider",
+    "guide",
+    "guide",
+    "guide",
+    "guide",
+    "guide",
+    "guide",
+    "guide",
 ]
-afternoon = [
-    "practical",
-    "insider",
-    "site_link",
-    "thread_topic",
-    "question",
-    "no_link",
-    "thread_topic",
-]
-predinner = [
-    "insider",
-    "question",
-    "no_link",
-    "thread_topic",
-    "thread_topic",
-    "practical",
-    "casual",
-]
-evening = [
-    "thread_topic",
-    "insider",
-    "question",
-    "casual",
-    "no_link",
-    "practical",
-    "insider",
-]
-earlynight = [
-    "insider",
-    "question",
-    "thread_topic",
-    "site_link",
-    "practical",
-    "casual",
-    "no_link",
-]
-# noon だけがリンク枠。単品と3件まとめを混ぜる。
-# longform は「書ききる型」。上限500字に対して実測は中央値60字・最大214字で、
-# 半分も使っていなかった。選ぶ観点・3件の数値・並べたときの位置づけまで
-# 入れて、読み手が選べるところまで持っていく。
-# 2026-09-14: リンク投稿を止めたので、リンクなしの型に差し替えた（7要素のまま）。
-# 楽天の商品投稿（product / longform / price_band / postage_free / comparison）は休止。
-# 2026-09-28: 本のリンク投稿を再開したので商品の型に戻した。
-# price_band と postage_free は入れない（本は定価で、楽天ブックスは送料無料。
-# どちらも切り口にならない）。longform は3冊、comparison は2冊を並べる型。
-# 2026-10-16: 楽天の本のリンク投稿を外し、反応の良い型と site_link に入れ替えた。
-# 型ごとの実測（9/29以降の表示中央値）: comparison 137 / thread_topic 112 /
-# question 109 / no_link 92 / casual 82 / longform 20 / product 6。
-# product と longform は本のリンク投稿そのものなので、ここから外す。
-# site_link を1つ入れて、収益の導線（自サイト → A8）をこの枠にも置く。
+# noon だけがリンク枠。2026-10-28 に本人の判断で楽天のリンク投稿を再開した（3枠）。
+# 2026-11-04: 商品の型は、商品を1件だけ置く短い product をやめて、
+# 選ぶ観点と並べたときの位置づけまで書ける comparison / longform にした。
+# 残りの4枠は長文。商品を作れなかった日は guide に逃がす（pipeline.PRODUCT_FALLBACK）。
 noon = [
-    "product",
-    "question",
-    "site_link",
-    "comparison",
-    "insider",
-    "product",
     "longform",
+    "guide",
+    "comparison",
+    "guide",
+    "longform",
+    "guide",
+    "guide",
 ]
-# night / late は 2026-09-03 にリンク許可を外したので、リンクなしの型で回す。
-night = [
-    "question",
-    "thread_topic",
-    "insider",
-    "question",
-    "thread_topic",
-    "casual",
-    "question",
-]
+# guide_site は続けて2日置かない（並べると «毎晩広告» に見える）。週3回。
 late = [
-    "no_link",
-    "insider",
-    "question",
-    "thread_topic",
-    "site_link",
-    "question",
-    "thread_topic",
+    "guide_site",
+    "guide",
+    "guide",
+    "guide_site",
+    "guide",
+    "guide_site",
+    "guide",
 ]
 
 # ------------------------------------------------------------
@@ -717,7 +601,10 @@ enabled = true
 #
 # 通常投稿の枠を増やしたので 7 → 10 → 12 に上げた。**上限自体は外さない。**
 # ここが無いと、手動実行が積み上がったときに同じ事故が起きる。
-max_posts_per_day = 12
+#
+# 2026-11-04: 1日3本にしたので 12 → 5。手動の確認ぶんに2本だけ余裕を残す。
+# 長文は連投なので、API 上は1記事で5〜6投稿になる（公式の上限は250投稿/24時間）。
+max_posts_per_day = 5
 # 運用開始からの日数 -> その日に許可するアフィリエイトリンク投稿の最大本数
 # キーは「この日数まで」
 stages = [

@@ -2,16 +2,12 @@ name: post
 
 # 日本はサマータイムが無く UTC+9 固定なので、cron は UTC で書いている。
 # timezone フィールドに依存せず、意味が一意に決まる方を選んだ。
-#   07:30 JST = 22:30 UTC (前日)  … morning     リンクなし
-#   09:30 JST = 00:30 UTC         … midmorning  リンクなし
-#   11:00 JST = 02:00 UTC         … latemorning リンクなし
-#   12:15 JST = 03:15 UTC         … noon        商品紹介 #PR  ← 唯一のリンク枠
-#   14:30 JST = 05:30 UTC         … afternoon   リンクなし
-#   16:30 JST = 07:30 UTC         … predinner   リンクなし
-#   18:00 JST = 09:00 UTC         … evening     リンクなし
-#   19:00 JST = 10:00 UTC         … earlynight  リンクなし
-#   20:30 JST = 11:30 UTC         … night       リンクなし
-#   22:30 JST = 13:30 UTC         … late        リンクなし
+#   08:00 JST = 23:00 UTC (前日)  … latemorning 長文（11:10 ごろ着地）
+#   09:30 JST = 00:30 UTC         … noon        長文／商品紹介 #PR  ← 唯一のリンク枠
+#   16:00 JST = 07:00 UTC         … late        長文（23:10 ごろ着地）
+#
+# 2026-11-04: 1日10本 → 3本にした。短文をやめて長文の連投（guide）にしたため。
+# 残した3枠の発火時刻は変えていない。
 #
 # 2026-09-03: リンクを許可するのは noon の1枠だけにした。
 # 楽天アフィリエイトのレポートは日次のクリック数しか出せず、投稿単位に
@@ -35,15 +31,8 @@ on:
     # 元は 07:30〜22:30 JST に発火していたが、実際に出ていたのは 09:26〜02:14 JST で、
     # 深夜2時台に1本落ちていた（表示中央値0〜74）。
     # config.toml の [[schedule]] と**両方**直すこと（test_schedule.py が突き合わせる）。
-    - cron: '30 20 * * *'   # 05:30 JST 発火 → 09:00 ごろ
-    - cron: '30 21 * * *'   # 06:30 JST 発火 → 10:00 ごろ
     - cron: '0 23 * * *'    # 08:00 JST 発火 → 11:10 ごろ
     - cron: '30 0 * * *'    # 09:30 JST 発火 → 15:20 ごろ
-    - cron: '0 2 * * *'     # 11:00 JST 発火 → 17:15 ごろ
-    - cron: '0 3 * * *'     # 12:00 JST 発火 → 18:50 ごろ
-    - cron: '0 4 * * *'     # 13:00 JST 発火 → 19:50 ごろ
-    - cron: '0 5 * * *'     # 14:00 JST 発火 → 21:00 ごろ
-    - cron: '0 6 * * *'     # 15:00 JST 発火 → 22:00 ごろ
     - cron: '0 7 * * *'     # 16:00 JST 発火 → 23:10 ごろ
   workflow_dispatch:
     inputs:
@@ -51,9 +40,8 @@ on:
         description: '投稿スロット'
         required: true
         type: choice
-        options: [morning, midmorning, latemorning, noon, afternoon,
-                  predinner, evening, earlynight, night, late]
-        default: morning
+        options: [latemorning, noon, late]
+        default: latemorning
       dry_run:
         description: 'DRY_RUN（Threadsへは投稿しない）'
         required: true
