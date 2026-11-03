@@ -445,7 +445,8 @@
       "pn_kenpo",
       "pn_dc",
       "pn_taishokukin",
-      "pn_nenpou"
+      "pn_nenpou",
+      "pn_shiyou"
     ],
     "question": [
       "q_deciding",
@@ -1026,7 +1027,7 @@
   "rotation_cursor": {
     "afternoon": 3,
     "autoreply_shape": 3,
-    "earlynight": 4,
+    "earlynight": 5,
     "evening": 2,
     "late": 6,
     "latemorning": 1,
@@ -1038,7 +1039,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "practical",
     "casual",
     "topic_thread",
     "topic_thread",
@@ -1057,7 +1057,8 @@
     "band_focus",
     "site_link",
     "question",
-    "insider"
+    "insider",
+    "practical"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
