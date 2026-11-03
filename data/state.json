@@ -30,7 +30,6 @@
       "conditional"
     ],
     "casual": [
-      "cm_cal_season",
       "cm_morning_rush",
       "cm_weekend",
       "cm_season_swap",
@@ -229,7 +228,8 @@
       "cm_mendan",
       "cm_fuyuu",
       "cm_nenshu_hanashi",
-      "cm_tedori"
+      "cm_tedori",
+      "cm_tensyoku_kangaeru"
     ],
     "casual_brand": [
       "brand",
@@ -822,10 +822,6 @@
       "nl_hikitomare"
     ],
     "topic_thread": [
-      "tt_nenshu_moru",
-      "tt_yametai_sankagetsu",
-      "tt_rireki_shashin",
-      "tt_yaritakunai",
       "tt_scout_mendan",
       "tt_nenshu_down",
       "tt_referral",
@@ -1021,7 +1017,11 @@
       "tt_yowami",
       "tt_bonus_taishoku",
       "tt_kanrishoku_kotowaru",
-      "tt_jiku_mittsu"
+      "tt_jiku_mittsu",
+      "tt_nenshu_moru",
+      "tt_yametai_sankagetsu",
+      "tt_warukuchi",
+      "tt_fukugyou_chikai"
     ]
   },
   "rotation_cursor": {
@@ -1033,13 +1033,12 @@
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
-    "night": 1,
+    "night": 2,
     "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "topic_thread",
     "topic_thread",
     "question",
@@ -1058,7 +1057,8 @@
     "site_link",
     "question",
     "insider",
-    "practical"
+    "practical",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
