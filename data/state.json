@@ -430,7 +430,8 @@
       "in_twice",
       "in_blank",
       "in_kirei",
-      "in_mytwo"
+      "in_mytwo",
+      "in_tegotae"
     ],
     "opening": [
       "op_curious",
@@ -1026,7 +1027,7 @@
     "afternoon": 3,
     "autoreply_shape": 3,
     "earlynight": 4,
-    "evening": 1,
+    "evening": 2,
     "late": 6,
     "latemorning": 1,
     "midmorning": 0,
@@ -1037,7 +1038,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "comparison",
     "practical",
     "casual",
     "topic_thread",
@@ -1056,7 +1056,8 @@
     "insider",
     "band_focus",
     "site_link",
-    "question"
+    "question",
+    "insider"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
