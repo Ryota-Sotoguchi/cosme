@@ -29,7 +29,6 @@
       "timing"
     ],
     "casual": [
-      "cm_package",
       "cm_cal_season",
       "cm_morning_rush",
       "cm_weekend",
@@ -228,7 +227,8 @@
       "cm_short_kyuuyo",
       "cm_mendan",
       "cm_fuyuu",
-      "cm_nenshu_hanashi"
+      "cm_nenshu_hanashi",
+      "cm_tedori"
     ],
     "casual_brand": [
       "brand",
@@ -444,10 +444,6 @@
       "pn_nenpou"
     ],
     "question": [
-      "q_refill",
-      "q_price_line",
-      "q_lip_or_eye",
-      "q_same_or_new",
       "q_shampoo_freq",
       "q_deciding",
       "q_package",
@@ -643,7 +639,11 @@
       "q_kaisha_kimete",
       "q_bonus",
       "q_tedori",
-      "q_kanrishoku"
+      "q_kanrishoku",
+      "q_skill",
+      "q_mikeiken",
+      "q_shikaku",
+      "q_first_salary"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1025,7 +1025,7 @@
     "evening": 1,
     "late": 6,
     "latemorning": 0,
-    "midmorning": 6,
+    "midmorning": 0,
     "morning": 3,
     "night": 1,
     "noon": 5,
@@ -1033,7 +1033,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "site_link",
     "insider",
     "topic_thread",
@@ -1052,6 +1051,7 @@
     "insider",
     "insider",
     "site_link",
+    "casual",
     "casual"
   ],
   "threads_token": {
