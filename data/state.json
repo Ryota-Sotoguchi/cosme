@@ -412,6 +412,9 @@
       "fi_spec",
       "fi_page"
     ],
+    "guide": [
+      "g_zaishoku"
+    ],
     "howto": [
       "hw_first_cosme",
       "hw_volume",
@@ -1030,7 +1033,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 0,
-    "latemorning": 1,
+    "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1039,7 +1042,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "topic_thread",
     "question",
     "question",
     "practical",
@@ -1058,7 +1060,8 @@
     "insider",
     "practical",
     "casual",
-    "casual"
+    "casual",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
