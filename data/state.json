@@ -413,7 +413,8 @@
       "fi_page"
     ],
     "guide": [
-      "g_zaishoku"
+      "g_zaishoku",
+      "g_agent"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1037,12 +1038,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 6,
+    "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "question",
     "practical",
     "casual",
@@ -1061,6 +1061,7 @@
     "practical",
     "casual",
     "casual",
+    "guide",
     "guide"
   ],
   "threads_token": {
