@@ -167,9 +167,10 @@ def test_the_site_link_post_passes_compliance(config, tmp_path):
 def test_no_other_post_type_ever_carries_a_url(tmp_path):
     """サイトが出るのは site_link 型だけ。ほかの投稿には一切出ない。"""
     builder = ContentBuilder(State(tmp_path / "state.json"), voices_path=tmp_path / "voices.json")
-    # guide_site も最後の1本で自サイトを置く型（2026-11-04）。検査は tests/test_guides.py
+    # guide_site / guide_a8 も最後の1本にURLを置く型（2026-11-04）。
+    # 検査は tests/test_guides.py と tests/test_direct_ads.py
     others = sorted({t.post_types[0] for t in TEMPLATES
-                     if t.item_count == 0 and t.id not in ("site_link", "guide_site")})
+                     if t.item_count == 0 and t.id not in ("site_link", "guide_site", "guide_a8")})
     start = date(2026, 9, 14)
     for day in range(7):
         today = start + timedelta(days=day)
@@ -185,8 +186,9 @@ def test_no_other_post_type_ever_carries_a_url(tmp_path):
 # ======================================================================
 # 4. 頻度 — 毎回は出さない
 # ======================================================================
-# 自サイトを置く型。2026-11-04 に短い site_link から長文の guide_site へ移した。
-SITE_TYPES = ("site_link", "guide_site")
+# 収益の導線を置く型。2026-11-04 に短い site_link から長文の guide_site へ移し、
+# 同じ日に A8 のリンクを直接置く guide_a8 の試験を足した（どちらも同じ記事の最後の1本）。
+SITE_TYPES = ("site_link", "guide_site", "guide_a8")
 
 
 def test_the_site_appears_about_three_times_a_week(config):
@@ -209,7 +211,7 @@ def test_no_slot_repeats_the_site_on_consecutive_days(config):
 def test_the_site_is_not_a_fallback_for_other_types():
     """在庫が尽きた型の逃がし先に自サイトの型を入れない。入れると頻度が読めなくなる。"""
     for post_type in ("casual", "question", "no_link", "thread_topic", "howto", "essay",
-                      "guide", "practical", "guide_site"):
+                      "guide", "practical", "guide_site", "guide_a8"):
         fallbacks = Pipeline._no_link_fallbacks(post_type)[1:]
         assert not set(fallbacks) & set(SITE_TYPES), f"{post_type}: {fallbacks}"
 

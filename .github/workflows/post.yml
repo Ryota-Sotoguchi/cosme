@@ -82,6 +82,8 @@ jobs:
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_APP_SECRET: ${{ secrets.THREADS_APP_SECRET }}
+          # 投稿に直接置く A8 のリンク（2026-11-04）。JSON。未設定なら自サイトの紹介に戻る
+          A8_LINKS: ${{ secrets.A8_LINKS }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
           # 手動実行がランプアップのリンク枠を食わないようにするための識別
           GITHUB_EVENT_NAME: ${{ github.event_name }}

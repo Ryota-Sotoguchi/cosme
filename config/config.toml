@@ -578,13 +578,20 @@ noon = [
     "guide",
 ]
 # guide_site は続けて2日置かない（並べると «毎晩広告» に見える）。週3回。
+#
+# 2026-11-04（2回目）: **A8 のリンクを投稿に直接置く試験**（本人の判断）。
+# 3回のうち2回を guide_a8 にした。記事は guide_site と同じで、最後の1本だけが
+# サイトではなく A8 のリンクになる。11/1〜4 の A8 は広告表示6・クリック2で、
+# サイト経由では人がほぼ届いていなかった。
+# Secrets の A8_LINKS が未設定のあいだは guide_a8 もサイトを紹介する（part_ids の a8 が none）。
+# 比べ方: A8 でリンクを Threads 用の媒体で発行してもらえば、サイトのバナーと別に集計できる。
 late = [
-    "guide_site",
+    "guide_a8",
     "guide",
     "guide",
     "guide_site",
     "guide",
-    "guide_site",
+    "guide_a8",
     "guide",
 ]
 
@@ -656,7 +663,9 @@ pr_marker = "#PR"
 pr_marker_position = "end"
 # 冒頭から（start）／末尾まで（end）この文字数以内に無ければ不合格
 pr_marker_max_offset = 20
-allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp", "business-3hy.pages.dev"]
+# px.a8.net は guide_a8（A8 のリンクを投稿に直接置く試験。2026-11-04）。
+# ホストが合っていても、通すのは Secrets の A8_LINKS と完全一致するURLだけ（content.direct_ads）
+allowed_url_hosts = ["hb.afl.rakuten.co.jp", "a.r10.to", "affiliate.rakuten.co.jp", "business-3hy.pages.dev", "px.a8.net"]
 # 自分のサイト「年収相場チェッカー」（2026-09-14 追加）。本文に置いてよいURL。**完全一致だけ**。
 # 厚労省の賃金構造基本統計調査を出典つきで使うツール。
 # 投稿型 site_link だけが載せる（ローテーションで週3回前後）。src/content/parts.py の SITE_URL と一致させる。

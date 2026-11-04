@@ -23,7 +23,10 @@ JST = timezone(timedelta(hours=9))
 # 投稿本文をそのまま保存すると、アフィリエイトIDを含むURLが public リポジトリの
 # git 履歴に残り続ける。投稿自体は公開されるので秘密ではないが、リポジトリへ複製する
 # 理由も無いので伏せる。商品の同定は affiliate_url_hash / item_url_hash が担う。
-AFFILIATE_URL_PATTERN = re.compile(r"https?://(?:hb\.afl\.rakuten\.co\.jp|a\.r10\.to)/\S+")
+# 2026-11-04: A8 のリンク（px.a8.net）を本文に直接置く型 guide_a8 を足したので、それも伏せる。
+AFFILIATE_URL_PATTERN = re.compile(
+    r"https?://(?:hb\.afl\.rakuten\.co\.jp|a\.r10\.to|px\.a8\.net)/\S+"
+)
 AFFILIATE_URL_PLACEHOLDER = "[affiliate-url]"
 
 

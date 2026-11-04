@@ -67,15 +67,19 @@ ROOT = Path(__file__).resolve().parent.parent
 #                           商品の選び方・検査・再生成の流れは変えていない
 #   .github/workflows/post.yml … **1日10本 → 3本にした（2026-11-04）。**同じ指示による。
 #                           残した3枠（latemorning / noon / late）の発火時刻は変えていない
+#   pipeline.py / post.yml / storage/history.py … **A8 のリンクを投稿に直接置く試験（2026-11-04）。**
+#                           本人の判断。ITEMS_NEEDED と長文の型に guide_a8 を1つずつ、
+#                           ワークフローに Secrets の A8_LINKS を1行、history の伏せ字に px.a8.net を足した。
+#                           **伏せる範囲を広げただけで、伏せる仕組みは変えていない**（public に URL を残さないため）
 # ======================================================================
 UNCHANGED_MECHANISM = {
-    "src/pipeline.py": "c1a2facc14e494e79d15a6f9f8e8e237d400d926",
+    "src/pipeline.py": "646d42e5ff2bbd78ca5eb5371ce7a2422c8fdee1",
     "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
     "src/threads/replies.py": "cadd15d13bdd76f167d7037dbc6ec09371348824",
     "src/threads/token.py": "80973d116b5aaaca06b2a3783b841add0a6cd65a",
-    "src/storage/history.py": "ec367dd090d26b0e2c6922a7ee9543a96661d9c1",
+    "src/storage/history.py": "540123f58dc588a576b6b14c361e53f8e50a2fec",
     "src/storage/state.py": "f3236916c3f92eaa1bfb2871bf2fcb77c7abc0f1",
     "src/storage/revenue.py": "d31c43d11822d4dbc8a9825ab8f07009d1167ed2",
     "src/engage/runner.py": "c8fb5d95696e44fbe19a8b2e8fc6466bb78dc723",
@@ -89,7 +93,7 @@ UNCHANGED_MECHANISM = {
     "src/engage/browser/session.py": "b44a56ad0dacc9d5faf1ec90805d74ebb5d0bebe",
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
-    ".github/workflows/post.yml": "49ce506fe259ff26da229c3918125a2095334e22",
+    ".github/workflows/post.yml": "87ca1b391e1a8d6e8253f79dfe9da81917625ccb",
     ".github/workflows/research.yml": "1e74e197272bdbf70e85c7f0a4d66b7330cb39b4",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
@@ -182,7 +186,7 @@ def test_the_money_path_is_still_in_the_rotation(config):
     最後の1本でサイトを紹介する型。短い site_link は表示の中央値が1だった。
     1日3本になったので «3枠以上» ではなく «週3回以上» で見る。
     """
-    money = ("site_link", "guide_site")
+    money = ("site_link", "guide_site", "guide_a8")
     per_week = sum(
         sum(types.count(t) for t in money) / len(types) * 7
         for types in config.rotation.values()

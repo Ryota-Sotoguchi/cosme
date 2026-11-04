@@ -43,7 +43,7 @@ from .logging_setup import setup_logging
 from .pipeline import Pipeline
 from .rakuten.client import RakutenClient
 from .storage import account as account_metrics
-from .storage.history import History, PostRecord
+from .storage.history import History, PostRecord, redact_affiliate_urls
 from .content.voices import load_voices
 from .storage.revenue import Revenue, RevenueDay
 from .storage.state import State
@@ -122,9 +122,12 @@ def _record(
 def _print_draft(draft, header: str = "生成された投稿") -> None:
     line = "─" * 58
     print(f"\n{line}\n{header}  [template={draft.template_id} / type={draft.post_type}]\n{line}")
-    print(draft.text)
+    # A8 のリンクは本文に入る（guide_a8）。public リポジトリの Actions ログに残さない
+    print(redact_affiliate_urls(draft.text))
+    a8 = draft.part_ids.get("a8")
     print(f"{line}\n{len(draft.text)} 文字 / アフィリエイトリンク: "
-          f"{'あり' if draft.has_affiliate_link else 'なし'}")
+          f"{'あり' if draft.has_affiliate_link else 'なし'}"
+          + (f" / A8: {a8 if a8 != 'none' else '未設定のため自サイト'}" if a8 else ""))
     if draft.items:
         print("参照した商品データ:")
         for item in draft.items:
@@ -1820,6 +1823,7 @@ def cmd_selftest(config: Config, args: argparse.Namespace) -> int:
         # 2026-11-04 から投稿の主役は長文の連投（1日3本のうち楽天以外の全部）
         ("guide", []),
         ("guide_site", []),
+        ("guide_a8", []),
     ):
         for _ in range(3):
             draft = builder.build(post_type, items)

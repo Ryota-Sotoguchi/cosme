@@ -28,6 +28,11 @@ class SecretMaskingFilter(logging.Filter):
         self._secrets = [
             v for name in _SECRET_ENV_NAMES if (v := os.environ.get(name)) and len(v) >= 8
         ]
+        # A8_LINKS は JSON なので、値そのものではなく中のURLを伏せる（2026-11-04）。
+        # Actions は Secrets の値をそのままの形でしか伏せないので、URL単体は漏れる。
+        from .content import direct_ads
+
+        self._secrets += sorted(direct_ads.urls())
 
     def filter(self, record: logging.LogRecord) -> bool:
         if self._secrets:

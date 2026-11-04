@@ -28,7 +28,8 @@ from .benefits import (
     tips_block,
 )
 from .voices import voice_sentence
-from .guides import GUIDES, SITE_GUIDES
+from . import direct_ads
+from .guides import A8_INVITES, GUIDES, SITE_GUIDES
 from .books import (
     BOOK_CTA_PARTS,
     BOOK_DISCLAIMERS,
@@ -1147,6 +1148,43 @@ def render_guide_site(ctx: RenderContext) -> Rendered:
     return r
 
 
+def render_guide_a8(ctx: RenderContext) -> Rendered:
+    """guide_site と同じ記事で、最後の1本に A8 のリンクを直接置く（2026-11-04 追加。試験）。
+
+    自サイトを経由すると段が1つ増える。11/1〜4 の A8 の実績は広告表示6・クリック2で、
+    サイトまで人が来ていなかった。本人の判断で «直接置いたらどうなるか» を測る。
+
+    * 記事は guide_site と **同じ選び方のグループ** で引く。分けると同じ記事が
+      2つの型で近い日に出て、類似度で弾かれる
+    * リンクは `direct_ads.load()`（Secrets の A8_LINKS）から読む。**未設定なら
+      自サイトの紹介に戻る**（part_ids の "a8" が "none" になるので、集計で見分けられる）
+    * 広告表示は guide_site と同じく、紹介する1本の最後の行
+    """
+    r = Rendered(blocks=[])
+    guide = ctx.pick("guide_site", SITE_GUIDES, **ctx.flags())
+    r.part_ids["guide_site"] = guide.id
+    *body, site_invite = guide.segments
+    r.allowed_numbers |= set(F.extract_numbers(guide.text))
+
+    ads = direct_ads.load()
+    if not ads:
+        r.part_ids["a8"] = "none"
+        last = f"{site_invite}\n{SITE_URL}\n\n{PR_TAG}"
+    else:
+        by_id = {ad.id: ad for ad in ads}
+        ad = by_id[ctx.pick("a8", tuple(Part(ad.id, ad.name) for ad in ads)).id]
+        invite = ctx.pick("a8_invite", A8_INVITES, **ctx.flags())
+        r.part_ids["a8"] = ad.id
+        r.part_ids["a8_invite"] = invite.id
+        text = invite.text.format(name=ad.name)
+        r.allowed_numbers |= set(F.extract_numbers(text))
+        last = f"{text}\n{ad.url}\n\n{PR_TAG}"
+
+    r.segments = [*body, last]
+    r.blocks = [Block(seg, 0) for seg in r.segments]
+    return r
+
+
 def render_topic(ctx: RenderContext) -> Rendered:
     r = Rendered(blocks=[])
     topic = ctx.pick("topic", NO_LINK_TOPICS, **ctx.flags())
@@ -1213,6 +1251,8 @@ TEMPLATES: tuple[Template, ...] = (
              requires_affiliate=False),
     Template("guide", render_guide, ("guide",), item_count=0, requires_affiliate=False),
     Template("guide_site", render_guide_site, ("guide_site",), item_count=0,
+             requires_affiliate=False),
+    Template("guide_a8", render_guide_a8, ("guide_a8",), item_count=0,
              requires_affiliate=False),
 )
 

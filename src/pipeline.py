@@ -51,10 +51,12 @@ ITEMS_NEEDED = {
     # 書ききる長文の連投（2026-11-04）。guide_site は最後の1本で自サイトを紹介する
     "guide": 0,
     "guide_site": 0,
+    # guide_site と同じ記事で、最後の1本に A8 のリンクを直接置く（2026-11-04 の試験）
+    "guide_a8": 0,
 }
 
 # 長文の型。在庫が尽きても短文（casual / question）へは最後まで逃がさない（2026-11-04）。
-LONG_FORM_TYPES = ("guide", "guide_site", "thread_topic", "practical")
+LONG_FORM_TYPES = ("guide", "guide_site", "guide_a8", "thread_topic", "practical")
 
 # 商品投稿を作れなかったとき（候補なし・リンク枠の上限）に代わりに出す型。
 # もとは no_link → casual の順に逃がしていたので、リンク枠が崩れると短文が出ていた。

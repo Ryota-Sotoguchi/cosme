@@ -7,7 +7,8 @@
   1. NG表現（薬機法/効果保証/架空体験/架空口コミ/誇張/禁止カテゴリー）
   2. PR表記（アフィリエイトリンクを含むなら、商品を紹介する投稿の最後の行に #PR。
      位置は [compliance] pr_marker_position で冒頭にも戻せる）
-  3. URL（allowlist のホストのみ・本数上限。本文のURLは商品のURLか、own_site_urls と完全一致）
+  3. URL（allowlist のホストのみ・本数上限。本文のURLは商品のURLか、own_site_urls か、
+     Secrets の A8_LINKS（content.direct_ads）と完全一致）
   4. データ整合性（本文の数値が商品データ由来か）
   5. 重複（itemCode / URLハッシュ / 再投稿クールダウン）
   6. 文章類似度（直近投稿との類似）
@@ -23,6 +24,7 @@ from dataclasses import dataclass, field
 from typing import Any, Iterable, Sequence
 from urllib.parse import urlparse
 
+from ..content import direct_ads
 from ..content.builder import Draft
 from ..content.facts import extract_numbers, normalize_number
 from ..rakuten.models import RakutenItem
@@ -100,6 +102,8 @@ class ComplianceChecker:
         # サイトに広告・アフィリエイトを載せたら true にする。#PR が要るようになる。
         self.own_site_needs_pr: bool = bool(compliance.get("own_site_needs_pr", True))
         self.max_urls: int = int(compliance.get("max_urls", 1))
+        # 投稿に直接置く A8 のリンク（2026-11-04）。Secrets から読むので config には無い
+        self.direct_ad_urls: set[str] = direct_ads.urls()
         self.max_length = max_length
         self.max_thread_posts: int = int(compliance.get("max_thread_posts", 8))
         self.max_similarity: float = float(dedup.get("max_similarity", 0.72))
@@ -140,7 +144,11 @@ class ComplianceChecker:
         # リンクが無い投稿には景表法系のルールをかけない。理由は rules.py。
         # 判定は「本文にURLがあるか」ではなく draft が商品を持つかで見る。
         # リンクカードとして添付する形でも、商品を伴えば広告だから。
-        has_link = bool(draft.has_affiliate_link)
+        # A8 のリンクを本文に直接置いた投稿も広告。商品を持たないので
+        # draft.has_affiliate_link では拾えない（2026-11-04）。
+        has_link = bool(draft.has_affiliate_link) or any(
+            url in self.direct_ad_urls for url in URL_PATTERN.findall(text)
+        )
         return [
             Violation(rule.category, f"NG表現に該当: {rule.label}")
             for rule in R.scan(text, has_link=has_link)
@@ -187,10 +195,11 @@ class ComplianceChecker:
         if urls:
             known = {item.affiliate_url for item in draft.items if item.affiliate_url}
             known |= self.own_site_urls
+            known |= self.direct_ad_urls
             for url in urls:
                 if url not in known:
                     violations.append(
-                        Violation("url", "本文のURLが商品データのaffiliate URLと一致しません")
+                        Violation("url", "本文のURLが商品・自サイト・A8_LINKS のどれとも一致しません")
                     )
         return violations
 

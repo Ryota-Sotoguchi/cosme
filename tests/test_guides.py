@@ -76,6 +76,10 @@ def test_the_pools_outlast_the_similarity_window(config):
             per_week[post_type] += options.count(post_type) / len(options) * 7
     assert len(GUIDES) >= 32
     assert len(GUIDES) > per_week["guide"] * 2, per_week
+    # guide_a8 は guide_site と同じ記事を同じ選び方のグループで引く（2026-11-04）
+    per_week["guide_site"] += sum(
+        options.count("guide_a8") / len(options) * 7 for options in config.rotation.values()
+    )
     assert len(SITE_GUIDES) > per_week["guide_site"] * 2, per_week
 
 

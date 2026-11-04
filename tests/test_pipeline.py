@@ -663,7 +663,7 @@ def test_short_types_are_out_of_the_rotation(config):
     affiliate = {s.slot for s in config.schedule if s.allow_affiliate}
     for slot, types in config.rotation.items():
         if slot not in affiliate:
-            assert set(types) <= {"guide", "guide_site"}, f"{slot}: {types}"
+            assert set(types) <= {"guide", "guide_site", "guide_a8"}, f"{slot}: {types}"
 
 
 def test_low_performing_types_are_rare(config):
@@ -928,7 +928,7 @@ def test_no_link_falls_back_to_another_type(config):
     assert order[1] == "casual", "在庫が最も厚い型に逃がすこと"
 
 
-@pytest.mark.parametrize("post_type", ["guide", "guide_site", "thread_topic", "practical"])
+@pytest.mark.parametrize("post_type", ["guide", "guide_site", "guide_a8", "thread_topic", "practical"])
 def test_long_form_falls_back_to_long_form_first(post_type):
     """**長文の型は、まず長文へ逃がす**（2026-11-04）。
 
