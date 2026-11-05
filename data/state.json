@@ -414,7 +414,8 @@
     ],
     "guide": [
       "g_zaishoku",
-      "g_agent"
+      "g_agent",
+      "g_keirekisho"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1034,7 +1035,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 0,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1043,7 +1044,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "question",
     "practical",
     "casual",
     "insider",
@@ -1061,6 +1061,7 @@
     "practical",
     "casual",
     "casual",
+    "guide",
     "guide",
     "guide"
   ],
