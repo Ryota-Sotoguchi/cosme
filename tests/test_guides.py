@@ -186,7 +186,8 @@ def test_the_guide_lands_on_what_to_do_next(part):
     doing = ("確認", "確かめ", "聞", "書", "メモ", "読", "見て", "開", "録音", "直す", "足す",
              "調べ", "入れておく", "入っておく", "作っておく", "やっておく", "一覧", "更新",
              "済ませ", "埋め", "並べ")
-    last = [line for line in part.segments[-1].split("\n") if line.strip()][-1]
+    # 最後の «段落» で見る。口調をくだけさせたので、最後の一行は照れやオチでもいい（2026-11-06）
+    last = [block for block in part.segments[-1].split("\n\n") if block.strip()][-1]
     assert any(w in last for w in doing) or "？" in last, f"{part.id}: 最後が行動で終わっていない → {last}"
 
 
@@ -202,9 +203,37 @@ def test_no_ng_expressions(pool, part):
 
 
 @pytest.mark.parametrize("pool,part", ALL, ids=IDS)
-def test_no_numbers(pool, part):
-    """数字は書かない。回数や順番は漢数字か ①② で書く（統計・金額・日数を混ぜないため）。"""
-    assert not re.search(r"[0-9０-９]", part.text), re.findall(r".{0,6}[0-9０-９].{0,6}", part.text)
+def test_no_statistics_or_deadlines(pool, part):
+    """**本人の数字は書く。統計の数字と手続きの期限は書かない**（2026-11-06）。
+
+    もとは «数字を一切書かない» にしていたが、それが文を無機質にしていた
+    （「〇〇万円」の伏せ字、年齢の無い失敗談）。人は «27歳のとき» «年収420万» と書く。
+    止めるのは、読んだ人が損をする向きに効く数字だけ。
+    """
+    text = part.text
+    for word in ("平均", "中央値", "調査によると", "統計では", "割の人", "%の人", "％の人"):
+        assert word not in text, f"{part.id}: 統計の言い方（{word}）"
+    deadline = re.search(r"[0-9０-９]+\s*(日|週間|か月|ヶ月|カ月)\s*(以内|前まで|までに)", text)
+    assert not deadline, f"{part.id}: 手続きの期限を書いている（{deadline.group()}）"
+
+
+@pytest.mark.parametrize("pool,part", ALL, ids=IDS)
+def test_the_ages_match_the_persona(pool, part):
+    """記事に出てくる年齢が、中の人の設定（persona.PERSONA_AGES）と食い違わないこと。"""
+    from src.content.persona import PERSONA_AGES
+
+    ages = {int(n) for n in re.findall(r"([0-9]{2})歳", part.text)}
+    assert ages <= PERSONA_AGES, f"{part.id}: 設定に無い年齢 {ages - PERSONA_AGES}"
+
+
+@pytest.mark.parametrize("pool,part", ALL, ids=IDS)
+def test_own_salary_matches_the_persona(pool, part):
+    """«わたしの年収» として出てくる数字は、設定の 380 / 420 / 520 万だけ。"""
+    from src.content.persona import PERSONA_SALARIES
+
+    own = re.findall(r"(?:今の年収は|今の年収が|わたしの|年収は)([0-9]{3})万", part.text)
+    for amount in own:
+        assert int(amount) in PERSONA_SALARIES.values(), f"{part.id}: 設定に無い自分の年収 {amount}万"
 
 
 @pytest.mark.parametrize("pool,part", ALL, ids=IDS)
