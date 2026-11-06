@@ -108,20 +108,86 @@ def test_it_is_actually_long(pool, part):
     assert len(part.text) >= 400, f"{part.id}: {len(part.text)}字"
 
 
+# ======================================================================
+# 形の種類（2026-11-06）
+#
+# 本人から「長文系が全く同じで THE・AI って感じ。指の絵文字も乱用」と言われた。
+# 当時は42本すべてが «1本目の最後に👇 → ①見出し → 本文» の同じ骨組みで、
+# «» が30か所あった。**形の種類が少ないこと** が問題だったので、種類の数を見張る。
+# ======================================================================
+# 記号で形が分かるものは、記号が本文にあることも確かめる（名前だけ付けて中身が同じ、を防ぐ）
+SHAPE_MARKS = {
+    "言い換え": ("×", "○"),
+    "チェックリスト": ("☐",),
+    "一問一答": ("Q.", "A."),
+    "時系列": ("【",),
+    "セリフ例": ("「",),
+    "自分への質問": ("？",),
+}
+# 全部の記事の決まり文句になっていた言い回し
+STOCK_PHRASES = ("👇", "👉", "«", "»", "置いておく")
+
+
+def test_every_article_has_a_shape():
+    from src.content.guides import SHAPE_OF
+
+    ids = {p.id for p in (*GUIDES, *SITE_GUIDES)}
+    assert set(SHAPE_OF) == ids, f"形の名前が無い記事: {ids - set(SHAPE_OF)} / 余分: {set(SHAPE_OF) - ids}"
+
+
+def test_the_shapes_are_mixed():
+    """**形は8種類以上。一つの形が全体の4分の1を超えないこと。**"""
+    from collections import Counter
+
+    from src.content.guides import SHAPE_OF
+
+    shapes = Counter(SHAPE_OF.values())
+    assert len(shapes) >= 8, dict(shapes)
+    total = sum(shapes.values())
+    for name, count in shapes.items():
+        assert count / total <= 0.25, f"{name} が {count}/{total} 本: {dict(shapes)}"
+
+
 @pytest.mark.parametrize("pool,part", ALL, ids=IDS)
-def test_the_first_post_points_to_the_rest(pool, part):
-    """タイムラインに出るのは1本目だけ。続きがあることを示して終える。"""
-    assert part.segments[0].rstrip().endswith("👇"), part.segments[0]
+def test_the_shape_is_real(pool, part):
+    from src.content.guides import SHAPE_OF
+
+    body = "\n".join(part.segments[1:])
+    for mark in SHAPE_MARKS.get(SHAPE_OF.get(part.id, ""), ()):
+        assert mark in body, f"{part.id} は {SHAPE_OF[part.id]} なのに {mark} が無い"
+
+
+def test_numbered_headings_are_the_exception():
+    """①見出しの骨組みは全記事で使っていた。使うのは一部だけにする。"""
+    numbered = [p.id for p in (*GUIDES, *SITE_GUIDES) if "①" in p.text]
+    assert len(numbered) <= len(GUIDES) // 5, numbered
+
+
+@pytest.mark.parametrize("pool,part", ALL, ids=IDS)
+def test_no_stock_phrases(pool, part):
+    """👇・«»・「置いておく」を使わない。どれも全記事の決まり文句だった。"""
+    hits = [w for w in STOCK_PHRASES if w in part.text]
+    assert not hits, f"{part.id}: {hits}"
+
+
+def test_the_openings_do_not_repeat():
+    """書き出しが似ないこと（最初の8字が重ならない・1本目の終わり方が偏らない）。"""
+    from collections import Counter
+
+    openings = [p.segments[0][:8] for p in (*GUIDES, *SITE_GUIDES)]
+    assert len(openings) == len(set(openings)), Counter(openings).most_common(3)
+    endings = Counter(p.segments[0].rstrip("。")[-3:] for p in (*GUIDES, *SITE_GUIDES))
+    assert endings.most_common(1)[0][1] <= 3, endings.most_common(3)
 
 
 @pytest.mark.parametrize("part", GUIDES, ids=[p.id for p in GUIDES])
 def test_the_guide_lands_on_what_to_do_next(part):
-    """**最後の一文は «次に何をするか»。** 説明で終わると、調べれば出てくる話になる。"""
+    """**最後の段落は «次に何をするか» か問いかけ。** 説明で終わると、調べれば出てくる話になる。"""
     doing = ("確認", "確かめ", "聞", "書", "メモ", "読", "見て", "開", "録音", "直す", "足す",
-             "調べ", "入れておく", "入っておく", "作っておく", "やっておく", "一覧", "更新")
+             "調べ", "入れておく", "入っておく", "作っておく", "やっておく", "一覧", "更新",
+             "済ませ", "埋め", "並べ")
     last = [line for line in part.segments[-1].split("\n") if line.strip()][-1]
-    tail = last.rstrip("。").split("。")[-1]
-    assert any(w in tail for w in doing), f"{part.id}: 最後が行動で終わっていない → {tail}"
+    assert any(w in last for w in doing) or "？" in last, f"{part.id}: 最後が行動で終わっていない → {last}"
 
 
 # ======================================================================

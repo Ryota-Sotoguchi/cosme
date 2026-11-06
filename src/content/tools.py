@@ -155,8 +155,9 @@ TOOL_GENERIC_TIPS: tuple[str, ...] = (
 from .parts import Part  # noqa: E402
 
 TOOL_RECOMMEND_OPENINGS: tuple[Part, ...] = (
-    Part("to_forwho", '{category}を探してる人へ。選ぶときの目安を置いておく📝'),
-    Part("to_nofail", '{category}で外したくない人向け👀'),
+    # 2026-11-06: 絵文字と «置いておく» を外した（本人から «指の絵文字の乱用・AIっぽい» と指摘）
+    Part("to_forwho", '{category}を探してる人へ。毎日使うものなので、選ぶ目安を先に決めておくと外さない'),
+    Part("to_nofail", '{category}で「思ってたのと違う」を避けたい人向け'),
     Part("to_first", 'はじめて{category}をちゃんと選ぶなら、見るのはこのへん'),
     Part("to_notmany", '{category}は、何個も試すより一つ決めて使い切るほうがいい。'),
     Part("to_nottrend", '{category}は、流行りかどうかより毎日持てるかで決めたほうがいい。'),
@@ -173,11 +174,12 @@ TOOL_RECOMMEND_CLOSINGS: tuple[Part, ...] = (
     Part("tc_check", '気になるところは、ページで確かめてみて'),
 )
 
+# 押す理由を一つ添える（2026-11-06）。«ここから» だけだと押す理由が無い。
 TOOL_CTA_PARTS: tuple[Part, ...] = (
-    Part("tcta_detail", 'サイズと重さは、ページで確かめてみて'),
-    Part("tcta_voice", '使った人が何を書いてるかは、ページで読める'),
-    Part("tcta_compare", '他のものと比べたい人はここから'),
-    Part("tcta_price", 'いまの値段はここから'),
+    Part("tcta_detail", '持ち歩くなら、サイズと重さだけはページの写真で先に見ておくと安心'),
+    Part("tcta_voice", '使った人の感想はページで読める。買う前に一度目を通すと外しにくい'),
+    Part("tcta_compare", 'ほかのものと見比べたい人は、ここから'),
+    Part("tcta_price", 'いまの値段と在庫は、ここで見られる'),
 )
 
 TOOL_DISCLAIMERS: tuple[Part, ...] = (
@@ -208,6 +210,6 @@ TOOL_ROUNDUP_OPENINGS: dict[str, tuple[Part, ...]] = {
 }
 
 TOOL_ROUNDUP_CLOSINGS: tuple[Part, ...] = (
-    Part("trc_one", 'どれか一つ決めて、しばらく使ってみるのがいちばん早い'),
+    Part("trc_one", 'どれも一長一短。決めたら、しばらく使い込んでみるのがいちばん早い'),
     Part("trc_scene", '自分が使う場面に近いものを選べば、だいたい合う'),
 )

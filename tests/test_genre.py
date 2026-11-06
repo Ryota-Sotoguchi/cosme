@@ -71,6 +71,8 @@ ROOT = Path(__file__).resolve().parent.parent
 #                           本人の判断。ITEMS_NEEDED と長文の型に guide_a8 を1つずつ、
 #                           ワークフローに Secrets の A8_LINKS を1行、history の伏せ字に px.a8.net を足した。
 #                           **伏せる範囲を広げただけで、伏せる仕組みは変えていない**（public に URL を残さないため）
+#   .github/workflows/post.yml … **late の発火を 16:00 → 14:00 にした（2026-11-06）。**遅れが 475〜595分に伸び、
+#                           2晩続けて見送られて年収の記事が1本も出ていなかった。本数・処理は変えていない
 # ======================================================================
 UNCHANGED_MECHANISM = {
     "src/pipeline.py": "646d42e5ff2bbd78ca5eb5371ce7a2422c8fdee1",
@@ -93,7 +95,7 @@ UNCHANGED_MECHANISM = {
     "src/engage/browser/session.py": "b44a56ad0dacc9d5faf1ec90805d74ebb5d0bebe",
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
-    ".github/workflows/post.yml": "87ca1b391e1a8d6e8253f79dfe9da81917625ccb",
+    ".github/workflows/post.yml": "384e0186e86d05561edb1391b8de9ff1afcf6311",
     ".github/workflows/research.yml": "1e74e197272bdbf70e85c7f0a4d66b7330cb39b4",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
@@ -135,10 +137,13 @@ def test_the_schedule_timing_is_unchanged(config):
 
     **2026-11-04 に1日3本にした**（短文をやめて長文の連投にした）。
     残した3枠の発火時刻は 10-13 のまま。
+
+    **2026-11-06 に late を 16:00 → 14:00 にした。** 遅れが 475〜595分に伸び、
+    2晩続けて見送られていた（年収の記事が1本も出ていなかった）。
     """
     expected = {
         "latemorning": ("08:00", "0 23 * * *"), "noon": ("09:30", "30 0 * * *"),
-        "late": ("16:00", "0 7 * * *"),
+        "late": ("14:00", "0 5 * * *"),
     }
     actual = {s.slot: (s.time_jst, s.cron_utc) for s in config.schedule}
     assert actual == expected

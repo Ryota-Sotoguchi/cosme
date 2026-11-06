@@ -126,3 +126,15 @@ def test_rotation_exists_for_every_rotation_slot(config):
     for slot in config.schedule:
         if slot.post_type == "rotation":
             assert config.rotation.get(slot.slot), f"{slot.slot} のローテーション設定がありません"
+
+
+def test_no_slot_can_land_after_midnight(config):
+    """**どの枠も、上限いっぱい遅れても 24:00 までに収まること。**
+
+    遅れの上限（max_drift_minutes）を上げるときは、いちばん遅い枠の発火を一緒に前倒しする。
+    2026-11-06 に late を 16:00 → 14:00、上限を 480 → 600 にした（14:00 + 600分 = 24:00）。
+    """
+    limit = int(config.schedule_settings.get("max_drift_minutes", 0))
+    for slot in config.schedule:
+        hour, minute = (int(x) for x in slot.time_jst.split(":"))
+        assert hour * 60 + minute + limit <= 24 * 60, f"{slot.slot} が深夜に落ちうる"

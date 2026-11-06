@@ -221,6 +221,7 @@ def test_the_invite_text(invite):
     assert not [w for w in (*AUTHOR_WORDS, *DISCOVERY_WORDS, *OVERCLAIM_WORDS) if w in text]
     assert not contradicts(text) and not _cosme_hits(text)
     assert "http" not in text and PR_TAG not in text
-    assert text.rstrip().endswith("👇")
+    # 2026-11-06: 👇 は使わない（本人から «指の絵文字の乱用» と指摘）。URL は次の行に来る
+    assert "👇" not in text and "«" not in text
     # URL と #PR を足しても1本に収まること（記事の中でいちばん長い本文と合わせても）
     assert len(f"{text}\n{A8_URL}\n\n{PR_TAG}") <= 500
