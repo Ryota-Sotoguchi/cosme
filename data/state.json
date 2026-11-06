@@ -417,7 +417,8 @@
     "guide": [
       "g_zaishoku",
       "g_agent",
-      "g_keirekisho"
+      "g_keirekisho",
+      "g_riyuu"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1039,7 +1040,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 0,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1048,7 +1049,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "insider",
     "insider",
     "insider",
@@ -1067,7 +1067,8 @@
     "guide",
     "guide",
     "guide",
-    "longform"
+    "longform",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
