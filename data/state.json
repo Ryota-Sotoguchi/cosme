@@ -358,7 +358,8 @@
       "tcta_detail",
       "tcta_voice",
       "tcta_compare",
-      "tcta_price"
+      "tcta_price",
+      "bcta_price"
     ],
     "disclaimer": [
       "dc_point",
@@ -380,7 +381,8 @@
       "bd_time",
       "bd_edition",
       "td_vary",
-      "td_stock"
+      "td_stock",
+      "bd_point"
     ],
     "essay": [
       "body_soap",
@@ -704,14 +706,16 @@
       "brc_note",
       "brc_one",
       "trc_scene",
-      "trc_one"
+      "trc_one",
+      "brc_which"
     ],
     "roundup_comparison": [
       "ru_cmp_1",
       "ru_cmp_3",
       "bru_cmp_3",
       "bru_cmp_2",
-      "tro_axis"
+      "tro_axis",
+      "bru_cmp_1"
     ],
     "roundup_postage_free": [
       "ru_pos_1",
@@ -1046,12 +1050,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 2,
+    "noon": 3,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "insider",
     "site_link",
     "casual",
@@ -1070,7 +1073,8 @@
     "longform",
     "guide",
     "guide",
-    "guide"
+    "guide",
+    "comparison"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
