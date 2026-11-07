@@ -7,6 +7,12 @@
   "autoreply_target_cursor": 4,
   "operation_started_on": "2026-08-20",
   "part_history": {
+    "a8": [
+      "uzuz"
+    ],
+    "a8_invite": [
+      "a8_souba"
+    ],
     "appeal": [
       "surprise",
       "self_relevant",
@@ -423,6 +429,9 @@
       "g_riyuu",
       "g_gyakushitsumon",
       "g_saishuu"
+    ],
+    "guide_site": [
+      "gs_koushou"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1045,7 +1054,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 2,
-    "late": 0,
+    "late": 1,
     "latemorning": 5,
     "midmorning": 0,
     "morning": 3,
@@ -1055,7 +1064,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "site_link",
     "casual",
     "casual",
@@ -1074,7 +1082,8 @@
     "guide",
     "guide",
     "guide",
-    "comparison"
+    "comparison",
+    "guide_a8"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
