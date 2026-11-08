@@ -429,7 +429,8 @@
       "g_riyuu",
       "g_gyakushitsumon",
       "g_saishuu",
-      "g_fusaiyou"
+      "g_fusaiyou",
+      "g_taishoku_tsutaekata"
     ],
     "guide_site": [
       "gs_koushou"
@@ -1060,12 +1061,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 3,
+    "noon": 4,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "insider",
     "band_focus",
@@ -1084,6 +1084,7 @@
     "guide",
     "comparison",
     "guide_a8",
+    "guide",
     "guide"
   ],
   "threads_token": {
