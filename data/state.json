@@ -428,7 +428,8 @@
       "g_keirekisho",
       "g_riyuu",
       "g_gyakushitsumon",
-      "g_saishuu"
+      "g_saishuu",
+      "g_fusaiyou"
     ],
     "guide_site": [
       "gs_koushou"
@@ -1055,7 +1056,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 1,
-    "latemorning": 5,
+    "latemorning": 6,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1064,7 +1065,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "site_link",
     "casual",
     "casual",
     "insider",
@@ -1083,7 +1083,8 @@
     "guide",
     "guide",
     "comparison",
-    "guide_a8"
+    "guide_a8",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2026-12-31T21:50:11.083221+00:00",
