@@ -101,7 +101,7 @@ UNCHANGED_MECHANISM = {
     "src/engage/browser/session.py": "b44a56ad0dacc9d5faf1ec90805d74ebb5d0bebe",
     "src/engage/browser/actions.py": "79e2e3f2cc2deb55a8c47a9bcf202cb43b9868fd",
     ".github/workflows/insights.yml": "afac8780162c20da0dfc7f57c7614d45ea6937e2",
-    ".github/workflows/post.yml": "384e0186e86d05561edb1391b8de9ff1afcf6311",
+    ".github/workflows/post.yml": "1e63ca77651e6e27ae1feb17ea54a680d8bdffb4",
     ".github/workflows/research.yml": "1e74e197272bdbf70e85c7f0a4d66b7330cb39b4",
     ".github/workflows/review.yml": "300160f40e3791e706ac6275294fa248f820aa5d",
     ".github/workflows/test.yml": "983ba9ef090f5f73db0197b60dae7625f080261e",
@@ -146,9 +146,14 @@ def test_the_schedule_timing_is_unchanged(config):
 
     **2026-11-06 に late を 16:00 → 14:00 にした。** 遅れが 475〜595分に伸び、
     2晩続けて見送られていた（年収の記事が1本も出ていなかった）。
+
+    **2026-11-09 に noon を 09:30 → 05:00 にした。** 着地が15:10で、1日のうち
+    いちばん読まれない時間に落ちていた。朝の通勤帯が空いていたのでそこへ回す。
+    20:00 UTC は遅れの小さい窓（実測190〜210分）なので、狙いは 08:15 ごろ。
+    着地は 08:15 / 11:08 / 22:15 になる。
     """
     expected = {
-        "latemorning": ("08:00", "0 23 * * *"), "noon": ("09:30", "30 0 * * *"),
+        "latemorning": ("08:00", "0 23 * * *"), "noon": ("05:00", "0 20 * * *"),
         "late": ("14:00", "0 5 * * *"),
     }
     actual = {s.slot: (s.time_jst, s.cron_utc) for s in config.schedule}
