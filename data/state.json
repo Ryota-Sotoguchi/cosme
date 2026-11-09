@@ -431,7 +431,8 @@
       "g_saishuu",
       "g_fusaiyou",
       "g_taishoku_tsutaekata",
-      "g_hikitsugi"
+      "g_hikitsugi",
+      "g_nyuusha"
     ],
     "guide_site": [
       "gs_koushou"
@@ -1058,7 +1059,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 2,
-    "latemorning": 6,
+    "latemorning": 0,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1067,7 +1068,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "insider",
     "band_focus",
     "site_link",
     "question",
@@ -1084,6 +1084,7 @@
     "guide",
     "comparison",
     "guide_a8",
+    "guide",
     "guide",
     "guide",
     "guide"
