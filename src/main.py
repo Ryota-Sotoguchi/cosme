@@ -1786,6 +1786,79 @@ def _autoreply_llm_check(config: Config) -> int:
     return EXIT_OK
 
 
+
+def cmd_follow(config: Config, args: argparse.Namespace) -> int:
+    """転職の話をしているアカウントをフォローする。
+
+    フォロワーが9人で、投稿が届く先がほぼ無い。フォローは、こちらから
+    相手の画面に一度だけ出る数少ない手段（自動返信と同じで、相手は人が見る）。
+
+    **自動フォローは «業者» の典型的な signal。** 数は出さない。
+    既定は Dry Run で、`--live` のときだけ実際に押す。
+    """
+    from .engage.follow import followed_today, run
+
+    section = config.raw.get("follow", {})
+    max_per_day = int(section.get("max_per_day", 8))
+    min_likes = int(section.get("min_likes", 0))
+
+    if args.live:
+        if os.environ.get("AUTOREPLY_OFF", "").strip().lower() in {"1", "true", "yes", "on"}:
+            print("\n  AUTOREPLY_OFF が設定されているのでフォローしません\n")
+            return EXIT_OK
+        if config.autoreply_stop_path.exists():
+            print(f"\n  停止ファイルがあります: {config.autoreply_stop_path}\n")
+            return EXIT_OK
+
+    state = State(config.state_path)
+    # **絞られている最中は動かない。** 経路は違ってもアカウントは同じ
+    until = state.get("autoreply_throttled_until")
+    if args.live and until:
+        try:
+            when = datetime.fromisoformat(str(until))
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=JST)
+            if datetime.now(JST) < when:
+                print(f"\n  絞られているのでフォローしません（{until} まで）\n")
+                return EXIT_OK
+        except ValueError:
+            pass
+
+    done_today = followed_today(config.data_dir)
+    remaining = max(max_per_day - done_today, 0)
+    limit = min(args.limit if args.limit else remaining, remaining) if args.live else (args.limit or 10)
+    if args.live and limit <= 0:
+        print(f"\n  本日の上限に達しています（{max_per_day}件）\n")
+        return EXIT_OK
+
+    db_path = config.data_dir / "engage" / "engage.sqlite3"
+    session = None
+    try:
+        if args.live:
+            from .engage.browser.session import ThreadsSession
+
+            session = ThreadsSession(config, headless=not args.headed)
+            session.start()
+            session.require_login()
+        planned = run(session, db_path=db_path, data_dir=config.data_dir,
+                      limit=limit, dry_run=not args.live, min_likes=min_likes)
+    finally:
+        if session is not None:
+            session.close()
+
+    if not planned:
+        print("\n  フォローする相手がいません（すべて対応済みか、候補が空）\n")
+        return EXIT_OK
+
+    print(f"\n=== フォロー {len(planned)}件 ===")
+    for entry in planned:
+        print(f"  @{entry['username']:<24} 最大いいね{entry['best_likes']:>5}  {entry['outcome']}")
+    if not args.live:
+        print(f"\n  実際にフォローするには --live を付けてください")
+        print(f"  本日の残り: {remaining}/{max_per_day}件\n")
+    return EXIT_OK
+
+
 def cmd_selftest(config: Config, args: argparse.Namespace) -> int:
     """認証情報なしで、生成〜コンプライアンスまでの経路を検証する。
 
@@ -1896,6 +1969,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_replies = sub.add_parser("replies", help="自分の投稿へのコメントに返信する")
     p_replies.add_argument("--live", action="store_true", help="実際に返信する（既定は下書き表示のみ）")
+    p_follow = sub.add_parser(
+        "follow", help="転職の話をしているアカウントをフォローする")
+    p_follow.add_argument("--live", action="store_true",
+                          help="実際にフォローする（既定は下書き表示のみ）")
+    p_follow.add_argument("--limit", type=int, default=0, help="今回の件数（既定は残り全部）")
+    p_follow.add_argument("--headed", action="store_true", help="ブラウザを表示する")
     p_engage = sub.add_parser(
         "engage", help="他人の投稿への返信を支援する（投稿はしない）")
     p_engage.add_argument("--check", metavar="TEXT",
@@ -1996,6 +2075,7 @@ def main(argv: list[str] | None = None) -> int:
         "report": cmd_report,
         "revenue": cmd_revenue,
         "replies": cmd_replies,
+        "follow": cmd_follow,
         "engage": cmd_engage,
         "autoreply": cmd_autoreply,
         "selftest": cmd_selftest,

@@ -51,6 +51,10 @@ WHERE_RARE = "rare"    # 該当する投稿にだけ現れる。**無いのが�
 # **点検（--selfcheck）では探さない。** 点検のためにメニューを開きたくない
 WHERE_OWN_POST = "own_post"
 
+# 他人のプロフィールを開くと現れる。フォロー（src/engage/follow.py）だけが使う。
+# **点検（--selfcheck）では探さない。** 点検のために他人のプロフィールを開きたくない
+WHERE_PROFILE = "profile"
+
 
 @dataclass(frozen=True)
 class Selector:
@@ -331,8 +335,43 @@ _DELETE = (
 )
 
 
+
+# ======================================================================
+# 他人のプロフィールのフォローボタン（2026-11-09 追加。src/engage/follow.py だけが使う）
+#
+# **サイドバーの «おすすめのアカウント» にも同じ文言のボタンが並ぶ。**
+# 2026-11-09 の実測では、1つのプロフィールに「フォローする」が11個あり、
+# そのうち10個はサイドバーだった。文言だけで引くと、見てもいない人を
+# 勝手にフォローする。
+#
+# 見分け方（実測）:
+#
+#   本体  [239, 400, 290, 34]  「フォローする」  同じ高さに「メッセージ」が並ぶ
+#   脇    [1146, 124, 102, 30] 「フォローする」  幅が狭く、右端に縦に並ぶ
+#
+# class は難読化されていて使えず、aria-label も付いていない。
+# **«メッセージ» と横並びであること**を手がかりにするのがいちばん確か
+# （follow.py の FIND_FOLLOW_JS）。ここに置くのは文言の記録と、
+# 状態（フォロー済みか）の判定に使う語。
+# ======================================================================
+_FOLLOW = (
+    _s("profile_follow_button", css='[role="button"]:has-text("フォローする")',
+       role=("button", "フォローする"), exact=True,
+       note="2026-11-09 実測: プロフィール本体のボタンは幅290で、同じ高さに"
+            "「メッセージ」（幅290）が並ぶ。サイドバーの «おすすめ» は幅102。"
+            "**文言だけで引くと脇のボタンを押してしまう**ので、"
+            "follow.py は «メッセージと横並び» で絞ってから押す。",
+       measured=True, where=WHERE_PROFILE),
+    _s("profile_message_button", css='[role="button"]:has-text("メッセージ")',
+       role=("button", "メッセージ"), exact=True,
+       note="フォローボタンを見分けるための目印。2026-11-09 実測で "
+            "[539, 400, 290, 34]。本体にしか無い（サイドバーには無い）。",
+       measured=True, where=WHERE_PROFILE),
+)
+
+
 REGISTRY: dict[str, Selector] = {
-    s.key: s for s in (*_POST, *_METRICS, *_REPLY, *_STATE, *_DELETE)
+    s.key: s for s in (*_POST, *_METRICS, *_REPLY, *_STATE, *_DELETE, *_FOLLOW)
 }
 
 
