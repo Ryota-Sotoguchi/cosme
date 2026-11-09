@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import json
+import pathlib
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -114,6 +115,47 @@ def test_yesterdays_follows_do_not_count_against_today(tmp_path):
     path.write_text(json.dumps({"username": "a", "outcome": "followed", "at": old}) + "\n",
                     encoding="utf-8")
     assert F.followed_today(data) == 0
+
+
+def test_the_running_total_stops_at_the_cap(tmp_path):
+    """**一旦100人まで**（2026-11-10 に本人が決めた）。
+
+    日の上限だけだと止まらない。通算で数えて、達したら止める。
+    押せなかったぶんは数えない（«触った» と «フォローできた» は別）。
+    """
+    data = tmp_path / "data"
+    (data / "engage").mkdir(parents=True)
+    for i in range(7):
+        F.record(data, f"ok{i}", "followed")
+    F.record(data, "ng", "not_found")
+    F.record(data, "ng2", "error")
+    assert F.followed_total(data) == 7
+    # 触った数（二度と開かない相手）は、できなかったぶんも含む
+    assert len(F.already_handled(data)) == 9
+
+
+def test_the_running_total_survives_a_day_change(tmp_path):
+    """通算は日付で消えない。ここを today で数えると上限が効かない。"""
+    data = tmp_path / "data"
+    (data / "engage").mkdir(parents=True)
+    path = data / "engage" / F.FOLLOWED_LOG
+    old = (datetime.now(JST) - timedelta(days=30)).isoformat(timespec="seconds")
+    path.write_text(json.dumps({"username": "a", "outcome": "followed", "at": old}) + "\n",
+                    encoding="utf-8")
+    assert F.followed_today(data) == 0
+    assert F.followed_total(data) == 1
+
+
+def test_the_cap_is_configured_not_hardcoded():
+    """上限は config にある（本人が動かすのはそこだけ）。"""
+    import tomllib
+
+    raw = tomllib.loads(pathlib.Path("config/config.toml").read_text(encoding="utf-8"))
+    section = raw["follow"]
+    assert section["max_total"] == 100, "通算の上限が config から消えている"
+    assert section["max_per_day"] <= section["max_total"]
+    # **数は出さない。** 1日の上限が大きいと «業者» の signal になる
+    assert section["max_per_day"] <= 10, "1日の上限が大きすぎる"
 
 
 def test_a_broken_line_does_not_lose_the_rest(tmp_path):

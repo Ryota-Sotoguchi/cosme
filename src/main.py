@@ -131,6 +131,9 @@ def _print_draft(draft, header: str = "生成された投稿") -> None:
     a8 = draft.part_ids.get("a8")
     print(f"{line}\n{len(draft.text)} 文字 / アフィリエイトリンク: "
           f"{'あり' if draft.has_affiliate_link else 'なし'}"
+          # **タグを目に見える場所に出す。** 2か月ずっと同じタグだったことに
+          # 気づかなかったのは、どこにも表示していなかったから（2026-11-09）
+          + f" / タグ: {draft.topic_tag or 'なし'}"
           + (f" / A8: {a8 if a8 != 'none' else '未設定のため自サイト'}" if a8 else ""))
     if draft.items:
         print("参照した商品データ:")
@@ -1796,10 +1799,11 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
     **自動フォローは «業者» の典型的な signal。** 数は出さない。
     既定は Dry Run で、`--live` のときだけ実際に押す。
     """
-    from .engage.follow import followed_today, run
+    from .engage.follow import followed_today, followed_total, run
 
     section = config.raw.get("follow", {})
     max_per_day = int(section.get("max_per_day", 8))
+    max_total = int(section.get("max_total", 100))
     min_likes = int(section.get("min_likes", 0))
 
     if args.live:
@@ -1825,8 +1829,15 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
             pass
 
     done_today = followed_today(config.data_dir)
-    remaining = max(max_per_day - done_today, 0)
+    done_total = followed_total(config.data_dir)
+    # **通算の上限で止まる。** 日の上限だけだと、いつまでも増え続ける
+    left_total = max(max_total - done_total, 0)
+    remaining = min(max(max_per_day - done_today, 0), left_total)
     limit = min(args.limit if args.limit else remaining, remaining) if args.live else (args.limit or 10)
+    if args.live and left_total <= 0:
+        print(f"\n  通算の上限に達しました（{done_total}/{max_total}人）")
+        print(f"  増やす前に、表示とフォロワーの動きを見てから決めてください\n")
+        return EXIT_OK
     if args.live and limit <= 0:
         print(f"\n  本日の上限に達しています（{max_per_day}件）\n")
         return EXIT_OK
@@ -1855,7 +1866,8 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
         print(f"  @{entry['username']:<24} 最大いいね{entry['best_likes']:>5}  {entry['outcome']}")
     if not args.live:
         print(f"\n  実際にフォローするには --live を付けてください")
-        print(f"  本日の残り: {remaining}/{max_per_day}件\n")
+        print(f"  本日の残り: {remaining}/{max_per_day}件"
+              f"（通算 {done_total}/{max_total}人）\n")
     return EXIT_OK
 
 

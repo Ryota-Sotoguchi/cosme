@@ -128,23 +128,38 @@ def record(data_dir: Path, username: str, outcome: str) -> None:
         fh.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
-def followed_today(data_dir: Path, *, now: datetime | None = None) -> int:
-    """今日フォローした数。**押せなかったぶんは数えない。**"""
+def _followed_rows(data_dir: Path) -> list[dict[str, Any]]:
     path = _log_path(data_dir)
     if not path.exists():
-        return 0
-    today = (now or datetime.now(_JST)).strftime("%Y-%m-%d")
-    count = 0
+        return []
+    rows: list[dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
         try:
             row = json.loads(line)
         except json.JSONDecodeError:
-            continue
-        if row.get("outcome") == "followed" and str(row.get("at", "")).startswith(today):
-            count += 1
-    return count
+            continue   # 壊れた1行で全部を失わない
+        if row.get("outcome") == "followed":
+            rows.append(row)
+    return rows
+
+
+def followed_today(data_dir: Path, *, now: datetime | None = None) -> int:
+    """今日フォローした数。**押せなかったぶんは数えない。**"""
+    today = (now or datetime.now(_JST)).strftime("%Y-%m-%d")
+    return sum(1 for row in _followed_rows(data_dir)
+               if str(row.get("at", "")).startswith(today))
+
+
+def followed_total(data_dir: Path) -> int:
+    """これまでにフォローできた数。**`[follow] max_total` の判定はここ。**
+
+    2026-11-10 に本人が「一旦100人までゆっくり増やす」と決めた。
+    日の上限だけだと止まらないので、**通算でも頭打ちにする**。
+    100に達したら、表示とフォロワーの動きを見てから次を決める。
+    """
+    return len(_followed_rows(data_dir))
 
 
 def candidates(db_path: Path, *, limit: int = 20, exclude: set[str] | None = None,

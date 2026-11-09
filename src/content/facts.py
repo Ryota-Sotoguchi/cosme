@@ -311,9 +311,15 @@ TOPIC_TAGS: dict[str, tuple[str, ...]] = {
     "ボディケア": ("ボディケア", "コスメ"),
     "美容小物": ("コスメ", "メイク"),
     # 2026-09-15 に再開した本の商品リンク投稿（books.py）。
-    "転職本": ("転職", "キャリア", "読書"),
-    "資格本": ("資格", "資格勉強", "キャリア"),
-    "働き方の本": ("働き方", "仕事", "キャリア"),
+    "転職本": ("転職", "読書", "本好きな人と繋がりたい"),
+    "資格本": ("資格", "資格勉強", "勉強法"),
+    "働き方の本": ("働き方", "読書", "ビジネス書"),
+    # 2026-10-28 に足した仕事の道具（tools.py）。
+    # **ここが無いと下の "コスメ" に落ちて、手帳の投稿に「キャリア」が付く**
+    # （2026-11-09 まで実際にそうなっていた）。
+    "手帳": ("手帳", "手帳術", "文房具"),
+    "ノート・文具": ("文房具", "ノート", "メモ術"),
+    "ビジネスバッグ": ("ビジネスバッグ", "通勤", "鞄"),
     # **商品の無い投稿（質問・話題・連投・エッセイ）はこのキーを引く。**
     # builder が商品なしのとき category を "コスメ" として渡すため、キー名はそのまま。
     # 2026-09-14 に発信ジャンルを転職・年収・キャリアへ変えたので、中身だけ替えた。
@@ -344,72 +350,138 @@ TOPIC_TAGS: dict[str, tuple[str, ...]] = {
 #
 # **記事を足したらここにも足すこと。** 無ければタグ無しで投稿される
 # （`tests/test_topic_tags.py` が取りこぼしを見張る）。
+#
+# ## 主軸は1つ、副ジャンルは広く（2026-11-09 の2回目）
+#
+# 本人の指示: 「主軸は仕事や転職、年収ですが、副ジャンルは超幅広く」。
+#
+# 記事1本に**タグの候補を複数持たせて、日替わりで回す**。
+# 先頭は必ず主軸（`MAIN_AXIS_TAGS` の語）で、2つめ以降が副ジャンル。
+# 「職務経歴書」の記事なら、別の日には「文章の書き方」で出る。
+#
+# * **副ジャンルも、その記事に本当に書いてあることだけ。**
+#   退職手続きの記事に「社会保険」「税金」が付くのは、本文で触れているから。
+#   «それらしいタグ» を付けると、タグから来た人をそのまま帰すことになる
+#   （`tests/test_topic_tags.py` が、副ジャンルが1つ以上あることと語の形を見張る）
+# * 回すときのカーソルは**日付**（`_today_ordinal`）。state の件数を使うと、
+#   記録しない型があるだけで凍結する。それが «2か月同じタグ» の原因だった
+# * 記事ごとに位置をずらす（`_tag_index`）。日付だけだと、同じ日の3本が
+#   いっせいに主軸へ寄る
 # ======================================================================
-GUIDE_TAGS: dict[str, str] = {
+MAIN_AXIS_TAGS: frozenset[str] = frozenset({
+    # 転職活動
+    "転職", "転職活動", "転職エージェント", "スカウト", "求人票", "口コミ",
+    "未経験転職", "キャリア", "キャリアチェンジ", "職歴",
+    # 書類・面接
+    "職務経歴書", "書類選考", "志望動機", "面接", "最終面接", "オンライン面接",
+    "逆質問", "転職理由",
+    # 内定・退職・入社
+    "内定", "労働条件", "退職", "引き継ぎ", "社会人", "入社準備",
+    # 働き方・評価
+    "仕事", "働き方", "副業", "管理職", "昇進", "評価面談",
+    "資格勉強", "リモートワーク", "在宅勤務",
+    # 年収
+    "年収", "年収交渉", "希望年収", "手取り", "昇給",
+})
+
+GUIDE_TAGS: dict[str, tuple[str, ...]] = {
     # --- 転職活動の進め方 ---
-    "g_zaishoku": "転職活動",
-    "g_jiku": "キャリア",
-    "g_agent": "転職エージェント",
-    "g_kyuujinhyou": "求人票",
-    "g_ido": "キャリア",
-    "g_ugokanai": "キャリア",
-    "g_kuchikomi": "転職活動",
-    "g_renraku": "転職活動",
-    "g_scout": "転職エージェント",
-    "g_fusaiyou": "転職活動",
-    "g_kaisuu_kuuhaku": "転職",
-    "g_mikeiken": "未経験転職",
+    "g_zaishoku": ("転職活動", "会社員", "時間の使い方"),
+    "g_jiku": ("キャリア", "自己分析", "人生"),
+    "g_agent": ("転職エージェント", "転職活動", "業界の裏側"),
+    "g_kyuujinhyou": ("求人票", "年収", "残業"),
+    "g_ido": ("キャリア", "職場の悩み", "人間関係"),
+    "g_ugokanai": ("キャリア", "メンタル", "人間関係"),
+    "g_kuchikomi": ("転職活動", "口コミ", "情報収集"),
+    "g_renraku": ("転職活動", "ビジネスマナー", "メール"),
+    "g_scout": ("転職活動", "スカウト", "メール"),
+    "g_fusaiyou": ("転職活動", "メンタル", "自己肯定感"),
+    "g_kaisuu_kuuhaku": ("転職", "職歴", "話し方"),
+    "g_mikeiken": ("未経験転職", "キャリアチェンジ", "30代"),
     # --- 書類 ---
-    "g_keirekisho": "職務経歴書",
-    "g_shibou": "志望動機",
+    "g_keirekisho": ("職務経歴書", "書類選考", "文章の書き方"),
+    "g_shibou": ("志望動機", "面接", "文章の書き方"),
     # --- 面接 ---
-    "g_jikoshoukai": "面接",
-    "g_riyuu": "面接",
-    "g_gyakushitsumon": "面接",
-    "g_online": "面接",
-    "g_saishuu": "面接",
-    "g_hanashikata": "面接",
+    "g_jikoshoukai": ("面接", "自己紹介", "話し方"),
+    "g_riyuu": ("面接", "転職理由", "伝え方"),
+    "g_gyakushitsumon": ("面接", "逆質問", "会社選び"),
+    "g_online": ("面接", "オンライン面接", "Web会議"),
+    "g_saishuu": ("面接", "最終面接", "企業研究"),
+    "g_hanashikata": ("面接", "話し方", "伝え方"),
     # --- 内定・退職 ---
-    "g_shoudaku_mae": "内定",
-    "g_taishoku_tsutaekata": "退職",
-    "g_hikitome": "退職",
-    "g_hikitsugi": "退職",
-    "g_tetsuzuki": "退職",
+    "g_shoudaku_mae": ("内定", "労働条件", "残業"),
+    "g_taishoku_tsutaekata": ("退職", "伝え方", "上司"),
+    "g_hikitome": ("退職", "上司", "交渉"),
+    "g_hikitsugi": ("退職", "引き継ぎ", "資料作成"),
+    "g_tetsuzuki": ("退職", "社会保険", "税金"),
     # --- 入社後・働き方 ---
-    "g_nyuusha": "社会人",
-    "g_sankagetsu": "社会人",
-    "g_kanrishoku": "管理職",
-    "g_hyouka": "仕事",
-    "g_fukugyou": "副業",
-    "g_shikaku": "資格勉強",
-    "g_remote": "リモートワーク",
+    "g_nyuusha": ("社会人", "入社準備", "職場"),
+    "g_sankagetsu": ("社会人", "メンタル", "職場"),
+    "g_kanrishoku": ("管理職", "年収", "残業"),
+    "g_hyouka": ("仕事", "評価面談", "メモ術"),
+    "g_fukugyou": ("副業", "就業規則", "お金"),
+    "g_shikaku": ("資格勉強", "簿記", "勉強法"),
+    "g_remote": ("リモートワーク", "在宅勤務", "通勤"),
     # --- 年収（SITE_GUIDES / A8 もこちら）---
-    "gs_koushou": "年収交渉",
-    "gs_kibou": "年収",
-    "gs_kyuujin_haba": "年収",
-    "gs_uchiwake": "手取り",
-    "gs_mikeiken": "年収",
-    "gs_chiiki": "年収",
-    "gs_agaranai": "年収",
-    "gs_naitei_hikaku": "内定",
-    "gs_shanai_soudan": "年収",
-    "gs_tanaoroshi": "キャリア",
+    "gs_koushou": ("年収交渉", "年収", "交渉"),
+    "gs_kibou": ("年収", "希望年収", "伝え方"),
+    "gs_kyuujin_haba": ("年収", "求人票", "お金"),
+    "gs_uchiwake": ("手取り", "給与明細", "税金"),
+    "gs_mikeiken": ("年収", "キャリアチェンジ", "30代"),
+    "gs_chiiki": ("年収", "地方移住", "暮らし"),
+    "gs_agaranai": ("年収", "昇給", "お金"),
+    "gs_naitei_hikaku": ("内定", "通勤", "働き方"),
+    "gs_shanai_soudan": ("年収", "上司", "交渉"),
+    "gs_tanaoroshi": ("キャリア", "自己分析", "人生"),
 }
 
 # 長文の記事が入る part のキー（guides を描くテンプレートが記録する名前）
 _GUIDE_PART_KEYS = ("guide", "guide_site", "guide_a8")
 
 
-def guide_tag(part_ids: dict[str, str] | None) -> str | None:
-    """長文の記事そのものからタグを引く。記事でなければ None。"""
+def _today_ordinal() -> int:
+    """日付を通し番号にする。**日が変われば必ず動く。**
+
+    カーソルに state の件数を使うと、記録しない型があるだけで凍結する
+    （それで2か月タグが固定された）。日付は何があっても進む。
+    """
+    import datetime
+
+    return datetime.date.today().toordinal()
+
+
+def _tag_index(key: str, length: int, day: int | None) -> int:
+    """その日・その記事で引くタグの位置。
+
+    記事ごとにずらす（`key` の足し算）のは、**同じ日の3本が
+    いっせいに主軸へ寄らないため**。日付だけだと、3本とも同じ位置を引く。
+    """
+    if length <= 1:
+        return 0
+    if day is None:
+        day = _today_ordinal()
+    return (day + sum(key.encode("utf-8"))) % length
+
+
+def guide_tag(part_ids: dict[str, str] | None, day: int | None = None) -> str | None:
+    """長文の記事そのものからタグを引く。記事でなければ None。
+
+    **主軸（転職・年収・仕事）と副ジャンルを日替わりで回す。**
+    同じ記事でも、出す日によって引くタグが変わる。
+    """
     for key in _GUIDE_PART_KEYS:
         article = (part_ids or {}).get(key)
         if article:
-            return GUIDE_TAGS.get(article)
+            tags = GUIDE_TAGS.get(article)
+            if not tags:
+                return None
+            return tags[_tag_index(article, len(tags), day)]
     return None
 
+
 def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product",
-                  part_ids: dict[str, str] | None = None) -> str | None:
+                  part_ids: dict[str, str] | None = None,
+                  day: int | None = None) -> str | None:
     """トピックタグを1つ選ぶ。付けないこともある。
 
     全投稿に付けると宣伝アカウントの見た目になる。人は毎回タグを付けない。
@@ -424,7 +496,7 @@ def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product",
     # **記事があるなら、記事の話題から引く。**
     # カテゴリー（商品のジャンル）は長文には無いので、ここが無いと
     # 全部が同じ既定のタグになる（2026-11-09 まで実際にそうなっていた）。
-    from_article = guide_tag(part_ids)
+    from_article = guide_tag(part_ids, day)
     if from_article:
         return from_article
 
@@ -436,7 +508,11 @@ def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product",
         return None
 
     tags = TOPIC_TAGS.get(category) or TOPIC_TAGS["コスメ"]
-    return tags[(cursor // every) % len(tags)]
+    # **日付を混ぜる。** カーソル（state の件数）は凍結しうるので、
+    # これだけに頼ると同じタグが出続ける（2026-11-09 まで実際にそうだった）。
+    if day is None:
+        day = _today_ordinal()
+    return tags[(cursor // every + day) % len(tags)]
 
 
 # ----------------------------------------------------------------------
