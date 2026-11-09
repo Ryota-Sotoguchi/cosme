@@ -334,10 +334,13 @@ class ContentBuilder:
             segments=segments,
             # フォロワーが少ないうちは、タグ経由がほぼ唯一の発見導線になる。
             # リンクなし投稿にも付ける（むしろそちらのほうが伸びる）。
+            # **記事そのものから引く**（2026-11-09）。カーソルは長文の型では
+            # 動かないので（"closing" を記録しない）、全投稿が同じタグになっていた。
             topic_tag=F.topic_tag_for(
                 F.category_label(primary) if primary else "コスメ",
                 len(self.state.recent_part_ids("closing", limit=10_000)),
                 post_type,
+                rendered.part_ids,
             ),
         )
         logger.info(

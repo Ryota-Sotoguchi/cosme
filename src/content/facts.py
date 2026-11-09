@@ -322,7 +322,94 @@ TOPIC_TAGS: dict[str, tuple[str, ...]] = {
 }
 
 
-def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product") -> str | None:
+
+# ======================================================================
+# 長文（guides.py）の記事ごとのトピックタグ（2026-11-09 に追加）
+#
+# ## なぜ要るのか
+#
+# **2026-11-09 まで、全投稿に同じタグ「キャリア」が付いていた。**
+# `topic_tag_for` のカーソルが `state.recent_part_ids("closing")` の件数で、
+# 長文の型（guide）は "closing" を記録しないため**8で凍結**していた。
+# 8 // 2 % 3 = 1 なので、毎回 TOPIC_TAGS["コスメ"][1] = 「キャリア」。
+#
+# フォロワーが9人のアカウントにとって、タグはおすすめ以外でほぼ唯一の
+# 発見導線なのに、1つの話題にしか出ていなかった。
+#
+# ## 記事の中身に合わせる
+#
+# カテゴリー（商品のジャンル）から引くのをやめ、**記事そのものから引く**。
+# 退職の話は「退職」、面接の話は「面接」。読んだ人が探している言葉と
+# 投稿の中身が合っていないと、タグから来ても離脱するだけ。
+#
+# **記事を足したらここにも足すこと。** 無ければタグ無しで投稿される
+# （`tests/test_topic_tags.py` が取りこぼしを見張る）。
+# ======================================================================
+GUIDE_TAGS: dict[str, str] = {
+    # --- 転職活動の進め方 ---
+    "g_zaishoku": "転職活動",
+    "g_jiku": "キャリア",
+    "g_agent": "転職エージェント",
+    "g_kyuujinhyou": "求人票",
+    "g_ido": "キャリア",
+    "g_ugokanai": "キャリア",
+    "g_kuchikomi": "転職活動",
+    "g_renraku": "転職活動",
+    "g_scout": "転職エージェント",
+    "g_fusaiyou": "転職活動",
+    "g_kaisuu_kuuhaku": "転職",
+    "g_mikeiken": "未経験転職",
+    # --- 書類 ---
+    "g_keirekisho": "職務経歴書",
+    "g_shibou": "志望動機",
+    # --- 面接 ---
+    "g_jikoshoukai": "面接",
+    "g_riyuu": "面接",
+    "g_gyakushitsumon": "面接",
+    "g_online": "面接",
+    "g_saishuu": "面接",
+    "g_hanashikata": "面接",
+    # --- 内定・退職 ---
+    "g_shoudaku_mae": "内定",
+    "g_taishoku_tsutaekata": "退職",
+    "g_hikitome": "退職",
+    "g_hikitsugi": "退職",
+    "g_tetsuzuki": "退職",
+    # --- 入社後・働き方 ---
+    "g_nyuusha": "社会人",
+    "g_sankagetsu": "社会人",
+    "g_kanrishoku": "管理職",
+    "g_hyouka": "仕事",
+    "g_fukugyou": "副業",
+    "g_shikaku": "資格勉強",
+    "g_remote": "リモートワーク",
+    # --- 年収（SITE_GUIDES / A8 もこちら）---
+    "gs_koushou": "年収交渉",
+    "gs_kibou": "年収",
+    "gs_kyuujin_haba": "年収",
+    "gs_uchiwake": "手取り",
+    "gs_mikeiken": "年収",
+    "gs_chiiki": "年収",
+    "gs_agaranai": "年収",
+    "gs_naitei_hikaku": "内定",
+    "gs_shanai_soudan": "年収",
+    "gs_tanaoroshi": "キャリア",
+}
+
+# 長文の記事が入る part のキー（guides を描くテンプレートが記録する名前）
+_GUIDE_PART_KEYS = ("guide", "guide_site", "guide_a8")
+
+
+def guide_tag(part_ids: dict[str, str] | None) -> str | None:
+    """長文の記事そのものからタグを引く。記事でなければ None。"""
+    for key in _GUIDE_PART_KEYS:
+        article = (part_ids or {}).get(key)
+        if article:
+            return GUIDE_TAGS.get(article)
+    return None
+
+def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product",
+                  part_ids: dict[str, str] | None = None) -> str | None:
     """トピックタグを1つ選ぶ。付けないこともある。
 
     全投稿に付けると宣伝アカウントの見た目になる。人は毎回タグを付けない。
@@ -334,6 +421,13 @@ def topic_tag_for(category: str, cursor: int = 0, post_type: str = "product") ->
     Threads はタグを1投稿に1つしか付けられないので、
     同じタグに偏らないよう cursor で回す。
     """
+    # **記事があるなら、記事の話題から引く。**
+    # カテゴリー（商品のジャンル）は長文には無いので、ここが無いと
+    # 全部が同じ既定のタグになる（2026-11-09 まで実際にそうなっていた）。
+    from_article = guide_tag(part_ids)
+    if from_article:
+        return from_article
+
     if post_type == "casual":
         return None
 

@@ -74,9 +74,15 @@ ROOT = Path(__file__).resolve().parent.parent
 #   .github/workflows/post.yml … **late の発火を 16:00 → 14:00 にした（2026-11-06）。**遅れが 475〜595分に伸び、
 #                           2晩続けて見送られて年収の記事が1本も出ていなかった。本数・処理は変えていない
 # ======================================================================
+#   content/builder.py    … トピックタグを «記事そのもの» から引けるよう、
+#                           F.topic_tag_for に rendered.part_ids を渡す1行を足した（2026-11-09）。
+#                           **2026-11-09 まで全投稿に同じタグ「キャリア」が付いていた。**
+#                           カーソルが state.recent_part_ids("closing") の件数で、長文の型は
+#                           "closing" を記録しないため8で凍結していた。組み立ての順序は変えていない
+# ======================================================================
 UNCHANGED_MECHANISM = {
     "src/pipeline.py": "646d42e5ff2bbd78ca5eb5371ce7a2422c8fdee1",
-    "src/content/builder.py": "a0c500ab449d6c6392b416b343e6adf519cf3bb0",
+    "src/content/builder.py": "dcb6f26e02002709aa31ac66f15c5824b201b1fb",
     "src/threads/client.py": "fd7751fb637ee1aa6e1ce4162e1588656c79fa64",
     "src/threads/insights.py": "e3ff107364cc565e0bc1c7e8986a0c3291684e7d",
     "src/threads/replies.py": "cadd15d13bdd76f167d7037dbc6ec09371348824",

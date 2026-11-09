@@ -104,6 +104,10 @@ def _record(
         error_message=(error_message or "")[:500] or None,
         extra={
             "template_parts": draft.part_ids if draft else {},
+            # **どのタグで出したか。** 2026-11-09 まで記録していなかったので、
+            # 全投稿が同じタグ「キャリア」になっていたことに2か月気づかなかった。
+            # タグ経由で届いているかを後から測るのにも要る。
+            "topic_tag": (draft.topic_tag if draft else None),
             "item_codes": [i.item_code for i in draft.items] if draft else [],
             # 手動実行か定期実行か。ランプアップの枠計算で使う。
             "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual"),
