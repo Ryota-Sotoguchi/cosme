@@ -742,13 +742,14 @@ python3 -m src.main follow --live --limit 1
 - 反応が付いている投稿の主を上に置く（`[follow] min_likes = 3`）
 - **一度触ったら二度と見ない**（`data/engage/followed.jsonl`、gitignore 済み）。
   **外す操作はしない。** フォローと解除を繰り返すのは、いちばん悪い形
-- **上限は「1日6件」と「通算100人」の2段**（`[follow] max_per_day` / `max_total`）。
-  2026-11-10 に本人が「一旦100人までゆっくり増やす」と決めた。
+- **上限は「1日15件」と「通算100人」の2段**（`[follow] max_per_day` / `max_total`）。
+  2026-11-09 に本人が「一旦100人まで」と決め、同日に**ペースを2段上げた**（6 → 15）。
   通算は `followed.jsonl` の **できたぶんだけ**を数える（押せなかった相手は数に入らないが、
   二度と開かない）。100に達すると `follow --live` は何もせずに終わる。
   **上限を上げる前に、表示とフォロワーの動きを先に見る**
-- 1件ずつ60〜180秒あける。cron は1日3回・1回2件（**crontab への登録は人がやる**。
-  Claude は cron を書き込めない。スニペットは下の節）
+- 1件ずつ60〜180秒あける。cron は1日3回・**1回5件**（**crontab への登録は人がやる**。
+  Claude は cron を書き込めない。スニペットは下の節）。
+  1回でブラウザが8分前後動くので、**ロックを共有している自動返信が飛ぶ回数が増える**
 - 絞られている最中は動かない（`autoreply_throttled_until` を共有して見る）。
   キルスイッチは自動返信と同じ（`data/engage/STOP` / `AUTOREPLY_OFF`）
 
@@ -770,7 +771,7 @@ python3 -m src.main follow --live --limit 1
 cron（1日3回・1回2件）はこの形。`crontab -e` で人が入れる。
 
 ```
-37 10,15,21 * * * cd /home/n049395/work/cosme && sleep $((RANDOM \% 900)) && flock -n /tmp/cosme-autoreply.lock python3 -m src.main follow --live --limit 2 >> /home/n049395/work/cosme/data/engage/autoreply.log 2>&1
+37 10,15,21 * * * cd /home/n049395/work/cosme && sleep $((RANDOM \% 900)) && flock -n /tmp/cosme-autoreply.lock python3 -m src.main follow --live --limit 5 >> /home/n049395/work/cosme/data/engage/autoreply.log 2>&1
 ```
 
 ## 自分の投稿に付いたコメントに返す（`replies --live`、2026-10-16 に自動化）

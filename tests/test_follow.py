@@ -154,8 +154,10 @@ def test_the_cap_is_configured_not_hardcoded():
     section = raw["follow"]
     assert section["max_total"] == 100, "通算の上限が config から消えている"
     assert section["max_per_day"] <= section["max_total"]
-    # **数は出さない。** 1日の上限が大きいと «業者» の signal になる
-    assert section["max_per_day"] <= 10, "1日の上限が大きすぎる"
+    # **数は出しすぎない。** 1日の上限が大きいと «業者» の signal になる。
+    # 2026-11-09 に本人の指示で 6 → 15 に上げた（それでも通算100で止まる）。
+    # ここを20より上にするなら、Claude の判断ではなく本人の指示で
+    assert section["max_per_day"] <= 20, "1日の上限が大きすぎる"
 
 
 def test_a_broken_line_does_not_lose_the_rest(tmp_path):
