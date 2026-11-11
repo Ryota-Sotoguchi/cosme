@@ -437,7 +437,8 @@
       "g_nyuusha",
       "g_ido",
       "g_hyouka",
-      "g_scout"
+      "g_scout",
+      "g_ugokanai"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1067,7 +1068,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 4,
-    "latemorning": 1,
+    "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1076,7 +1077,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "casual",
     "guide",
     "guide",
@@ -1095,6 +1095,7 @@
     "longform",
     "guide",
     "guide_site",
+    "guide",
     "guide"
   ],
   "threads_token": {
