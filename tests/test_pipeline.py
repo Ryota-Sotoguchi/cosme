@@ -639,31 +639,52 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
 # ======================================================================
 # つぶやき投稿
 # ======================================================================
-def test_the_rotation_is_long_form(config, tmp_path):
-    """**長文の連投を主役にしていること**（2026-11-04）。
+SHORT_TYPES = ("casual", "question", "insider")
+LONG_TYPES = ("guide", "guide_site", "guide_a8")
+
+
+def test_the_rotation_is_mostly_long_form(config):
+    """**長文を主役にしたまま、短い投稿を混ぜる。**
+
+    ## 2026-11-04（長文に寄せた）
 
     1日10本出していた3週間（180本）、枠ごとの表示中央値は2〜18で、
     直近70本のうち42本が casual / question / insider の短文（本文の中央値17〜38字）だった。
     本人の指示「短文・つぶやきばかりで収益化を狙えていない。有益な発信を長文で」で
     1日3本の長文（guide / guide_site）に替えた。
+
+    ## 2026-11-11（短文を一部戻した）
+
+    寄せすぎて**21枠すべてが長文**になり、本人から「長文やスレッド型で
+    情報発信してるのはいいけど、それしかなくてAIにやらせてる・堅苦しいイメージ」。
+
+    どちらの指示も有効なので、**長文を主役にしたまま1日3本のうち1本までを短文**にする。
+    ここが «半分» を超えたら 11/04 の指示に反する。
     """
-    pipeline = make_pipeline(config, tmp_path)
-    seen = [pipeline.resolve_post_type("latemorning") for _ in range(7)]
-    assert set(seen) == {"guide"}, seen
-
-
-def test_short_types_are_out_of_the_rotation(config):
-    """一行で終わる型を枠に戻さない。テンプレートは逃がし先として残してある。"""
     from collections import Counter
 
     share = Counter(t for types in config.rotation.values() for t in types)
-    for short in ("casual", "question", "insider", "site_link", "no_link"):
-        assert share[short] == 0, f"短文の型 {short} が {share[short]} 枠ある: {dict(share)}"
-    # リンクなしの枠は全部長文（noon のリンク枠は商品の型が混ざる）
-    affiliate = {s.slot for s in config.schedule if s.allow_affiliate}
-    for slot, types in config.rotation.items():
-        if slot not in affiliate:
-            assert set(types) <= {"guide", "guide_site", "guide_a8"}, f"{slot}: {types}"
+    total = sum(share.values())
+    short = sum(share[t] for t in SHORT_TYPES)
+    long_ = sum(share[t] for t in LONG_TYPES)
+    assert long_ > short, f"長文が主役でない: 長文{long_} / 短文{short}"
+    assert short <= total / 3, f"短文が1日1本を超えている: 短文{short}/{total}枠"
+
+
+def test_short_posts_are_in_the_rotation_but_thin(config):
+    """**短い投稿が1本も無い状態に戻さない**（2026-11-11）。
+
+    戻すのは3つだけ。`practical`（手続きの話）は堅い側なので入れない。
+    `site_link` / `no_link` は型そのものを引退させたまま（逃がし先としてだけ残す）。
+    """
+    from collections import Counter
+
+    share = Counter(t for types in config.rotation.values() for t in types)
+    assert all(share[t] >= 1 for t in SHORT_TYPES), f"短文の型が枠に無い: {dict(share)}"
+    for retired in ("site_link", "no_link", "practical", "thread_topic", "howto", "essay"):
+        assert share[retired] == 0, f"引退した型 {retired} が枠にある: {dict(share)}"
+    # 夜（収益の導線が出る枠）は長文のまま。短文を混ぜない
+    assert set(config.rotation["late"]) <= set(LONG_TYPES), config.rotation["late"]
 
 
 def test_low_performing_types_are_rare(config):

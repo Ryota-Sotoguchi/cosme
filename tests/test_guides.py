@@ -180,15 +180,56 @@ def test_the_openings_do_not_repeat():
     assert endings.most_common(1)[0][1] <= 3, endings.most_common(3)
 
 
+DOING = ("確認", "確かめ", "聞", "書", "メモ", "読", "見て", "開", "録音", "直す", "足す",
+         "調べ", "入れておく", "入っておく", "作っておく", "やっておく", "一覧", "更新",
+         "済ませ", "埋め", "並べ")
+# 自分の話・オチで終わる形（くだけた本音の口調。2026-11-06 に本人が選んだ）
+PERSONAL = ("わたし", "自分", "笑", "思う", "です。", "でした", "ない。", "なる。")
+
+
+def _last_block(part):
+    return [block for block in part.segments[-1].split("\n\n") if block.strip()][-1]
+
+
+def _ending_kind(part) -> str:
+    last = _last_block(part)
+    if "？" in last:
+        return "問いかけ"
+    if any(w in last for w in PERSONAL):
+        return "自分の話"
+    if any(w in last for w in DOING):
+        return "宿題"
+    return "説明"
+
+
 @pytest.mark.parametrize("part", GUIDES, ids=[p.id for p in GUIDES])
-def test_the_guide_lands_on_what_to_do_next(part):
-    """**最後の段落は «次に何をするか» か問いかけ。** 説明で終わると、調べれば出てくる話になる。"""
-    doing = ("確認", "確かめ", "聞", "書", "メモ", "読", "見て", "開", "録音", "直す", "足す",
-             "調べ", "入れておく", "入っておく", "作っておく", "やっておく", "一覧", "更新",
-             "済ませ", "埋め", "並べ")
-    # 最後の «段落» で見る。口調をくだけさせたので、最後の一行は照れやオチでもいい（2026-11-06）
-    last = [block for block in part.segments[-1].split("\n\n") if block.strip()][-1]
-    assert any(w in last for w in doing) or "？" in last, f"{part.id}: 最後が行動で終わっていない → {last}"
+def test_the_guide_does_not_end_on_a_dry_explanation(part):
+    """**最後の段落が説明で終わらないこと。** 調べれば出てくる話になる。
+
+    行き先は «次に何をするか» だけではない（2026-11-11）。問いかけでも、
+    自分の話やオチでもいい。下の `test_the_endings_are_mixed` が偏りを見る。
+    """
+    assert _ending_kind(part) != "説明", f"{part.id}: 最後が説明で終わっている → {_last_block(part)}"
+
+
+def test_the_endings_are_mixed():
+    """**締めの形を混ぜる。**
+
+    2026-11-11 に本人から「長文やスレッド型はいいけど、それしかなくて
+    AIにやらせてる・堅苦しいイメージ」と言われた。数えたら、
+    **42本のうち37本が «〜してみて» の宿題で終わっていた**。
+
+    原因はこのテストの前の版で、«最後は次に何をするか» を**全記事に要求して
+    いた**こと。役に立たせるための決まりが、プリントの読後感を作っていた。
+    いまは «どれか一つに寄らないこと» を見る（全部をオチにするのも同じ失敗）。
+    """
+    from collections import Counter
+
+    kinds = Counter(_ending_kind(p) for p in GUIDES)
+    assert len(kinds) >= 3, f"締めの形が少ない: {kinds}"
+    top, count = kinds.most_common(1)[0]
+    assert count <= len(GUIDES) * 0.6, f"«{top}» に偏っている: {kinds}"
+    assert kinds["宿題"] >= 4, f"宿題で終わる記事が無さすぎる: {kinds}"
 
 
 # ======================================================================
