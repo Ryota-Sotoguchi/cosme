@@ -21,8 +21,31 @@
 
 * `source='search'` のものだけ。タイムライン由来はコスメ時代のフォロー先が混ざる
 * ルールで落ちた投稿（`skipped_rule`）の相手は見ない。センシティブ・宣伝が含まれる
+* **検索に2回以上出てきた相手だけ**（`[follow] min_posts`）。下の «一発屋を取らない»
 * **一度フォローしたら二度と触らない。** 外す操作もしない
   （フォローと解除を繰り返すのは、プラットフォームから見ていちばん悪い形）
+
+## 一発屋を取らない（2026-11-11 に直した）
+
+**いいねの多い順に並べると、このジャンルの本職のアカウントが構造的に落ちる。**
+最初の15件を実測したら、4〜6件が発信ジャンルの外だった
+（「ちいかわ × ANA」♥932／「議員ボーナスカットしてくれ」♥332／
+「大学受験 うちの子は第一志望に落ち」♥306）。
+
+原因は語ではなく**順位付け**。転職の語を含むいいね900の投稿は、
+ほぼ必ず一般向けのバズ投稿で、転職の話をしている人ではない。
+**語を増やしても直らない**ことも確かめた（「議員ボーナス」は `ボーナス` で通り、
+逆に転職の投稿が0語で落ちる）。
+
+**«検索に何回出てきたか» で並べ替えた。** 実測では上位18件が18件とも
+転職アカウントになり（`minami.tensyoku` / `tenshoku_caritaro` / `sho_career_up` …）、
+**そのいいねは3〜7**しかなかった。繰り返し出てくる＝そのジャンルの話を
+続けている人、という判定で、`trends` の監視対象（«何度も伸びている
+アカウントだけ。一発屋は入れない»）と同じ考え方。
+
+* いいねは**足切りとしてだけ**使う（`min_likes`）。並べ替えには使わない
+* 2回以上で77人・3回以上で20人（2026-11-11 実測）。検索は1日9回回るので候補は増える
+* **候補が尽きたら何もしない。** 取りこぼすほうがましなので
 
 ## やりすぎない
 
@@ -163,11 +186,15 @@ def followed_total(data_dir: Path) -> int:
 
 
 def candidates(db_path: Path, *, limit: int = 20, exclude: set[str] | None = None,
-               min_likes: int = 0) -> list[Candidate]:
+               min_likes: int = 0, min_posts: int = 1) -> list[Candidate]:
     """検索で見つけた、転職の話をしているアカウント。
 
-    **反応が付いている投稿の主を上に置く。** 読まれているアカウントのほうが、
-    フォローに気づいてもらえる見込みがある。
+    **«検索に何回出てきたか» で並べる。** 繰り返し出てくる相手は、
+    そのジャンルの話を続けている人。いいねの多い順に並べると、転職の語を
+    含むだけの一般向けバズ投稿が上に来て、本職のアカウントが落ちる
+    （2026-11-11 の実測。モジュールの «一発屋を取らない» を参照）。
+
+    いいねは足切りとしてだけ使う（`min_likes`）。
     """
     if not db_path.exists():
         return []
@@ -186,10 +213,10 @@ def candidates(db_path: Path, *, limit: int = 20, exclude: set[str] | None = Non
               AND decision != 'skipped_rule'
               AND username IS NOT NULL AND username != ''
             GROUP BY username
-            HAVING best_likes >= ?
-            ORDER BY best_likes DESC, last_seen DESC
+            HAVING best_likes >= ? AND posts >= ?
+            ORDER BY posts DESC, best_likes DESC, last_seen DESC
             """,
-            (min_likes,),
+            (min_likes, max(min_posts, 1)),
         ).fetchall()
     finally:
         con.close()
@@ -234,11 +261,12 @@ def follow_one(session: Any, username: str) -> str:
 
 
 def run(session: Any, *, db_path: Path, data_dir: Path, limit: int,
-        dry_run: bool = True, min_likes: int = 0,
+        dry_run: bool = True, min_likes: int = 0, min_posts: int = 1,
         sleep: Any = time.sleep) -> list[dict[str, Any]]:
     """上限まで順にフォローする。dry_run のときは押さない。"""
     handled = already_handled(data_dir)
-    picked = candidates(db_path, limit=limit, exclude=handled, min_likes=min_likes)
+    picked = candidates(db_path, limit=limit, exclude=handled,
+                        min_likes=min_likes, min_posts=min_posts)
     done: list[dict[str, Any]] = []
 
     for index, candidate in enumerate(picked):

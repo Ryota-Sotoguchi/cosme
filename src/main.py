@@ -1805,6 +1805,8 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
     max_per_day = int(section.get("max_per_day", 8))
     max_total = int(section.get("max_total", 100))
     min_likes = int(section.get("min_likes", 0))
+    # **一発屋を取らない。** 検索に何回出てきたかで絞る（2026-11-11）
+    min_posts = int(section.get("min_posts", 1))
 
     if args.live:
         if os.environ.get("AUTOREPLY_OFF", "").strip().lower() in {"1", "true", "yes", "on"}:
@@ -1852,7 +1854,8 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
             session.start()
             session.require_login()
         planned = run(session, db_path=db_path, data_dir=config.data_dir,
-                      limit=limit, dry_run=not args.live, min_likes=min_likes)
+                      limit=limit, dry_run=not args.live,
+                      min_likes=min_likes, min_posts=min_posts)
     finally:
         if session is not None:
             session.close()
@@ -1863,7 +1866,8 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
 
     print(f"\n=== フォロー {len(planned)}件 ===")
     for entry in planned:
-        print(f"  @{entry['username']:<24} 最大いいね{entry['best_likes']:>5}  {entry['outcome']}")
+        print(f"  @{entry['username']:<24} 検索{entry['posts']:>3}回"
+              f"  最大いいね{entry['best_likes']:>5}  {entry['outcome']}")
     if not args.live:
         print(f"\n  実際にフォローするには --live を付けてください")
         print(f"  本日の残り: {remaining}/{max_per_day}件"

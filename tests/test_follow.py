@@ -277,3 +277,98 @@ def test_one_failure_does_not_stop_the_run(tmp_path):
 
     out = F.run(Session(), db_path=db, data_dir=data, limit=3, dry_run=False, sleep=lambda s: None)
     assert [e["outcome"] for e in out] == ["followed", "error", "followed"]
+
+
+# ---------------------------------------------------------------------------
+# 一発屋を取らない（2026-11-11）
+#
+# **いいねの多い順に並べると、このジャンルの本職のアカウントが構造的に落ちる。**
+# 最初の15件を実測したら、4〜6件が発信ジャンルの外だった。原因は語ではなく
+# 順位付けで、転職の語を含むいいね900の投稿は、ほぼ必ず一般向けのバズ投稿。
+#
+# 下の名前と数字は**実際にフォローしてしまった相手そのまま**。
+# 語を増やす方向では直らないことも、ここで一緒に見張る。
+# ---------------------------------------------------------------------------
+
+# 実際にフォローしてしまった、発信ジャンルの外の相手（検索に1回だけ出てきた）
+ONE_HIT_STRANGERS = [
+    # (username, likes, 本文の一部)
+    ("ikmlll0707", 932, "ちいかわ ちいかわ× ANA うさぎの制服が4本線(機長)なところ"),
+    ("mai_abe14", 332, "頼む。議員ボーナスカットしてくれ。"),          # 「ボーナス」で語は通る
+    ("kuro.mame_kinako", 306, "大学受験 うちの子は第一志望の大学に"),   # 「勉強」「面接」で語は通る
+    ("sugimotor630", 343, "顧問やってて思うのは部活動の地域移行は"),
+]
+
+# 実際に検索へ繰り返し出てきた転職アカウント（いいねは3〜7しかない）
+REPEAT_CAREER_ACCOUNTS = [
+    ("minami.tensyoku", 11, 4),
+    ("mameekon", 9, 7),
+    ("tenshoku_caritaro", 6, 7),
+    ("tommy3_career", 6, 3),
+]
+
+
+def _corpus(tmp_path: Path):
+    """実測どおりの候補プール。バズ投稿の一発屋＋地味な転職アカウント。"""
+    rows = []
+    for name, likes, _text in ONE_HIT_STRANGERS:
+        rows.append((f"s_{name}", name, "search", "2026-11-11", likes, "skipped_judge"))
+    for name, posts, likes in REPEAT_CAREER_ACCOUNTS:
+        for i in range(posts):
+            rows.append((f"c_{name}_{i}", name, "search", "2026-11-10", likes, "observed"))
+    return _db(tmp_path, rows)
+
+
+def test_a_one_hit_viral_account_is_not_followed(tmp_path):
+    """**いいね932の「ちいかわ」をフォローしない。** 検索に1回しか出ていない。"""
+    picked = [c.username for c in F.candidates(_corpus(tmp_path), min_posts=2, limit=50)]
+    for name, likes, _text in ONE_HIT_STRANGERS:
+        assert name not in picked, f"@{name}（♥{likes}）は発信ジャンルの外なのに選ばれた"
+
+
+def test_the_order_is_how_often_they_showed_up_not_likes(tmp_path):
+    """**並べ替えは «検索に何回出てきたか»。** いいねでは並べない。"""
+    picked = [c.username for c in F.candidates(_corpus(tmp_path), min_posts=2, limit=50)]
+    expected = [name for name, _posts, _likes in REPEAT_CAREER_ACCOUNTS]
+    assert picked == expected, picked
+    # いいねで並べていたら、いちばん少ない tommy3_career（♥3）が最後に来ない
+    assert picked[0] == "minami.tensyoku", "回数のいちばん多い相手が先頭にいない"
+
+
+def test_the_quiet_career_accounts_survive_the_like_floor(tmp_path):
+    """このジャンルのいいねは3〜7。**足切りがそこを超えると候補が消える。**"""
+    db = _corpus(tmp_path)
+    import tomllib
+
+    raw = tomllib.loads(pathlib.Path("config/config.toml").read_text(encoding="utf-8"))
+    floor = int(raw["follow"]["min_likes"])
+    picked = F.candidates(db, min_posts=2, min_likes=floor, limit=50)
+    assert picked, f"min_likes = {floor} だと実測の転職アカウントが全部落ちる"
+
+
+def test_one_appearance_is_allowed_only_when_asked(tmp_path):
+    """既定（min_posts=1）では振る舞いを変えない。**config が決める。**"""
+    picked = [c.username for c in F.candidates(_corpus(tmp_path), limit=50)]
+    assert "ikmlll0707" in picked, "min_posts を渡さないのに1回だけの相手が消えている"
+
+
+def test_the_repeat_floor_is_configured(tmp_path):
+    """**config に min_posts があること。** 無いと一発屋を取る実装に戻る。"""
+    import tomllib
+
+    raw = tomllib.loads(pathlib.Path("config/config.toml").read_text(encoding="utf-8"))
+    section = raw["follow"]
+    assert "min_posts" in section, "min_posts が config から消えている"
+    assert section["min_posts"] >= 2, "1回だけ出てきた相手をフォローする設定に戻っている"
+
+
+def test_the_runner_passes_the_repeat_floor_through(tmp_path):
+    """`run()` が min_posts を候補選びまで渡すこと。**渡し忘れると静かに壊れる。**"""
+    db = _corpus(tmp_path)
+    data = tmp_path / "data"
+    (data / "engage").mkdir(parents=True)
+    planned = F.run(None, db_path=db, data_dir=data, limit=50,
+                    dry_run=True, min_posts=2, sleep=lambda _s: None)
+    names = [entry["username"] for entry in planned]
+    assert "ikmlll0707" not in names, "run() が min_posts を渡していない"
+    assert names, "候補が空になっている"

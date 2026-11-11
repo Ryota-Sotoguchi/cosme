@@ -1,11 +1,17 @@
 {
   "answered_replies": [
-    "18611881231024120"
+    "18611881231024120",
+    "18643926745004179",
+    "18118843216794606"
   ],
   "autoreply_keyword_cursor": 2,
   "autoreply_started_on": "2026-09-07",
   "autoreply_target_cursor": 4,
   "operation_started_on": "2026-08-20",
+  "own_reply_log": [
+    "2026-11-09T13:34:53+09:00",
+    "2026-11-09T13:35:38+09:00"
+  ],
   "part_history": {
     "a8": [
       "uzuz"
@@ -1066,7 +1072,7 @@
   },
   "rotation_cursor": {
     "afternoon": 3,
-    "autoreply_shape": 3,
+    "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
     "late": 5,
