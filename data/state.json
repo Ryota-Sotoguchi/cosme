@@ -438,7 +438,8 @@
       "g_ido",
       "g_hyouka",
       "g_scout",
-      "g_ugokanai"
+      "g_ugokanai",
+      "g_remote"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1067,7 +1068,7 @@
     "autoreply_shape": 3,
     "earlynight": 5,
     "evening": 2,
-    "late": 4,
+    "late": 5,
     "latemorning": 2,
     "midmorning": 0,
     "morning": 3,
@@ -1077,7 +1078,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "guide",
     "guide",
     "guide",
@@ -1095,6 +1095,7 @@
     "longform",
     "guide",
     "guide_site",
+    "guide",
     "guide",
     "guide"
   ],
