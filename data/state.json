@@ -436,7 +436,8 @@
       "g_hikitsugi",
       "g_nyuusha",
       "g_ido",
-      "g_hyouka"
+      "g_hyouka",
+      "g_scout"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1070,12 +1071,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 5,
+    "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "practical",
     "casual",
     "casual",
     "guide",
@@ -1094,7 +1094,8 @@
     "guide",
     "longform",
     "guide",
-    "guide_site"
+    "guide_site",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2027-01-07T21:50:26.627814+00:00",
