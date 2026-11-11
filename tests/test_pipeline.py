@@ -639,7 +639,9 @@ def test_link_allowed_slot_still_posts_products(config, tmp_path):
 # ======================================================================
 # つぶやき投稿
 # ======================================================================
-SHORT_TYPES = ("casual", "question", "insider")
+# 2026-11-11: insider（面接官席の視点）を外した。本人から「面接官の視点は
+# もうどうでもいいかも」。実測も12本で表示中央2・人の反応0だった。
+SHORT_TYPES = ("casual", "question")
 LONG_TYPES = ("guide", "guide_site", "guide_a8")
 
 
@@ -681,7 +683,8 @@ def test_short_posts_are_in_the_rotation_but_thin(config):
 
     share = Counter(t for types in config.rotation.values() for t in types)
     assert all(share[t] >= 1 for t in SHORT_TYPES), f"短文の型が枠に無い: {dict(share)}"
-    for retired in ("site_link", "no_link", "practical", "thread_topic", "howto", "essay"):
+    for retired in ("site_link", "no_link", "practical", "thread_topic",
+                    "howto", "essay", "insider"):
         assert share[retired] == 0, f"引退した型 {retired} が枠にある: {dict(share)}"
     # 夜（収益の導線が出る枠）は長文のまま。短文を混ぜない
     assert set(config.rotation["late"]) <= set(LONG_TYPES), config.rotation["late"]

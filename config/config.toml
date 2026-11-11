@@ -571,14 +571,19 @@ allow_affiliate = false
 #
 # 1日3本のうち**1本を短い型**にする（週7枠。latemorning 3 + noon 4）。戻すのは3つだけ:
 #   casual   生活の断片。人の反応率は全型でいちばん高い（0.54%。guide は 0.18%）
-#   insider  面接官席から見えること。このアカウントにしか書けない材料
 #   question 問いかけ。会話が始まる
+#
+# **2026-11-11（2回目）: insider（面接官席の視点）を外した。** 本人から
+# 「面接官の視点はもうどうでもいいかも」。2026-10-28 に «このアカウントにしか
+# 書けない材料» として足したが、実測は12本で表示中央2・人の反応0だった。
+# テンプレート（parts.INSIDER_NOTES）と persona の面接官の設定は残してある
+# （長文の中で «採用する側にも座る» と書くのは続ける。型として立てるのをやめた）。
 #
 # **短文を主役には戻さない。** 2026-11-04 の «短文・つぶやきばかりでは収益化を
 # 狙えない» は有効なので、長文2本と夜（late）の収益の導線は触らない。
 latemorning = [
     "guide",
-    "insider",
+    "casual",
     "guide",
     "question",
     "guide",
@@ -595,7 +600,7 @@ noon = [
     "longform",
     "casual",
     "comparison",
-    "insider",
+    "question",
     "longform",
     "question",
     "casual",

@@ -1871,6 +1871,122 @@ def cmd_follow(config: Config, args: argparse.Namespace) -> int:
     return EXIT_OK
 
 
+def cmd_trends(config: Config, args: argparse.Namespace) -> int:
+    """おすすめ（ホームタイムライン）に流れてくる投稿を分析する。
+
+    2026-11-11 の本人の指示。**集める仕組みは前からあった**（自動返信の
+    timeline source）。無かったのは分析のほうで、おすすめに いいね29,000 の
+    投稿が流れてきていたのに、どこにも集計されていなかった。
+
+    **取り入れていいのは «形» だけ**（長さ・1行目・改行・箇条書き・問いかけ・
+    絵文字・数字・「」）。本文や言い回しを写すのは CLAUDE.md §4 に触れる。
+    他人の本文は端末に出すだけで、公開される場所には書かない。
+    """
+    from .engage import trends as T
+
+    db_path = config.data_dir / "engage" / "engage.sqlite3"
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    con = T.connect(db_path)
+    try:
+        # --- 集める（ブラウザが要る。ローカル実行専用） ---
+        if args.collect:
+            from .engage.browser.session import ThreadsSession
+            from .engage.sources.timeline import TimelineSource
+
+            session = ThreadsSession(config, headless=not args.headed)
+            try:
+                session.start()
+                session.require_login()
+                source = TimelineSource(config)
+                source.scrolls = args.scrolls
+                found = source.collect(session, limit=args.take)
+            finally:
+                session.close()
+            saved = T.record(con, found)
+            dropped = T.prune(con)
+            print(f"\n  おすすめから {saved}件 記録しました"
+                  + (f"（古い行 {dropped}件 を整理）" if dropped else ""))
+
+        # 自動返信が貯めていたホームTLの行を、最初の1回だけ取り込む
+        if not con.execute("SELECT 1 FROM threads_trend_posts LIMIT 1").fetchone():
+            seeded = T.seed_from_seen(con)
+            if seeded:
+                print(f"\n  自動返信が貯めていたホームTLの {seeded}件 を取り込みました"
+                      "（本文が200字で切れているので、字数の比較には使いません）")
+
+        rows = T.rows_since(con, days=args.days)
+        if not rows:
+            print("\n  分析できる投稿がありません。"
+                  "`trends --collect` でおすすめを読み込んでください\n")
+            return EXIT_OK
+
+        # --- 伸びている投稿 ---
+        top = T.top_posts(con, days=args.days, limit=args.limit)
+        print(f"\n=== 伸びている投稿（直近{args.days}日・{len(rows)}件から上位{len(top)}）===")
+        for r in top:
+            head = (r["text_head"] or "").replace("\n", " ")[:52]
+            print(f"  ♥{r['likes']:>6} 💬{r['replies']:>4} {r['text_len']:>4}字 "
+                  f"@{(r['username'] or '')[:18]:<18} {head}")
+
+        # --- 形を比べる ---
+        cut = max(T.rows_since(con, days=args.days), key=lambda r: r["likes"])["likes"]
+        hot = [r for r in rows if r["likes"] >= max(cut // 10, 50)]
+        own = T.own_posts(config.data_dir / "history.jsonl", days=args.days)
+        shape_hot = T.shape_of([r["text_head"] for r in hot],
+                               lengths=[r["text_len"] for r in hot])
+        shape_all = T.shape_of([r["text_head"] for r in rows],
+                               lengths=[r["text_len"] for r in rows])
+        # **自分のタグは本文に入らない**（API の topic_tag）。別に渡す
+        shape_own = T.shape_of([t for t, _ in own], tags=[g for _, g in own])
+
+        print(f"\n=== 形（中身ではなく形だけ。取り入れていいのはここ）===")
+        print(T.Shape.header())
+        print(shape_hot.row("伸びてる投稿"))
+        print(shape_all.row("おすすめ全体"))
+        print(shape_own.row("自分の投稿"))
+
+        # --- 発信ジャンルの中で伸びているもの ---
+        # おすすめ（ホーム）は興味とフォロー先で決まるので、うちだと
+        # お弁当・猫・アイドルで埋まる。転職の語で検索した結果のほうが材料になる
+        genre = T.genre_top(con, days=args.days, limit=10)
+        if genre:
+            print(f"\n=== 転職の話で伸びている投稿（検索で見つけたもの・上位{len(genre)}）===")
+            for r in genre:
+                head = (r["text_head"] or "").replace("\n", " ")[:52]
+                print(f"  ♥{r['likes']:>6} 💬{r['replies']:>4} "
+                      f"@{(r['username'] or '')[:18]:<18} {head}")
+            shape_genre = T.shape_of([r["text_head"] for r in genre])
+            print(T.Shape.header())
+            print(shape_genre.row("転職で伸びてる"))
+            print(shape_own.row("自分の投稿"))
+
+        # --- 監視対象 ---
+        found = T.risers(con, days=max(args.days, 30),
+                         min_likes=args.min_likes, min_posts=2)
+        if found:
+            added = T.update_watchlist(config.data_dir, found)
+            print(f"\n=== 何度も伸びているアカウント（監視対象 {len(found)}）===")
+            for row in found[:12]:
+                mark = " ←新規" if row["username"] in added else ""
+                print(f"  @{row['username'][:24]:<24} {row['hits']}回  "
+                      f"最大♥{row['best']}{mark}")
+
+        # --- 点検 ---
+        gaps = T.differences(shape_hot, shape_own)
+        print("\n=== 点検 ===")
+        if gaps:
+            for g in gaps:
+                print(f"  ▲ {g}")
+            print("  （形の差です。**本文や言い回しは写さない**。"
+                  "取り入れるかは人が決めてください）")
+        else:
+            print("  形の差は小さい。いまの書き方はおすすめの投稿とそろっています")
+        print()
+    finally:
+        con.close()
+    return EXIT_OK
+
+
 def cmd_selftest(config: Config, args: argparse.Namespace) -> int:
     """認証情報なしで、生成〜コンプライアンスまでの経路を検証する。
 
@@ -1987,6 +2103,19 @@ def build_parser() -> argparse.ArgumentParser:
                           help="実際にフォローする（既定は下書き表示のみ）")
     p_follow.add_argument("--limit", type=int, default=0, help="今回の件数（既定は残り全部）")
     p_follow.add_argument("--headed", action="store_true", help="ブラウザを表示する")
+    p_trends = sub.add_parser(
+        "trends", help="おすすめに流れてくる投稿を分析する（投稿はしない）")
+    p_trends.add_argument("--collect", action="store_true",
+                          help="おすすめを読み込んでから分析する（ブラウザを使う）")
+    p_trends.add_argument("--days", type=int, default=14, help="分析する期間（既定14日）")
+    p_trends.add_argument("--limit", type=int, default=15, help="並べる投稿の数")
+    p_trends.add_argument("--min-likes", dest="min_likes", type=int, default=300,
+                          help="監視対象に入れるいいねの下限")
+    p_trends.add_argument("--scrolls", type=int, default=15,
+                          help="--collect のときスクロールする回数")
+    p_trends.add_argument("--take", type=int, default=80,
+                          help="--collect のとき1回に読む投稿の数")
+    p_trends.add_argument("--headed", action="store_true", help="ブラウザを表示する")
     p_engage = sub.add_parser(
         "engage", help="他人の投稿への返信を支援する（投稿はしない）")
     p_engage.add_argument("--check", metavar="TEXT",
@@ -2088,6 +2217,7 @@ def main(argv: list[str] | None = None) -> int:
         "revenue": cmd_revenue,
         "replies": cmd_replies,
         "follow": cmd_follow,
+        "trends": cmd_trends,
         "engage": cmd_engage,
         "autoreply": cmd_autoreply,
         "selftest": cmd_selftest,
