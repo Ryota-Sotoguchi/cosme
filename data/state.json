@@ -14,10 +14,12 @@
   ],
   "part_history": {
     "a8": [
+      "uzuz",
       "uzuz"
     ],
     "a8_invite": [
-      "a8_souba"
+      "a8_souba",
+      "a8_mayoi"
     ],
     "appeal": [
       "surprise",
@@ -450,7 +452,8 @@
     ],
     "guide_site": [
       "gs_koushou",
-      "gs_kyuujin_haba"
+      "gs_kyuujin_haba",
+      "gs_mikeiken"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1075,7 +1078,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 5,
+    "late": 6,
     "latemorning": 3,
     "midmorning": 0,
     "morning": 3,
@@ -1085,7 +1088,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "guide",
     "longform",
     "guide",
     "guide",
@@ -1104,7 +1106,8 @@
     "guide",
     "guide",
     "casual",
-    "guide"
+    "guide",
+    "guide_a8"
   ],
   "threads_token": {
     "expires_at": "2027-01-07T21:50:26.627814+00:00",
