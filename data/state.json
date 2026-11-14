@@ -451,7 +451,8 @@
       "g_ugokanai",
       "g_remote",
       "g_renraku",
-      "g_jiku"
+      "g_jiku",
+      "g_shibou"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1084,7 +1085,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 0,
-    "latemorning": 4,
+    "latemorning": 5,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1093,7 +1094,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "comparison",
     "guide_a8",
     "guide",
     "guide",
@@ -1112,7 +1112,8 @@
     "longform",
     "question",
     "guide",
-    "casual"
+    "casual",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2027-01-07T21:50:26.627814+00:00",
