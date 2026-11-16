@@ -458,7 +458,8 @@
       "g_jiku",
       "g_shibou",
       "g_shoudaku_mae",
-      "g_sankagetsu"
+      "g_sankagetsu",
+      "g_kuchikomi"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1093,7 +1094,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 2,
+    "late": 3,
     "latemorning": 0,
     "midmorning": 0,
     "morning": 3,
@@ -1103,7 +1104,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "longform",
     "guide",
     "guide_site",
     "guide",
@@ -1122,6 +1122,7 @@
     "casual",
     "guide",
     "question",
+    "guide",
     "guide"
   ],
   "threads_token": {
