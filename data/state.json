@@ -468,7 +468,8 @@
       "gs_koushou",
       "gs_kyuujin_haba",
       "gs_mikeiken",
-      "gs_agaranai"
+      "gs_agaranai",
+      "gs_shanai_soudan"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1099,7 +1100,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 3,
+    "late": 4,
     "latemorning": 1,
     "midmorning": 0,
     "morning": 3,
@@ -1109,7 +1110,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "guide",
     "guide",
     "guide",
     "casual",
@@ -1128,7 +1128,8 @@
     "guide",
     "guide",
     "longform",
-    "guide"
+    "guide",
+    "guide_site"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
