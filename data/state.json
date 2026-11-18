@@ -508,7 +508,6 @@
       "pn_shiyou"
     ],
     "question": [
-      "q_recommend",
       "q_morning_night",
       "q_page",
       "q_first_step",
@@ -707,7 +706,8 @@
       "q_first_salary",
       "q_kuchikomi",
       "q_nenshu_koushou",
-      "q_mensetsu_shitsumon"
+      "q_mensetsu_shitsumon",
+      "q_shigoto_yume"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1105,12 +1105,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 5,
+    "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "guide",
     "guide",
     "casual",
     "guide",
@@ -1129,7 +1128,8 @@
     "guide",
     "longform",
     "guide",
-    "guide_site"
+    "guide_site",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
