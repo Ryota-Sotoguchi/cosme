@@ -463,7 +463,8 @@
       "g_sankagetsu",
       "g_kuchikomi",
       "g_mikeiken",
-      "g_online"
+      "g_online",
+      "g_kanrishoku"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1102,7 +1103,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 5,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1111,7 +1112,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "guide_a8",
     "longform",
     "question",
     "guide",
@@ -1130,7 +1130,8 @@
     "question",
     "casual",
     "guide",
-    "casual"
+    "casual",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
