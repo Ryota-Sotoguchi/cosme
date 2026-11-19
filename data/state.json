@@ -46,7 +46,6 @@
       "conditional"
     ],
     "casual": [
-      "cm_l_season",
       "cm_l_night",
       "cm_season",
       "cm_holiday_soon",
@@ -245,7 +244,8 @@
       "cm_second_job",
       "cm_boss_reply",
       "cm_hitokoto",
-      "cm_mayoi"
+      "cm_mayoi",
+      "cm_kotoba"
     ],
     "casual_brand": [
       "brand",
@@ -1106,12 +1106,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 6,
+    "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "guide",
     "guide_a8",
     "longform",
     "question",
@@ -1130,7 +1129,8 @@
     "guide_site",
     "question",
     "casual",
-    "guide"
+    "guide",
+    "casual"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
