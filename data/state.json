@@ -468,7 +468,8 @@
       "g_kuchikomi",
       "g_mikeiken",
       "g_online",
-      "g_kanrishoku"
+      "g_kanrishoku",
+      "g_kyuujinhyou"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1109,7 +1110,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 6,
+    "late": 0,
     "latemorning": 4,
     "midmorning": 0,
     "morning": 3,
@@ -1119,7 +1120,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "guide",
     "guide_a8",
     "comparison",
@@ -1138,7 +1138,8 @@
     "guide",
     "guide_a8",
     "longform",
-    "question"
+    "question",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
