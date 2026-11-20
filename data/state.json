@@ -515,7 +515,6 @@
       "pn_shiyou"
     ],
     "question": [
-      "q_morning_night",
       "q_page",
       "q_first_step",
       "q_sunscreen",
@@ -714,7 +713,8 @@
       "q_kuchikomi",
       "q_nenshu_koushou",
       "q_mensetsu_shitsumon",
-      "q_shigoto_yume"
+      "q_shigoto_yume",
+      "q_senpai"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1110,7 +1110,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 6,
-    "latemorning": 3,
+    "latemorning": 4,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1119,7 +1119,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "guide",
     "casual",
     "guide",
     "guide_a8",
@@ -1138,7 +1137,8 @@
     "casual",
     "guide",
     "guide_a8",
-    "longform"
+    "longform",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
