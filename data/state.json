@@ -17,13 +17,15 @@
       "uzuz",
       "uzuz",
       "uzuz",
+      "uzuz",
       "uzuz"
     ],
     "a8_invite": [
       "a8_souba",
       "a8_mayoi",
       "a8_hitori",
-      "a8_aidani"
+      "a8_aidani",
+      "a8_kyuujin"
     ],
     "appeal": [
       "surprise",
@@ -478,7 +480,8 @@
       "gs_mikeiken",
       "gs_agaranai",
       "gs_shanai_soudan",
-      "gs_kibou"
+      "gs_kibou",
+      "gs_naitei_hikaku"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1111,7 +1114,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 0,
+    "late": 1,
     "latemorning": 5,
     "midmorning": 0,
     "morning": 3,
@@ -1121,7 +1124,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "comparison",
     "casual",
     "guide",
     "question",
@@ -1140,7 +1142,8 @@
     "question",
     "guide",
     "casual",
-    "guide"
+    "guide",
+    "guide_a8"
   ],
   "threads_token": {
     "expires_at": "2027-01-14T22:37:26.670639+00:00",
