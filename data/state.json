@@ -527,7 +527,6 @@
       "pn_shiyou"
     ],
     "question": [
-      "q_first_step",
       "q_sunscreen",
       "q_hair_dry",
       "q_travel",
@@ -726,7 +725,8 @@
       "q_mensetsu_shitsumon",
       "q_shigoto_yume",
       "q_senpai",
-      "q_monday"
+      "q_monday",
+      "q_teiji"
     ],
     "recommend_closing": [
       "rl_fit",
@@ -1130,12 +1130,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 5,
+    "noon": 6,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "guide_site",
     "question",
     "casual",
     "guide",
@@ -1154,7 +1153,8 @@
     "question",
     "guide",
     "longform",
-    "guide"
+    "guide",
+    "question"
   ],
   "threads_token": {
     "expires_at": "2027-01-21T23:24:45.252267+00:00",
