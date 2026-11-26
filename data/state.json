@@ -50,7 +50,6 @@
       "conditional"
     ],
     "casual": [
-      "cm_train",
       "cm_gift",
       "cm_weekend_pouch",
       "cm_sunday",
@@ -249,7 +248,8 @@
       "cm_kotoba",
       "cm_seichou",
       "cm_tensyoku_katsudou",
-      "cm_short_tensyoku"
+      "cm_short_tensyoku",
+      "cm_long_taishoku"
     ],
     "casual_brand": [
       "brand",
@@ -1130,12 +1130,11 @@
     "midmorning": 0,
     "morning": 3,
     "night": 2,
-    "noon": 6,
+    "noon": 0,
     "predinner": 2,
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "guide",
     "casual",
     "guide",
@@ -1154,6 +1153,7 @@
     "longform",
     "guide",
     "question",
+    "casual",
     "casual"
   ],
   "threads_token": {
