@@ -479,7 +479,8 @@
       "g_jikoshoukai",
       "g_hanashikata",
       "g_hikitome",
-      "g_tetsuzuki"
+      "g_tetsuzuki",
+      "g_fukugyou"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1126,7 +1127,7 @@
     "earlynight": 5,
     "evening": 2,
     "late": 2,
-    "latemorning": 2,
+    "latemorning": 3,
     "midmorning": 0,
     "morning": 3,
     "night": 2,
@@ -1135,7 +1136,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "guide",
     "casual",
     "guide",
     "guide_a8",
@@ -1154,7 +1154,8 @@
     "guide",
     "question",
     "casual",
-    "casual"
+    "casual",
+    "guide"
   ],
   "threads_token": {
     "expires_at": "2027-01-21T23:24:45.252267+00:00",
