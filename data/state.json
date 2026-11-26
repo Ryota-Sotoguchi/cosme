@@ -480,7 +480,8 @@
       "g_hanashikata",
       "g_hikitome",
       "g_tetsuzuki",
-      "g_fukugyou"
+      "g_fukugyou",
+      "g_shikaku"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1126,7 +1127,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 2,
+    "late": 3,
     "latemorning": 3,
     "midmorning": 0,
     "morning": 3,
@@ -1136,7 +1137,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "guide",
     "guide_a8",
     "longform",
@@ -1155,6 +1155,7 @@
     "question",
     "casual",
     "casual",
+    "guide",
     "guide"
   ],
   "threads_token": {
