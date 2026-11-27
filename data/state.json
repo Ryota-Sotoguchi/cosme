@@ -492,7 +492,8 @@
       "gs_agaranai",
       "gs_shanai_soudan",
       "gs_kibou",
-      "gs_naitei_hikaku"
+      "gs_naitei_hikaku",
+      "gs_chiiki"
     ],
     "howto": [
       "hw_first_cosme",
@@ -1131,7 +1132,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 3,
+    "late": 4,
     "latemorning": 4,
     "midmorning": 0,
     "morning": 3,
@@ -1141,7 +1142,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "longform",
     "question",
     "guide",
     "casual",
@@ -1160,7 +1160,8 @@
     "guide",
     "guide",
     "longform",
-    "question"
+    "question",
+    "guide_site"
   ],
   "threads_token": {
     "expires_at": "2027-01-21T23:24:45.252267+00:00",
