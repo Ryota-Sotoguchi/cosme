@@ -484,7 +484,8 @@
       "g_tetsuzuki",
       "g_fukugyou",
       "g_shikaku",
-      "g_kaisuu_kuuhaku"
+      "g_kaisuu_kuuhaku",
+      "g_zaishoku"
     ],
     "guide_site": [
       "gs_koushou",
@@ -1133,7 +1134,7 @@
     "autoreply_shape": 1,
     "earlynight": 5,
     "evening": 2,
-    "late": 4,
+    "late": 5,
     "latemorning": 5,
     "midmorning": 0,
     "morning": 3,
@@ -1143,7 +1144,6 @@
     "price_band_window": 2
   },
   "template_history": [
-    "casual",
     "guide",
     "guide_a8",
     "comparison",
@@ -1162,6 +1162,7 @@
     "question",
     "guide_site",
     "casual",
+    "guide",
     "guide"
   ],
   "threads_token": {
